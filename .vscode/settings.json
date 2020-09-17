@@ -1,0 +1,14 @@
+{
+  "editor.tabSize": 2,
+  "editor.rulers": [80],
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "nim.buildOnSave": false,
+  "nim.lintOnSave": true,
+  "nim.project": [],
+  "files.exclude": {
+    "**/.nimcache/**": true
+  }
+}

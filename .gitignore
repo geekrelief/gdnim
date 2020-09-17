@@ -1,0 +1,8 @@
+/app/.import
+/app/_dlls
+/deps/godotapi
+/logs
+nimcache
+.nimcache
+*.exe
+*.pdb
