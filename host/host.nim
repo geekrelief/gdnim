@@ -1,6 +1,6 @@
 import godot
 import godotapi / [engine, node]
-import godotapi / [resource_loader, packed_scene, scene_tree, viewport]
+import godotapi / [resource_loader, packed_scene, scene_tree, viewport, label]
 import dynlib, locks
 import times
 import strformat
@@ -83,5 +83,10 @@ gdobj Host of Node:
 
     let scene = load("res://main.tscn") as PackedScene
     let root = self.getTree().root
-    root.call_deferred("add_child", toVariant(scene.instance()))
+    var inst:Node = scene.instance()
+    var instRoot:Label = inst.getChild(0) as Label
+    instRoot.text = "Modified Main Scene"
+    print instRoot.text
+
+    root.call_deferred("add_child", toVariant(inst))
     result = a * b

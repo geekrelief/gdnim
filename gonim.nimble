@@ -1,5 +1,5 @@
 import strformat
-import strutils
+from os import getLastModificationTime
 
 # Package
 
@@ -56,5 +56,22 @@ task host, "build the host dll":
   checkGccDlls()
 
 task comp, "build the component(s) dll":
-  exec &"nim c --skipParentCfg --path:deps --path:deps/godot --app:lib --noMain --warning[LockLevel]:off --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --o:app/_dlls/component.dll components/component.nim"
+  #exec &"nim c --skipParentCfg --path:deps --path:deps/godot --app:lib --noMain --warning[LockLevel]:off --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --o:app/_dlls/component.dll components/component.nim"
+  exec &"nim c --skipParentCfg --path:deps --path:deps/godot --o:app/_dlls/component.dll components/component.nim"
   checkGccDlls()
+
+proc genComponent(compName:string) =
+  if not fileExists("components/gengdns.exe"):
+    exec &"nim c --skipProjCfg --skipParentCfg --app:console --o:components/gengdns.exe components/gengdns.nim"
+
+  if not fileExists(&"app/gdns/{compName}.gdns"):
+    exec &"components/gengdns.exe {compName}"
+
+  let dllFileName = &"app/_dlls/{compName}_actual.dll"
+  let nimFileName = &"components/{compName}.nim"
+  if not fileExists(dllFileName) or getLastModificationTime(nimFileName) > getLastModificationTime(dllFileName):
+    exec &"nim c --skipParentCfg --path:deps --path:deps/godot --o:app/_dlls/{compName}_actual.dll components/{compName}.nim"
+
+task plugin, "build plugin":
+  let compName = "plugin"
+  genComponent(compName)
