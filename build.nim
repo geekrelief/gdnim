@@ -1,9 +1,5 @@
-import macros
-import strformat
-import strutils
 from os import getLastModificationTime, commandLineParams
-import parseopt
-import sequtils
+from sequtils import filterIt
 
 # Dependencies
 #requires "godot >= 0.8.1"
