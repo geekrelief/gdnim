@@ -27,8 +27,7 @@ if params.len == 0:
 # check nimble path to see if the version >= requirements
 # requires compiler
 
-if params.len == 1:
+if params.len >= 1:
   let matches = tasks.filterIt(it.task_name == params[0])
   if matches.len == 1:
-    echo "executing ", params[0]
     matches[0].task_proc()
