@@ -20,7 +20,7 @@ let params = commandLineParams()
 if params.len == 0:
   echo "Call build with a task:"
   for i in 0..<tasks.len:
-    echo "\t", tasks[i].task_name
+    echo "  ", tasks[i].task_name, " : ", tasks[i].description
   quit()
 
 # TODO

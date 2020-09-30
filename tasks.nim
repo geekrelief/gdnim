@@ -35,7 +35,7 @@ proc checkGccDlls() =
     if not fileExists(&"app/_dlls/{dll}.dll"):
       echo "Missing app/_dlls/{dll}.dll, please copy from gcc/bin"
 
-task cleandll, "clean the dlls":
+task cleandll, "clean the dlls, arguments are component names, default all non-gcc dlls":
   let dllDir = "app/_dlls"
   var dllPaths:seq[string]
   if commandLineParams().len > 1:
@@ -54,9 +54,13 @@ task host, "build the host dll":
   checkGccDlls()
   discard execShellCmd "nim c --path:deps --path:deps/godot --path:host --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/host.dll gonim.nim"
 
-task comp, "build the component(s) dll":
+task test_comp, "build the component(s) dll":
   checkGccDlls()
   discard execShellCmd "nim c --path:deps --path:deps/godot --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/component.dll components/component.nim"
+
+task watcher, "build the watcher dll":
+  checkGccDlls()
+  discard execShellCmd "nim c --path:deps --path:deps/godot --path:host --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/watcher.dll host/watcher.nim"
 
 # components generator
 const gdns_template = """
@@ -72,10 +76,14 @@ class_name = "$2"
 library = SubResource( 1 )
 """
 
-task gencomp, "generate a component":
+# components are named {compName}_actual.dll and
+# are loaded by the host.dll via resources. At runtime, the host.dll will copy
+# the {compName}_actual.dll to the {compName}.dll and monitor the _dlls
+# folder to see if _actual.dll is rebuilt.
+task comp, "build component and generate a gdns file":
   let params = commandLineParams()
   if params.len < 2:
-    echo "gencomp needs a component name\n  .\\build gencomp (comp_name)"
+    echo "comp needs a component name\n  .\\build gencomp (comp_name)"
     quit()
   let compName = params[1]
 
@@ -95,6 +103,8 @@ task gencomp, "generate a component":
     echo &"generated {gdns}"
 
   if not fileExists(dllFilePath) or getLastModificationTime(nimFilePath) > getLastModificationTime(dllFilePath):
-    let res = execShellCmd &"nim c --path:deps --path:deps/godot --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:{dllFilePath} {nimFilePath}"
-    if res == 0 and not fileExists(hotdllFilePath):
-      copyFile(dllFilePath, hotdllFilePath)
+    discard execShellCmd &"nim c --path:deps --path:deps/godot --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:{dllFilePath} {nimFilePath}"
+
+  if fileExists(dllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(dllFilePath) and
+    (not fileExists(hotdllFilePath) or (params.len == 3 and params[2] == "-f")):
+    copyFile(dllFilePath, hotdllFilePath)
