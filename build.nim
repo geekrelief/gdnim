@@ -1,8 +1,8 @@
-from os import getLastModificationTime, commandLineParams
 from sequtils import filterIt
 
 # Dependencies
 #requires "godot >= 0.8.1"
+#requires "msgpack4nim"
 
 type
   Task = tuple[task_name:string, description:string, task_proc: proc():void {.nimcall.}]
@@ -23,9 +23,6 @@ if params.len == 0:
     echo "  ", tasks[i].task_name, " : ", tasks[i].description
   quit()
 
-# TODO
-# check nimble path to see if the version >= requirements
-# requires compiler
 
 if params.len >= 1:
   let matches = tasks.filterIt(it.task_name == params[0])
