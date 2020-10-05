@@ -109,5 +109,5 @@ task comp, "build component and generate a gdns file":
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
     (not fileExists(hotDllFilePath) or (params.len == 3 and params[2] == "-f")):
-    echo "dll copying safe to hot"
-    copyFile(safeDllFilePath, hotDllFilePath)
+    echo "move safe to hot"
+    moveFile(safeDllFilePath, hotDllFilePath)

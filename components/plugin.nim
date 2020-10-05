@@ -6,13 +6,13 @@ import watcher
 
 gdobj Plugin of Sprite:
   var startPos* {.gdExport.}:Vector2
-  var radius* {.gdExport.}:int = 30
+  var radius* {.gdExport.}:int = 60
   var speed* {.gdExport.}:float = 0.5
   var startTime:DateTime
 
   method ready*() =
     print "Plugin ready"
-    self.startPos = self.position
+    self.startPos = self.position + vec2(200.0, 100.0)
     self.startTime = now()
 
     var watcher = self.get_parent() as Watcher
@@ -26,7 +26,8 @@ gdobj Plugin of Sprite:
   method process*(delta: float64) =
     var deltaSeconds:float64 =  float64((now() - self.startTime).inMilliseconds()) / 1000.0
     var delta_angle = deltaSeconds * self.speed * TAU
-    self.position = vec2(self.startPos.x + self.radius.toFloat * cos(delta_angle), self.startPos.y + self.radius.toFloat * sin(delta_angle))
+    self.position = vec2(self.startPos.x + 2 * self.radius.toFloat * cos(delta_angle) + self.radius.toFloat * cos(2.25*delta_angle),
+      self.startPos.y + self.radius.toFloat * sin(2*delta_angle) + self.radius.toFloat * sin(0.01*self.position.x))
 
   proc onPreReload*():string =
     try:

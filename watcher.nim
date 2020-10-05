@@ -15,11 +15,13 @@ gdobj Watcher of Node:
 
   var enableWatch {.gdExport.}:bool = true
   var watchIntervalSeconds {.gdExport.}:float = 3
+  var reloadIntervalSeconds {.gdExport.}:float = 0.1
   var compName {.gdExport.}:string
 
   var isReady:bool
   var isReloading:bool
   var watchElapsedSeconds:float
+  var reloadElapsedSeconds:float
   var dllSafePath:string
   var dllHotPath:string
   var gdnsPath:string
@@ -32,11 +34,8 @@ gdobj Watcher of Node:
     self.dllHotPath = &"{dllDir}/{self.compName}.dll"
     self.gdnsPath = &"res://gdns/{self.compName}.gdns"
 
-    if fileExists(self.dllSafePath) and resource_loader.exists(self.gdnsPath):
-      print &"{self.dllSafePath} last mod time {$getLastModificationTime(self.dllSafePath)}"
-      print &"{self.dllHotPath} last mod time {$getLastModificationTime(self.dllHotPath)}"
+    if fileExists(self.dllHotPath) and resource_loader.exists(self.gdnsPath):
       self.createSprite()
-
 
   proc setPreReloadCB*(cb:proc():string {.gcsafe, locks:0.}) =
     self.compPreReloadCB = cb
@@ -79,13 +78,17 @@ gdobj Watcher of Node:
 
     if self.isReloading:
       if not resource_loader.has_cached(self.gdnsPath):
+        if self.reloadElapsedSeconds < self.reloadIntervalSeconds:
+          self.reloadElapsedSeconds += delta
+          return
+        self.reloadElapsedSeconds = 0.0
         try:
-          print &"Watcher {self.compName} dll copying safe to hot"
-          copyFile(self.dllSafePath, self.dllHotPath)
-          print &"Watcher Success! copyFile {self.dllSafePath} to {self.dllHotPath} worked!"
+          print &"Watcher {self.compName} dll move safe to hot"
+          moveFile(self.dllSafePath, self.dllHotPath)
+          print &"Watcher Success! moveFile {self.dllSafePath} to {self.dllHotPath} worked!"
           self.afterReload()
         except:
-          print &"Fail! could not copyFile {self.dllSafePath} to {self.dllHotPath}"
+          print &"Fail! could not moveFile {self.dllSafePath} to {self.dllHotPath}"
           self.isReady = false # could not copy the dll and reload the sprite
 
       self.isReloading = false
@@ -95,6 +98,6 @@ gdobj Watcher of Node:
     if self.watchElapsedSeconds > self.watchIntervalSeconds:
       self.watchElapsedSeconds = 0.0
 
-      if not self.isReloading and getLastModificationTime(self.dllSafePath) > getLastModificationTime(self.dllHotPath):
+      if not self.isReloading and fileExists(self.dllSafePath) and getLastModificationTime(self.dllSafePath) > getLastModificationTime(self.dllHotPath):
         self.beforeReload()
         self.isReloading = true
