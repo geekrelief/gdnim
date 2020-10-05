@@ -4,4 +4,5 @@
 
 [node name="Watcher" type="Node"]
 script = ExtResource( 1 )
+watch_interval_seconds = 0.4
 comp_name = "plugin"

@@ -40,7 +40,7 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
   var dllPaths:seq[string]
   if commandLineParams().len > 1:
     dllPaths = commandLineParams()[1..^1].mapIt(&"{dllDir}/{it}.dll")
-    dllPaths &= commandLineParams()[1..^1].mapIt(&"{dllDir}/{it}_actual.dll")
+    dllPaths &= commandLineParams()[1..^1].mapIt(&"{dllDir}/{it}_safe.dll")
   else:
     dllPaths = toSeq(walkFiles(&"{dllDir}/*.dll"))
       .filterIt splitFile(it)[1] notin gccDlls
@@ -50,17 +50,19 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
     removeFile dllPath
   checkGccDlls()
 
+#testing
 task host, "build the host dll":
   checkGccDlls()
   discard execShellCmd "nim c --path:deps --path:deps/godot --path:host --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/host.dll gonim.nim"
 
+#testing
 task test_comp, "build the component(s) dll":
   checkGccDlls()
   discard execShellCmd "nim c --path:deps --path:deps/godot --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/component.dll components/component.nim"
 
 task watcher, "build the watcher dll":
   checkGccDlls()
-  discard execShellCmd "nim c --path:deps --path:deps/godot --path:host --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/watcher.dll host/watcher.nim"
+  discard execShellCmd "nim c --path:deps --path:deps/godot --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/watcher.dll watcher.nim"
 
 # components generator
 const gdns_template = """
@@ -76,10 +78,10 @@ class_name = "$2"
 library = SubResource( 1 )
 """
 
-# components are named {compName}_actual.dll and
-# are loaded by the host.dll via resources. At runtime, the host.dll will copy
-# the {compName}_actual.dll to the {compName}.dll and monitor the _dlls
-# folder to see if _actual.dll is rebuilt.
+# components are named {compName}_safe.dll and
+# are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
+# the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
+# folder to see if _safe.dll is rebuilt.
 task comp, "build component and generate a gdns file":
   let params = commandLineParams()
   if params.len < 2:
@@ -87,8 +89,8 @@ task comp, "build component and generate a gdns file":
     quit()
   let compName = params[1]
 
-  let dllFilePath = &"app/_dlls/{compName}_actual.dll"
-  let hotdllFilePath = &"app/_dlls/{compName}.dll"
+  let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
+  let hotDllFilePath = &"app/_dlls/{compName}.dll"
   let nimFilePath = &"components/{compName}.nim"
   if not fileExists(nimFilePath):
     echo &"Error compiling {nimFilePath} [Not Found]"
@@ -102,10 +104,10 @@ task comp, "build component and generate a gdns file":
     f.close()
     echo &"generated {gdns}"
 
-  if not fileExists(dllFilePath) or getLastModificationTime(nimFilePath) > getLastModificationTime(dllFilePath):
-    discard execShellCmd &"nim c --path:deps --path:deps/godot --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:{dllFilePath} {nimFilePath}"
+  if not fileExists(safeDllFilePath) or getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath):
+    discard execShellCmd &"nim c --path:deps --path:deps/godot --path:. --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:{safeDllFilePath} {nimFilePath}"
 
-  if fileExists(dllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(dllFilePath) and
-    (not fileExists(hotdllFilePath) or (params.len == 3 and params[2] == "-f")):
-    echo "dll copying actual to hot"
-    copyFile(dllFilePath, hotdllFilePath)
+  if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
+    (not fileExists(hotDllFilePath) or (params.len == 3 and params[2] == "-f")):
+    echo "dll copying safe to hot"
+    copyFile(safeDllFilePath, hotDllFilePath)
