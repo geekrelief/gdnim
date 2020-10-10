@@ -66,7 +66,7 @@ task watcher, "build the watcher dll":
 
 task storage, "build the storage dll":
   checkGccDlls()
-  discard execShellCmd &"nim c {sharedFlags} --o:app/_dlls/storage.dll storage.nim"
+  discard execShellCmd &"nim c --d:exportStorage {sharedFlags} --o:app/_dlls/storage.dll storage.nim"
 
 task core, "build the core":
   watcherTask()

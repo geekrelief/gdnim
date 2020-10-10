@@ -1,6 +1,6 @@
 import godot
 import godotapi / node
-import storage_api
+import storage
 import strformat
 import tables
 

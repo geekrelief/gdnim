@@ -2,7 +2,7 @@ import godot
 import godotapi / [global_constants, engine, node, objects]
 import godotapi / [resource_loader, texture, sprite, packed_scene, scene_tree, viewport, label]
 import os, strutils, strformat, times, sequtils
-import storage_api
+import storage
 
 const dllDir:string = "_dlls"
 
