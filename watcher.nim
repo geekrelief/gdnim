@@ -1,50 +1,57 @@
 import godot
-import godotapi / [engine, node]
+import godotapi / [global_constants, engine, node, objects]
 import godotapi / [resource_loader, texture, sprite, packed_scene, scene_tree, viewport, label]
-import dynlib, locks
-import times
-import strformat
-import os, threadpool
-import strutils, strformat, times
-import msgpack4nim
-export msgpack4nim
+import os, strutils, strformat, times, sequtils
+import storage_api
 
 const dllDir:string = "_dlls"
+
+#anycase crashes when used in this module
+func pascal(s:string):string =
+  var parts = split(s, '_')
+  let capitalizedParts = map(parts, capitalizeAscii)
+  return join(capitalizedParts)
+
+func safeDllPath(compName:string):string =
+  &"{dllDir}/{compName}_safe.dll"
+func hotDllPath(compName:string):string =
+  &"{dllDir}/{compname}.dll"
+func resourcePath(compName:string):string =
+  &"res://{compName.pascal}.tscn"
 
 gdobj Watcher of Node:
 
   var enableWatch {.gdExport.}:bool = true
-  var watchIntervalSeconds {.gdExport.}:float = 3
-  var reloadIntervalSeconds {.gdExport.}:float = 0.1
-  var compName {.gdExport.}:string
+  var watchIntervalSeconds {.gdExport.}:float = 0.5
+  var reloadIntervalSeconds {.gdExport.}:float = 1
 
-  var isReady:bool
-  var isReloading:bool
+  var reloadingComps:seq[string]
   var watchElapsedSeconds:float
   var reloadElapsedSeconds:float
-  var dllSafePath:string
-  var dllHotPath:string
-  var gdnsPath:string
 
-  var compData:string
-  var compPreReloadCB: proc():string {.gcsafe, locks:0.}
+  method init() =
+    var arg0 = newDictionary()
+    arg0["name".toVariant] = "comp_name".toVariant
+    arg0["type".toVariant] = TYPE_STRING.toVariant
+    var args = newArray(arg0.toVariant)
+    print "Watcher: addUserSignal"
+    self.addUserSignal("reload", args)
 
-  method enter_tree*() =
-    self.dllSafePath = &"{dllDir}/{self.compName}_safe.dll"
-    self.dllHotPath = &"{dllDir}/{self.compName}.dll"
-    self.gdnsPath = &"res://gdns/{self.compName}.gdns"
+  method ready() =
+    print "Watcher: trying to getBeforeReloadProcs"
+    let beforeReloadProcs = getBeforeReloadProcs()
+    var count = beforeReloadProcs.len
+    print &"Watcher: got beforeReloadProcs {count}"
+    var err = self.connect("reload", self, "on_reload")
+    print &"Watcher connect error: {err}"
+    print "Watcher emit reload"
+    self.emitSignal("reload", "test_comp".toVariant)
 
-    if fileExists(self.dllHotPath) and resource_loader.exists(self.gdnsPath):
-      self.createSprite()
-
-  proc setPreReloadCB*(cb:proc():string {.gcsafe, locks:0.}) =
-    self.compPreReloadCB = cb
-
-  proc takePostReload*():string =
-    result = self.compData
-    self.compData = ""
-
-
+  proc onReload*(vcompName:Variant) {.gdExport.} =
+    var compName:string
+    discard compName.fromVariant(vcompName)
+    print &"Watcher onReload {compName}"
+  #[
   proc createSprite() =
     var gdns = resource_loader.load(self.gdnsPath)
     if not isNil(gdns):
@@ -72,32 +79,51 @@ gdobj Watcher of Node:
   proc afterReload() =
     print "Watcher creatingSprite and restoring data"
     self.createSprite()
+  ]#
 
-  method process*(delta: float64) =
-    if not self.enableWatch or not self.isReady: return
+  method process(delta: float64) =
+    if not self.enableWatch: return
 
-    if self.isReloading:
-      if not resource_loader.has_cached(self.gdnsPath):
-        if self.reloadElapsedSeconds < self.reloadIntervalSeconds:
-          self.reloadElapsedSeconds += delta
-          return
-        self.reloadElapsedSeconds = 0.0
-        try:
-          print &"Watcher {self.compName} dll move safe to hot"
-          moveFile(self.dllSafePath, self.dllHotPath)
-          print &"Watcher Success! moveFile {self.dllSafePath} to {self.dllHotPath} worked!"
-          self.afterReload()
-        except:
-          print &"Fail! could not moveFile {self.dllSafePath} to {self.dllHotPath}"
-          self.isReady = false # could not copy the dll and reload the sprite
+    if self.reloadingComps.len > 0:
+      if self.reloadElapsedSeconds < self.reloadIntervalSeconds:
+        self.reloadElapsedSeconds += delta
+        return
+      self.reloadElapsedSeconds = 0.0
 
-      self.isReloading = false
+      print "Watcher: check self.reloadingComps"
+      var finReloadedComps:seq[string]
+      for compName in self.reloadingComps:
+        if not resource_loader.has_cached(compName.resourcePath):
+          try:
+            print &"Watcher {compName} dll move safe to hot"
+            moveFile(compName.safeDllPath, compName.hotDllPath)
+            print &"Watcher Success! moveFile {compName.safeDllPath} to {compName.hotDllPath} worked!"
+            #reload the scene
+            var pscene = resource_loader.load(compName.resourcePath) as PackedScene
+            #TODO: lookup where to insert instead of under the Watcher
+            self.call_deferred("add_child", toVariant(pscene.instance()))
+          except:
+            print &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
+
+          finReloadedComps.add compName
+
+      self.reloadingComps = self.reloadingComps.filterIt(not (it in finReloadedComps))
       return
 
     self.watchElapsedSeconds += delta
     if self.watchElapsedSeconds > self.watchIntervalSeconds:
       self.watchElapsedSeconds = 0.0
 
-      if not self.isReloading and fileExists(self.dllSafePath) and getLastModificationTime(self.dllSafePath) > getLastModificationTime(self.dllHotPath):
-        self.beforeReload()
-        self.isReloading = true
+      let beforeReloadProcs = getBeforeReloadProcs()
+      for compName in beforeReloadProcs.keys:
+        #print &"Watcher checking {compName}"
+        if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
+          print &"Watcher: detected new {compName}"
+          #beforeReloadProcs[compName]()
+          #emit signal or deferred call
+          print &"added reloading {compName}"
+          self.reloadingComps.add(compName)
+
+  method notification(what:int64) =
+    if what == NOTIFICATION_PREDELETE:
+      print "Watcher: predelete"

@@ -8,11 +8,12 @@
       "name": "Godot",
       "type": "godot",
       "request": "launch",
-      "project": "${workspaceFolder}",
+      "project": "${workspaceFolder}/app",
       "port": 6007,
       "address": "127.0.0.1",
       "launch_game_instance": true,
-      "launch_scene": false
+      "launch_scene": false,
+      "scene_file": "" // active if launch_scene is true
     }
   ]
 }

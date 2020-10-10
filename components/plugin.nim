@@ -2,7 +2,7 @@ import godot
 import godotapi / [sprite]
 import math
 import times
-import watcher
+import storage_api
 
 gdobj Plugin of Sprite:
   var startPos* {.gdExport.}:Vector2
@@ -10,7 +10,7 @@ gdobj Plugin of Sprite:
   var speed* {.gdExport.}:float = 0.5
   var startTime:DateTime
 
-  method ready*() =
+  method ready() =
     print "Plugin ready"
     self.startPos = self.position + vec2(200.0, 100.0)
     self.startTime = now()
@@ -23,13 +23,19 @@ gdobj Plugin of Sprite:
     )
 
 
-  method process*(delta: float64) =
+  method process(delta: float64) =
     var deltaSeconds:float64 =  float64((now() - self.startTime).inMilliseconds()) / 1000.0
     var delta_angle = deltaSeconds * self.speed * TAU
-    self.position = vec2(self.startPos.x + 2 * self.radius.toFloat * cos(delta_angle) + self.radius.toFloat * cos(2.25*delta_angle),
-      self.startPos.y + self.radius.toFloat * sin(2*delta_angle) + self.radius.toFloat * sin(0.01*self.position.x))
+    var first = true
+    if first:
+      self.position = vec2(self.startPos.x + 2 * self.radius.toFloat * cos(delta_angle) + self.radius.toFloat * cos(2.25*delta_angle),
+        self.startPos.y + self.radius.toFloat * sin(2*delta_angle) + self.radius.toFloat * sin(0.01*self.position.x))
+    else:
+      self.position = vec2(self.startPos.x + 2 * self.radius.toFloat * cos(delta_angle),
+        self.startPos.y + self.radius.toFloat * sin(2*delta_angle))
 
-  proc onPreReload*():string =
+
+  proc onPreReload():string =
     try:
       print "Plugin.onPreReload saving data to MsgStream"
       result = pack(self.radius)
@@ -37,7 +43,7 @@ gdobj Plugin of Sprite:
     except:
       print "Plugin.onPreReload error"
 
-  proc onPostReload*(data:string) =
+  proc onPostReload(data:string) =
     if data.len == 0:
       print "Plugin.onPostReload data is empty"
       return

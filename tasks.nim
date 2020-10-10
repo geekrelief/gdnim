@@ -3,6 +3,7 @@ import godotapigen
 from sequtils import toSeq, filter, mapIt
 import os
 import times
+import anycase
 
 task cleanapi, "clean generated api":
   removeDir "logs"
@@ -55,14 +56,25 @@ task host, "build the host dll":
   checkGccDlls()
   discard execShellCmd "nim c --path:deps --path:deps/godot --path:host --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/host.dll gonim.nim"
 
-#testing
-task test_comp, "build the component(s) dll":
-  checkGccDlls()
-  discard execShellCmd "nim c --path:deps --path:deps/godot --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/component.dll components/component.nim"
+
+var sharedFlags = "--stackTrace:on --app:lib --noMain --gc:arc --d:useMalloc --warning[LockLevel]:off --hint[Processing]:off"
+
 
 task watcher, "build the watcher dll":
   checkGccDlls()
-  discard execShellCmd "nim c --path:deps --path:deps/godot --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/watcher.dll watcher.nim"
+  discard execShellCmd &"nim c --path:deps --path:deps/godot {sharedFlags} --o:app/_dlls/watcher.dll watcher.nim"
+
+task storage, "build the storage dll":
+  checkGccDlls()
+  discard execShellCmd &"nim c {sharedFlags} --o:app/_dlls/storage.dll storage.nim"
+
+task core, "build the core":
+  watcherTask()
+  storageTask()
+
+task fcore, "force rebuild the core":
+  sharedFlags = "--forceBuild:on " & sharedFlags
+  coreTask()
 
 # components generator
 const gdns_template = """
@@ -85,9 +97,9 @@ library = SubResource( 1 )
 task comp, "build component and generate a gdns file":
   let params = commandLineParams()
   if params.len < 2:
-    echo "comp needs a component name\n  .\\build gencomp (comp_name)"
+    echo "comp needs a component name\n  .\\build comp (comp_name)"
     quit()
-  let compName = params[1]
+  let compName = params[1].snake
 
   let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
   let hotDllFilePath = &"app/_dlls/{compName}.dll"
@@ -98,16 +110,20 @@ task comp, "build component and generate a gdns file":
 
   let gdns = &"app/gdns/{compName}.gdns"
   if not fileExists(gdns):
-    var gdnsContent = gdns_template % [compName, compName.capitalizeAscii]
+    var gdnsContent = gdns_template % [compName, compName.pascal]
     var f = open(gdns, fmWrite)
     f.write(gdnsContent)
     f.close()
     echo &"generated {gdns}"
 
-  if not fileExists(safeDllFilePath) or getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath):
-    discard execShellCmd &"nim c --path:deps --path:deps/godot --path:. --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:{safeDllFilePath} {nimFilePath}"
+  #if not fileExists(safeDllFilePath) or getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath):
+  discard execShellCmd &"nim c --path:deps --path:deps/godot --path:. {sharedFlags} --o:{safeDllFilePath} {nimFilePath}"
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
     (not fileExists(hotDllFilePath) or (params.len == 3 and params[2] == "-f")):
     echo "move safe to hot"
     moveFile(safeDllFilePath, hotDllFilePath)
+
+task fcomp, "force rebuild the component":
+  sharedFlags = "--forceBuild:on " & sharedFlags
+  compTask()
