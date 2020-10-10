@@ -188,9 +188,6 @@ proc deinit*(obj: NimGodotObject) =
   obj.godotObject.deinit()
   obj.godotObject = nil
 
-proc linkedObject(obj: NimGodotObject): NimGodotObject {.inline.} =
-  cast[NimGodotObject](obj.linkedObjectPtr)
-
 # overloaded for =destroy
 proc deinit(obj: var NimGodotObj) =
   ## Destroy the object. You only need to call this for objects not inherited
@@ -199,17 +196,23 @@ proc deinit(obj: var NimGodotObj) =
   obj.godotObject.deinit()
   obj.godotObject = nil
 
-proc linkedObject(obj: NimGodotObj): NimGodotObject {.inline.} =
-  cast[NimGodotObject](obj.linkedObjectPtr)
-
 #lifetime-tracking hooks to replace the nimGodotObjectFinalizer to work with ARC
 proc `=destroy`*(obj: var NimGodotObj) =
   if obj.godotObject.isNil or obj.isNative: return
   # important to set it before so that ``unreference`` is aware
   obj.isFinalized = true
-  if (obj.isRef or not obj.linkedObject.isNil and obj.linkedObject.isRef) and
-     obj.godotObject.unreference():
+  # if (obj.isRef or not obj.linkedObject.isNil and obj.linkedObject.isRef) and
+  let linkedGodotObject = cast[NimGodotObject](obj.linkedObjectPtr)
+  if (obj.isRef or not linkedGodotObject.isNil and linkedGodotObject.isRef and
+    obj.godotObject.unreference()):
     obj.deinit()
+
+proc linkedObject(obj: NimGodotObject): NimGodotObject {.inline.} =
+  cast[NimGodotObject](obj.linkedObjectPtr)
+
+proc linkedObject(obj: NimGodotObj): NimGodotObject {.inline.} =
+  cast[NimGodotObject](obj.linkedObjectPtr)
+
 #[
 proc `=sink`
 proc `=`
