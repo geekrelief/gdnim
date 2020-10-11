@@ -6,29 +6,24 @@ import storage
 
 const dllDir:string = "_dlls"
 
-#anycase crashes when used in this module
-func pascal(s:string):string =
-  var parts = split(s, '_')
-  let capitalizedParts = map(parts, capitalizeAscii)
-  return join(capitalizedParts)
-
 func safeDllPath(compName:string):string =
   &"{dllDir}/{compName}_safe.dll"
 func hotDllPath(compName:string):string =
   &"{dllDir}/{compname}.dll"
 func resourcePath(compName:string):string =
-  &"res://{compName.pascal}.tscn"
+  &"res://{compName}.tscn"
 
 gdobj Watcher of Node:
 
   var enableWatch {.gdExport.}:bool = true
-  var watchIntervalSeconds {.gdExport.}:float = 0.5
-  var reloadIntervalSeconds {.gdExport.}:float = 1
+  var watchIntervalSeconds {.gdExport.}:float = 0.3
+  var reloadIntervalSeconds {.gdExport.}:float = 0.3
 
   var reloadingComps:seq[string]
   var watchElapsedSeconds:float
   var reloadElapsedSeconds:float
 
+#[
   method init() =
     var arg0 = newDictionary()
     arg0["name".toVariant] = "comp_name".toVariant
@@ -36,7 +31,9 @@ gdobj Watcher of Node:
     var args = newArray(arg0.toVariant)
     print "Watcher: addUserSignal"
     self.addUserSignal("reload", args)
+]#
 
+#[
   method ready() =
     print "Watcher: trying to getBeforeReloadProcs"
     let beforeReloadProcs = getBeforeReloadProcs()
@@ -51,35 +48,7 @@ gdobj Watcher of Node:
     var compName:string
     discard compName.fromVariant(vcompName)
     print &"Watcher onReload {compName}"
-  #[
-  proc createSprite() =
-    var gdns = resource_loader.load(self.gdnsPath)
-    if not isNil(gdns):
-      print &"{self.compName} loaded"
-      self.isReady = true
-      var texture = resource_loader.load("res://icon.png") as Texture
-      var sprite = gdnew[Sprite]()
-      sprite.texture = texture
-      sprite.position = vec2(100, 100)
-      sprite.name = "PluginSprite"
-      sprite.setScript(gdns)
-      #self.call_deferred("add_child", toVariant(sprite)) # call if in ready
-      self.add_child(sprite)
-    else:
-      print &"{self.gdnsPath} failed to load"
-
-  proc beforeReload() =
-    print &"Watcher {self.dllSafePath}is newer than {self.dllHotPath}"
-    #print "Watcher preping reload, saving data and destroying references to component"
-    self.compData = self.compPreReloadCB()
-    self.compPreReloadCB = nil
-    #print "Watcher destroying PluginSprite should remove all references to gdns resource"
-    self.get_child(0).queue_free()
-
-  proc afterReload() =
-    print "Watcher creatingSprite and restoring data"
-    self.createSprite()
-  ]#
+]#
 
   method process(delta: float64) =
     if not self.enableWatch: return
@@ -90,9 +59,10 @@ gdobj Watcher of Node:
         return
       self.reloadElapsedSeconds = 0.0
 
-      print "Watcher: check self.reloadingComps"
-      var finReloadedComps:seq[string]
+      var finReloadingComps:seq[string]
+
       for compName in self.reloadingComps:
+        print &"Watcher: check cache for {compName}"
         if not resource_loader.has_cached(compName.resourcePath):
           try:
             print &"Watcher {compName} dll move safe to hot"
@@ -105,9 +75,11 @@ gdobj Watcher of Node:
           except:
             print &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
 
-          finReloadedComps.add compName
+          finReloadingComps.add(compName)
+        else:
+          print &"Watcher: {compName} still cached"
 
-      self.reloadingComps = self.reloadingComps.filterIt(not (it in finReloadedComps))
+      self.reloadingComps = self.reloadingComps.filterIt(not (it in finReloadingComps))
       return
 
     self.watchElapsedSeconds += delta
@@ -118,10 +90,8 @@ gdobj Watcher of Node:
       for compName in beforeReloadProcs.keys:
         #print &"Watcher checking {compName}"
         if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
-          print &"Watcher: detected new {compName}"
-          #beforeReloadProcs[compName]()
-          #emit signal or deferred call
-          print &"added reloading {compName}"
+          print &"Watcher: prep reload {compName}"
+          beforeReloadProcs[compName]()
           self.reloadingComps.add(compName)
 
   method notification(what:int64) =

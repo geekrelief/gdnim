@@ -9,7 +9,7 @@ gdobj TestComp of Node:
   var a:int
   var elapsedSeconds:float
   var tickIntervalSeconds:float = 2
-  var anInt:int = 355
+  var anInt:int = 50
 
   method init() =
     print "TestComp init"
@@ -19,30 +19,12 @@ gdobj TestComp of Node:
     )
     self.onAfterReload(data)
 
-  method ready() =
-    print "TestComp enter_tree trying to connect"
-    var watcher = self.get_parent()
-    print watcher.name
-    var err = watcher.connect("reload", self, "on_reload")
-    print &"TestComp reload connect error: {err}"
-
-  proc onReload*(vcompName:Variant) {.gdExport.} =
-    var compName:string
-    discard compName.fromVariant(vcompName)
-    print &"TestComp: onReload {compName}"
-    print &"TestComp: self.a = {self.a}"
-    var data = pack(self.a)
-    var sdata = stringify(data)
-    print &"TestComp: packed {sdata}"
-
   proc onBeforeReload() =
     print "TestComp: onBeforeReload"
-    #[
-    echo self.a
     var data = pack(self.a)
     putData(self.id, data)
     self.queue_free()
-    ]#
+    print "TestComp: stored data and queue_free"
 
   proc onAfterReload(data:string) =
     if data.len == 0: return

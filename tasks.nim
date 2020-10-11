@@ -57,7 +57,7 @@ task host, "build the host dll":
   discard execShellCmd "nim c --path:deps --path:deps/godot --path:host --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/host.dll gonim.nim"
 
 
-var sharedFlags = "--stackTrace:on --app:lib --noMain --gc:arc --d:useMalloc --warning[LockLevel]:off --hint[Processing]:off"
+var sharedFlags = "--debugger:native --cc:vcc --stackTrace:on --app:lib --noMain --gc:arc --d:useMalloc --warning[LockLevel]:off --hint[Processing]:off"
 
 
 task watcher, "build the watcher dll":
