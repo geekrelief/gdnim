@@ -1,7 +1,5 @@
-import strformat, strutils
 import godotapigen
 from sequtils import toSeq, filter, mapIt
-import os
 import times
 import anycase
 
@@ -57,24 +55,18 @@ task host, "build the host dll":
   discard execShellCmd "nim c --path:deps --path:deps/godot --path:host --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/host.dll gonim.nim"
 
 
-var sharedFlags = "--debugger:native --cc:vcc --stackTrace:on --app:lib --noMain --gc:arc --d:useMalloc --warning[LockLevel]:off --hint[Processing]:off"
-
-
 task watcher, "build the watcher dll":
   checkGccDlls()
-  discard execShellCmd &"nim c --path:deps --path:deps/godot {sharedFlags} --o:app/_dlls/watcher.dll watcher.nim"
+  execnim("--path:deps --path:deps/godot", "app/_dlls/watcher.dll", "watcher.nim")
 
 task storage, "build the storage dll":
   checkGccDlls()
-  discard execShellCmd &"nim c --d:exportStorage {sharedFlags} --o:app/_dlls/storage.dll storage.nim"
+  execnim("--d:exportStorage", "app/_dlls/storage.dll", "storage.nim")
+
 
 task core, "build the core":
   watcherTask()
   storageTask()
-
-task fcore, "force rebuild the core":
-  sharedFlags = "--forceBuild:on " & sharedFlags
-  coreTask()
 
 # components generator
 const gdns_template = """
@@ -94,12 +86,11 @@ library = SubResource( 1 )
 # are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
 # the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
 # folder to see if _safe.dll is rebuilt.
-task comp, "build component and generate a gdns file":
-  let params = commandLineParams()
-  if params.len < 2:
+task comp, "build component and generate a gdns file\n\tmove safe to hot with 'f' arg (e.g.) build comp target -- f":
+  if args.len < 1:
     echo "comp needs a component name\n  .\\build comp (comp_name)"
     quit()
-  let compName = params[1].snake
+  let compName = args[0].snake
 
   let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
   let hotDllFilePath = &"app/_dlls/{compName}.dll"
@@ -116,14 +107,9 @@ task comp, "build component and generate a gdns file":
     f.close()
     echo &"generated {gdns}"
 
-  #if not fileExists(safeDllFilePath) or getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath):
-  discard execShellCmd &"nim c --path:deps --path:deps/godot --path:. {sharedFlags} --o:{safeDllFilePath} {nimFilePath}"
+  execnim("--path:deps --path:deps/godot --path:.", &"{safeDllFilePath}", &"{nimFilePath}")
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
-    (not fileExists(hotDllFilePath) or (params.len == 3 and params[2] == "-f")):
+    (not fileExists(hotDllFilePath) or (args.len > 1 and args[1] == "move")):
     echo "move safe to hot"
     moveFile(safeDllFilePath, hotDllFilePath)
-
-task fcomp, "force rebuild the component":
-  sharedFlags = "--forceBuild:on " & sharedFlags
-  compTask()
