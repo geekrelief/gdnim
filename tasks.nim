@@ -37,22 +37,19 @@ proc checkGccDlls() =
 task cleandll, "clean the dlls, arguments are component names, default all non-gcc dlls":
   let dllDir = "app/_dlls"
   var dllPaths:seq[string]
-  if commandLineParams().len > 1:
-    dllPaths = commandLineParams()[1..^1].mapIt(&"{dllDir}/{it}.dll")
-    dllPaths &= commandLineParams()[1..^1].mapIt(&"{dllDir}/{it}_safe.dll")
+  if args.len > 1:
+    var seqDllPaths = args.mapIt(toSeq(walkFiles(&"{dllDir}/{it}*.*")))
+    for paths in seqDllPaths:
+      dllPaths &= paths
   else:
-    dllPaths = toSeq(walkFiles(&"{dllDir}/*.dll"))
-      .filterIt splitFile(it)[1] notin gccDlls
+    dllPaths = toSeq(walkFiles(&"{dllDir}/*.*"))
+
+  dllPaths = dllPaths.filterIt(splitFile(it)[1] notin gccDlls)
 
   for dllPath in dllPaths:
     echo &"rm {dllPath}"
     removeFile dllPath
   checkGccDlls()
-
-#testing
-task host, "build the host dll":
-  checkGccDlls()
-  discard execShellCmd "nim c --path:deps --path:deps/godot --path:host --app:lib --noMain --gc:arc --d:useMalloc --threads:on --tlsEmulation:off --warning[LockLevel]:off --hint[Processing]:off --o:app/_dlls/host.dll gonim.nim"
 
 
 task watcher, "build the watcher dll":

@@ -1,9 +1,10 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://gdns/watcher.gdns" type="Script" id=1]
 [ext_resource path="res://test_comp.tscn" type="PackedScene" id=2]
+[ext_resource path="res://sprite_comp.tscn" type="PackedScene" id=3]
 
-[node name="Watcher" type="Node"]
-script = ExtResource( 1 )
+[node name="Node2D" type="Node2D"]
 
 [node name="TestComp" parent="." instance=ExtResource( 2 )]
+
+[node name="inSpriteComp" parent="TestComp" instance=ExtResource( 3 )]

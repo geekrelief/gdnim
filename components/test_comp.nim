@@ -5,24 +5,26 @@ import strformat
 import tables
 
 gdobj TestComp of Node:
-  var id:string = "test_comp"
+  var compId:string = "test_comp"
   var a:int
   var elapsedSeconds:float
   var tickIntervalSeconds:float = 2
-  var anInt:int = 50
+  var anInt:int = 5
 
-  method init() =
-    print "TestComp init"
-    var data = registerBeforeReloadProc(self.id,
-      proc(){.closure, gcsafe.} =
+  method enter_tree() =
+    print "TestComp enter_tree"
+    var data = registerReloadMeta(self.compId, (
+      compName: self.compId,
+      parentPath: $(self.getParent().getPath()),
+      reloadProc: proc(){.closure, gcsafe.} =
         self.onBeforeReload()
-    )
+      ))
     self.onAfterReload(data)
 
   proc onBeforeReload() =
     print "TestComp: onBeforeReload"
     var data = pack(self.a)
-    putData(self.id, data)
+    putData(self.compId, data)
     self.queue_free()
     print "TestComp: stored data and queue_free"
 

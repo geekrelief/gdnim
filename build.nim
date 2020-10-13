@@ -32,7 +32,7 @@ let allflagsTable = {
 
 var taskFlagsTable = {
   "lib":"--app:lib --noMain",
-  "cc":"--cc:vcc",
+  "cc":"--cc:gcc",
   "debug":"--debugger:native --stackTrace:on",
   "arc":"--gc:arc --d:useMalloc",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off"
@@ -46,6 +46,9 @@ proc setFlag(flag:string, state:bool = true) =
     of "gcc":
       taskFlagsTable.del("cc")
       taskFlagsTable["cc"] = allFlagsTable["gcc"]
+    of "vcc":
+      taskFlagsTable.del("cc")
+      taskFlagsTable["cc"] = allFlagsTable["vcc"]
     else:
       if allFlagsTable.haskey(flag):
         if state:
@@ -100,6 +103,10 @@ if params.len == 0:
   quit()
 
 
-let matches = tasks.filterIt(it.task_name == taskName)
+var matches = tasks.filterIt(it.task_name == taskName)
+if matches.len == 0: # no match assume it's a compName
+  args = taskName & args
+  taskName = "comp"
+  matches = tasks.filterIt(it.task_name == taskName)
 if matches.len == 1:
   matches[0].task_proc()
