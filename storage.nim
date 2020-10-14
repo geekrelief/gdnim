@@ -41,7 +41,7 @@ else:
   proc putData*(id:string, data: string)
   proc registerReloadMeta*(id: string, rmeta:ReloadMeta):string
 
-  proc `^`(s:string):NimNode =
+  proc `^`*(s:string):NimNode =
     ident(s)
 
   macro save*(args: varargs[typed]):untyped =
@@ -66,7 +66,37 @@ else:
     )
     stmts.add newCall(newDotExpr(^"self", ^"queue_free"))
     result = stmts
-#[
+
   macro load*(args: varargs[typed]):untyped =
-    echo args.astGenRepr
-]#
+    #[
+      load(data, self.i, self.f)
+      if data.len == 0: return
+      var b = MsgStream.init(data)
+      var i:int
+      b.unpack(i)
+      self.i = i
+      var f:float
+      b.unpack(f)
+      self.f = f
+    ]#
+    var stmts = newStmtList()
+    var data = args[0] # verify it's a string?
+    if typeKind(getType(data)) != ntystring and data.kind == nnkIdent:
+      raise newException(Exception,
+        "storage.load first argument must be string containing MsgStream data")
+
+    stmts.add newIfStmt(
+      (nnkInfix.newTree(^"==", newDotExpr(data, ^"len"), newLit(0)),
+        newStmtList(nnkReturnStmt.newTree(newEmptyNode())))
+    )
+    stmts.add newVarStmt(^"b", newCall(newDotExpr(^"MsgStream", ^"init"), data))
+    for aprop in args[1..^1]:
+      var prop = ^($aprop[1])
+      var propType = ^($getType(aprop[1]))
+      stmts.add(
+        nnkVarSection.newTree( nnkIdentDefs.newTree(prop, propType, newEmptyNode())),
+        newCall(newDotExpr(^"b", ^"unpack"), prop),
+        newAssignment(newDotExpr(^"self", prop), prop)
+      )
+    #echo stmts.astGenRepr
+    result = stmts
