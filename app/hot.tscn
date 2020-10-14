@@ -5,6 +5,6 @@
 
 [node name="Node2D" type="Node2D"]
 
-[node name="TestComp" parent="." instance=ExtResource( 2 )]
+[node name="inSpriteComp" parent="." instance=ExtResource( 3 )]
 
-[node name="inSpriteComp" parent="TestComp" instance=ExtResource( 3 )]
+[node name="TestComp" parent="." instance=ExtResource( 2 )]
