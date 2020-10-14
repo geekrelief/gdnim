@@ -41,6 +41,9 @@ else:
   proc putData*(id:string, data: string)
   proc registerReloadMeta*(id: string, rmeta:ReloadMeta):string
 
+  proc `^`(s:string):NimNode =
+    ident(s)
+
   macro save*(args: varargs[typed]):untyped =
     #[
       #save(self.i, self.f, self.s) produces
@@ -51,46 +54,19 @@ else:
       putData(self.compName, b.data)
       self.queue_free()
     ]#
-    var stmts = newNimNode(nnkStmtList)
-    var buffer = newNimNode(nnkVarSection).add(
-      newNimNode(nnkIdentDefs).add(
-        ident("b"), newEmptyNode(),
-        newNimNode(nnkCall).add(
-          newNimNode(nnkDotExpr).add(
-            ident("MsgStream"),
-            ident("init")
-          )
-        )
-      )
-    )
-    stmts.add buffer
+    var stmts = newStmtList()
+    stmts.add newVarStmt(^"b", newCall(newDotExpr(^"MsgStream", ^"init")))
     for arg in args:
-      var p = newNimNode(nnkCall).add(
-        newNimNode(nnkDotExpr).add(
-          ident("b"), ident("pack")
-        ),
-        newNimNode(nnkDotExpr).add(
-          ident("self"), ident(arg[1].repr)
-        )
+      stmts.add newCall(newDotExpr(^"b", ^"pack"),
+        newDotExpr(^"self", ^(arg[1].repr))
       )
-      stmts.add p
-    var putData = newNimNode(nnkCall).add(
-      ident("putData"),
-      newNimNode(nnkDotExpr).add(
-        ident("self"), ident("compName")
-      ),
-      newNimNode(nnkDotExpr).add(
-        ident("b"), ident("data")
-      )
+    stmts.add newCall(^"putData",
+      newDotExpr(^"self", ^"compName"),
+      newDotExpr(^"b", ^"data")
     )
-    stmts.add putData
-    var qfree = newNimNode(nnkCall).add(
-      newNimNode(nnkDotExpr).add(
-        ident("self"), ident("queue_free")
-      )
-    )
-    stmts.add qfree
+    stmts.add newCall(newDotExpr(^"self", ^"queue_free"))
     result = stmts
-
+#[
   macro load*(args: varargs[typed]):untyped =
     echo args.astGenRepr
+]#
