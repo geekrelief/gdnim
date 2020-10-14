@@ -5,7 +5,7 @@ import times
 import storage
 
 gdobj SpriteComp of Sprite:
-  var compId = "sprite_comp"
+  var compName = "sprite_comp"
   var startPos* {.gdExport.}:Vector2
   var radius* {.gdExport.}:int = 100
   var speed* {.gdExport.}:float = 0.25
@@ -13,9 +13,9 @@ gdobj SpriteComp of Sprite:
   var first = true
 
   method enter_tree() =
-    var data = registerReloadMeta(self.compId, (
-      compName: self.compId,
-      parentPath: $(self.getParent().getPath()),
+    var data = registerReloadMeta(self.compName, (
+      compName: self.compName,
+      parentPath: $self.getParent().getPath(),
       reloadProc: proc(){.closure, gcsafe.} =
         self.onBeforeReload()
       ))
@@ -31,7 +31,7 @@ gdobj SpriteComp of Sprite:
     var s = MsgStream.init()
     s.pack(self.radius)
     s.pack(self.speed)
-    putData(self.compId, s.data)
+    putData(self.compName, s.data)
     self.queue_free()
 
   proc onAfterReload(data:string) =
