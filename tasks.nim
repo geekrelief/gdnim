@@ -3,6 +3,40 @@ from sequtils import toSeq, filter, mapIt
 import times
 import anycase
 
+task godot, "build the godot engine with dll unloading mod":
+  var godotSrcPath = getEnv("GODOT_SRC_PATH")
+  if godotSrcPath == "":
+    echo "Please set GODOT_SRC_PATH env variable to godot source directory."
+    quit(1)
+
+  var curDir = getCurrentDir()
+  setCurrentDir(godotSrcPath)
+
+  # run scons --help to see godot flags
+  var flags = ""
+  var info = ""
+  if "export" in args:
+    info &= "export, "
+    if "release" in args:
+      flags = "tools=no target=release"
+      info &= "release"
+    else:
+      flags = "tools=no target=debug"
+      info &= "debug"
+  else:
+    info &= "tools, "
+    if "release" in args :
+      flags = "target=release_debug debug_symbols=fulcons-H vsproj=yes"
+      info &= "release"
+    else:
+      flags = "target=debug debug_symbols=full vsproj=yes"
+      info &= "debug"
+
+  var threads = if "fast" in args: "11" else: "6"
+  echo &"Compiling godot {info} threads:{threads}"
+  discard execShellCmd &"scons -j{threads}  p=windows bits=64 {flags}"
+  setCurrentDir(curDir)
+
 task cleanapi, "clean generated api":
   removeDir "logs"
   removeDir "deps/godotapi"
