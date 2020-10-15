@@ -64,7 +64,6 @@ proc setFlag(flag:string, state:bool = true) =
       else:
         otherFlags.add flag
 
-
 var taskName = ""
 var compName = ""
 var args:seq[string]
@@ -75,12 +74,10 @@ for kind, key, val in p.getopt():
   of cmdEnd: doAssert(false) # Doesn't happen with getopt()
   of cmdShortOption, cmdLongOption:
     case key
-    of "f", "force":
+    of "f":
       setFlag("force")
-    of "m", "move":
+    of "m":
       setFlag("move")
-    of "release", "gcc":
-      setFlag(key)
     else:
       var state = true
       if val == "off": state = false
@@ -99,7 +96,6 @@ proc execnim(otherFlags:string, outputPath:string, projNim:string) =
 
   discard execShellCmd &"nim c {otherFlags} {sharedFlags} --o:{outputPath} {projNim}"
 
-
 include "tasks.nim"
 
 var matches = tasks.filterIt(it.task_name == taskName)
@@ -109,3 +105,5 @@ if matches.len == 0: # no match assume it's a compName
   matches = tasks.filterIt(it.task_name == taskName)
 if matches.len == 1:
   matches[0].task_proc()
+
+finalTask()

@@ -58,15 +58,15 @@ task genapi, "generate the godot api bindings":
     quit -1
   genApi(apidir, apidir / "api.json")
 
-
 # compiling with gcc, vcc spitting out warnings about incompatible pointer types with NimGodotObj, which was added for gc:arc
 # include to include libgcc_s_seh-1.dll, libwinpthread-1.dll in the app/_dlls folder for project to run
 const gccDlls = @["libgcc_s_seh-1", "libwinpthread-1"]
 
-proc checkGccDlls() =
-  for dll in gccDlls:
-    if not fileExists(&"app/_dlls/{dll}.dll"):
-      echo "Missing app/_dlls/{dll}.dll, please copy from gcc/bin"
+task final, "executed after other tasks"
+  if taskCompilerFlagsTable["cc"] == allCompilerFlagsTable["gcc"]:
+    for dll in gccDlls:
+      if not fileExists(&"app/_dlls/{dll}.dll"):
+        echo "Missing app/_dlls/{dll}.dll, please copy from gcc/bin"
 
 task cleandll, "clean the dlls, arguments are component names, default all non-gcc dlls":
   let dllDir = "app/_dlls"
@@ -83,15 +83,12 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
   for dllPath in dllPaths:
     echo &"rm {dllPath}"
     removeFile dllPath
-  checkGccDlls()
 
 
 task watcher, "build the watcher dll":
-  checkGccDlls()
   execnim("--path:deps --path:deps/godot", "app/_dlls/watcher.dll", "watcher.nim")
 
 task storage, "build the storage dll":
-  checkGccDlls()
   execnim("--d:exportStorage", "app/_dlls/storage.dll", "storage.nim")
 
 
