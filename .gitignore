@@ -6,3 +6,4 @@ nimcache
 .nimcache
 *.exe
 *.pdb
+.idea

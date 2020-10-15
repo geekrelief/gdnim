@@ -39,15 +39,15 @@ gdobj Watcher of Node:
         var compName = rmeta.compName
 
         if not resource_loader.has_cached(compName.resourcePath):
-          #try:
-          moveFile(compName.safeDllPath, compName.hotDllPath)
-          #reload the scene
-          var parentNode = self.get_node(rmeta.parentPath)
-          if not parentNode.isNil:
-            var pscene = resource_loader.load(compName.resourcePath) as PackedScene
-            parentNode.call_deferred("add_child", toVariant(pscene.instance()))
-          #except:
-          #  print &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
+          try:
+            moveFile(compName.safeDllPath, compName.hotDllPath)
+            #reload the scene
+            var parentNode = self.get_node(rmeta.parentPath)
+            if not parentNode.isNil:
+              var pscene = resource_loader.load(compName.resourcePath) as PackedScene
+              parentNode.call_deferred("add_child", toVariant(pscene.instance()))
+          except:
+            print &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
 
           finReloadingKeys.add(key)
         else:

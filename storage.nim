@@ -68,7 +68,6 @@ else:
     stmts.add newCall(newDotExpr(^"self", ^"queue_free"))
     result = stmts
 
-#[
   macro load*(args: varargs[typed]):untyped =
     #[
       load(data, self.i, self.f)
@@ -91,42 +90,10 @@ else:
       (nnkInfix.newTree(^"==", newDotExpr(data, ^"len"), newLit(0)),
         newStmtList(nnkReturnStmt.newTree(newEmptyNode())))
     )
+
     stmts.add newVarStmt(^"b", newCall(newDotExpr(^"MsgStream", ^"init"), data))
-    for aprop in args[1..^1]:
-      var prop = ^($aprop[1])
-      var propType = ^($getType(aprop[1]))
-      stmts.add nnkVarSection.newTree( nnkIdentDefs.newTree(prop, propType, newEmptyNode()))
 
     for aprop in args[1..^1]:
-      var prop = ^($aprop[1])
-      var propType = ^($getType(aprop[1]))
-      stmts.add(
-        #nnkVarSection.newTree( nnkIdentDefs.newTree(prop, propType, newEmptyNode())),
-        newCall(newDotExpr(^"b", ^"unpack"), prop),
-        newAssignment(newDotExpr(^"self", prop), prop)
-      )
-    #echo stmts.astGenRepr
-    result = stmts
-]#
-
-  macro load*(args:varargs[typed]):untyped =
-    var stmts = newStmtList()
-    stmts.add newIfStmt(
-      (nnkInfix.newTree(^"==", newDotExpr(^"data", ^"len"), newLit(0)),
-       newStmtList(nnkReturnStmt.newTree(newEmptyNode()))
-      )
-    )
-
-    stmts.add newVarStmt(^"b", newCall(newDotExpr(^"MsgStream", ^"init"), ^"data"))
-    #[
-    for arg in args:
-      stmts.add(
-        nnkVarSection.newTree(nnkIdentDefs.newTree(^($arg[1]), ^($getType(arg[1])), newEmptyNode())),
-        newCall(newDotExpr(^"b", ^"unpack"), ^($arg[1])),
-        newAssignment(newDotExpr(^"self", ^($arg[1])), ^($arg[1]))
-      )
-    ]#
-    for aprop in args:
       var prop = ^($aprop[1])
       var propType = ^($getType(aprop[1]))
       stmts.add(
@@ -134,6 +101,5 @@ else:
         newCall(newDotExpr(^"b", ^"unpack"), prop),
         newAssignment(newDotExpr(^"self", prop), prop)
       )
-
     #echo stmts.astGenRepr
     result = stmts
