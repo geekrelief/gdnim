@@ -113,22 +113,15 @@ class_name = "$2"
 library = SubResource( 1 )
 """
 
-# components are named {compName}_safe.dll and
-# are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
-# the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
-# folder to see if _safe.dll is rebuilt.
-task comp, "build component and generate a gdns file\n\tmove safe to hot with 'f' arg (e.g.) build comp target -- f":
-  if args.len < 1:
-    echo "comp needs a component name\n  .\\build comp (comp_name)"
-    quit()
-  let compName = args[0].snake
-
+proc buildComp(compName:string, move:bool, newOnly:bool) =
+  echo &">>> Build {compName} <<<"
   let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
   let hotDllFilePath = &"app/_dlls/{compName}.dll"
   let nimFilePath = &"components/{compName}.nim"
+
   if not fileExists(nimFilePath):
     echo &"Error compiling {nimFilePath} [Not Found]"
-    quit()
+    quit(1)
 
   let gdns = &"app/gdns/{compName}.gdns"
   if not fileExists(gdns):
@@ -138,9 +131,40 @@ task comp, "build component and generate a gdns file\n\tmove safe to hot with 'f
     f.close()
     echo &"generated {gdns}"
 
-  execnim("--path:deps --path:deps/godot --path:.", &"{safeDllFilePath}", &"{nimFilePath}")
+  if (not newOnly) or
+    (newOnly and (
+      (not fileExists(hotDllFilePath) and not fileExists(safeDllFilePath)) or
+      (fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath)) or
+      (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
+    )):
+    execnim("--path:deps --path:deps/godot --path:.", &"{safeDllFilePath}", &"{nimFilePath}")
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
-    (not fileExists(hotDllFilePath) or (args.len > 1 and args[1] == "move")):
-    echo "move safe to hot"
+    (not fileExists(hotDllFilePath) or move):
+    echo ">>> dll moved safe to hot <<<"
     moveFile(safeDllFilePath, hotDllFilePath)
+
+# components are named {compName}_safe.dll and
+# are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
+# the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
+# folder to see if _safe.dll is rebuilt.
+task comp, "build component and generate a gdns file\n\tno component name means all components are rebuilt\n\tmove safe to hot with 'move' or 'm' flag (e.g.) build -m target":
+  var move = "move" in otherFlags
+  var newOnly = not ("force" in taskCompilerFlagsTable)
+  if not (compName == ""):
+    compName = compName.snake
+    buildComp(compName, move, newOnly)
+  else:
+    # compile all the comps
+    for compFilename in walkFiles(&"components/*.nim"):
+      buildComp(splitFile(compFilename)[1].snake, move, newOnly)
+
+#[
+task help
+  let params = commandLineParams()
+  if params.len == 0:
+    echo "Call build with a task:"
+    for i in 0..<tasks.len:
+      echo "  ", tasks[i].task_name, " : ", tasks[i].description
+    quit()
+]#

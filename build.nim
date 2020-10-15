@@ -18,7 +18,7 @@ template task(name:untyped, desc:string, body:untyped):untyped =
 
 
 
-let allflagsTable = {
+let allCompilerFlagsTable = {
   "release":"--d:danger",
   "force":"--forceBuild:on",
   "cc":"--cc:gcc",
@@ -30,7 +30,7 @@ let allflagsTable = {
   "mute":"--warning[LockLevel]:off --hint[Processing]:off"
 }.toTable
 
-var taskFlagsTable = {
+var taskCompilerFlagsTable = {
   "lib":"--app:lib --noMain",
   "cc":"--cc:vcc",
   #"debug":"--debugger:native --stackTrace:on",
@@ -39,29 +39,34 @@ var taskFlagsTable = {
   "mute":"--warning[LockLevel]:off --hint[Processing]:off"
 }.toTable
 
+var otherFlags:seq[string]
+
 proc setFlag(flag:string, state:bool = true) =
   case flag:
     of "release":
-      taskFlagsTable.del("debug")
-      taskFlagsTable["release"] = allFlagsTable["release"]
+      taskCompilerFlagsTable.del("debug")
+      taskCompilerFlagsTable["release"] = allCompilerFlagsTable["release"]
     of "gcc":
-      taskFlagsTable.del("cc")
-      taskFlagsTable["cc"] = allFlagsTable["gcc"]
+      taskCompilerFlagsTable.del("cc")
+      taskCompilerFlagsTable["cc"] = allCompilerFlagsTable["gcc"]
     of "vcc":
-      taskFlagsTable.del("cc")
-      taskFlagsTable["cc"] = allFlagsTable["vcc"]
+      taskCompilerFlagsTable.del("cc")
+      taskCompilerFlagsTable["cc"] = allCompilerFlagsTable["vcc"]
     else:
-      if allFlagsTable.haskey(flag):
+      if allCompilerFlagsTable.haskey(flag):
         if state:
-            taskFlagsTable[flag] = allFlagsTable[flag]
+            taskCompilerFlagsTable[flag] = allCompilerFlagsTable[flag]
         else:
           case flag:
           of "arc", "lib": discard # cannot disable these
           else:
-            taskFlagsTable.del(flag)
+            taskCompilerFlagsTable.del(flag)
+      else:
+        otherFlags.add flag
 
 
 var taskName = ""
+var compName = ""
 var args:seq[string]
 
 var p = initOptParser(commandLineParams().join(" "))
@@ -72,6 +77,8 @@ for kind, key, val in p.getopt():
     case key
     of "f", "force":
       setFlag("force")
+    of "m", "move":
+      setFlag("move")
     of "release", "gcc":
       setFlag(key)
     else:
@@ -87,26 +94,17 @@ for kind, key, val in p.getopt():
 
 proc execnim(otherFlags:string, outputPath:string, projNim:string) =
   var sharedFlags = ""
-  for key in taskFlagsTable.keys:
-    sharedFlags &= taskFlagsTable[key] & " "
+  for key in taskCompilerFlagsTable.keys:
+    sharedFlags &= taskCompilerFlagsTable[key] & " "
 
   discard execShellCmd &"nim c {otherFlags} {sharedFlags} --o:{outputPath} {projNim}"
 
 
 include "tasks.nim"
 
-
-let params = commandLineParams()
-if params.len == 0:
-  echo "Call build with a task:"
-  for i in 0..<tasks.len:
-    echo "  ", tasks[i].task_name, " : ", tasks[i].description
-  quit()
-
-
 var matches = tasks.filterIt(it.task_name == taskName)
 if matches.len == 0: # no match assume it's a compName
-  args = taskName & args
+  compName = taskName
   taskName = "comp"
   matches = tasks.filterIt(it.task_name == taskName)
 if matches.len == 1:
