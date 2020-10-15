@@ -3,14 +3,27 @@ import godotapi / [sprite]
 import math
 import times
 import storage
+import macros
+
+#[
+dumpAstGen:
+  if data.len == 0: return
+  var s = MsgStream.init(data)
+  var radius:int
+  var speed:float
+  s.unpack(radius)
+  self.radius = radius
+  s.unpack(speed)
+  self.speed = speed
+]#
 
 gdobj SpriteComp of Sprite:
   var compName = "sprite_comp"
   var startPos* {.gdExport.}:Vector2
-  var radius* {.gdExport.}:int = 100
-  var speed* {.gdExport.}:float = 0.25
+  var radius* {.gdExport.}:int = 50
+  var speed* {.gdExport.}:float = 0.55
   var startTime:DateTime
-  var first = true
+  var first = false
 
   method enter_tree() =
     var data = registerReloadMeta(self.compName, (
@@ -28,21 +41,29 @@ gdobj SpriteComp of Sprite:
 
   proc onBeforeReload() =
     print "SpriteComp: onBeforeReload"
+    save(self.radius)
+    #[
     var s = MsgStream.init()
     s.pack(self.radius)
-    s.pack(self.speed)
+    #s.pack(self.speed)
     putData(self.compName, s.data)
     self.queue_free()
+    ]#
 
   proc onAfterReload(data:string) =
+    load(self.radius)
+    #[
     if data.len == 0: return
     var s = MsgStream.init(data)
     var radius:int
-    var speed:float
     s.unpack(radius)
     self.radius = radius
+    ]#
+    #[
+    var speed:float
     s.unpack(speed)
     self.speed = speed
+    ]#
 
   method process(delta: float64) =
     var deltaSeconds:float64 =  float64((now() - self.startTime).inMilliseconds()) / 1000.0
