@@ -40,17 +40,14 @@ task gdengine, "build the godot engine with dll unloading mod":
 task gd, "launches terminal with godot project\n-e option to open editor\nlast argument is a scene to open\n":
   #echo "Windows Terminal doesn't support launching a command or starting from a directory"
   var gdbin = getEnv("GODOT_BIN")
-  var projDir = getCurrentDir() & "\\app"
-
-  var withEditor = ""
-  if "e" in otherFlagsTable:
-    withEditor = "-e"
+  var curDir = getCurrentDir()
+  var projDir = "app"
 
   var scn = ""
   if args.len == 1:
-    scn = projDir & "\\" & args[0] & ".tscn"
+    scn = args[0] & ".tscn"
 
-  discard execShellCmd &"wt {gdbin} {withEditor} --path {projDir} {scn}"
+  discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
 
 task cleanapi, "clean generated api":
   removeDir "logs"

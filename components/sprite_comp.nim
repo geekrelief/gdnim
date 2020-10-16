@@ -8,7 +8,7 @@ import macros
 gdobj SpriteComp of Sprite:
   var compName = "sprite_comp"
   var startPos* {.gdExport.}:Vector2
-  var radius* {.gdExport.}:int = 30
+  var radius* {.gdExport.}:int = 10
   var speed* {.gdExport.}:float = 0.55
   var startTime:DateTime
   var first = true
