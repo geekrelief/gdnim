@@ -31,22 +31,26 @@ template final(body:untyped):untyped =
 let allCompilerFlagsTable = {
   "release":"--d:danger",
   "force":"--forceBuild:on",
-  "cc":"--cc:gcc",
+  "cc":"--cc:tcc",
+  # compiles that fastest, clean compile output, less perfomant?
   "tcc":"--cc:tcc",
+  # clean compile output, needs gcc dlls, produces large dlls
   "gcc":"--cc:gcc",
-  "vcc":"--cc:vcc",
+  # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
+  "vcc":"--cc:vcc --passC=\"/wd4133\"",
   "lib":"--app:lib --noMain",
   "debug":"--debugger:native --stackTrace:on",
   "arc":"--gc:arc --d:useMalloc",
+  "orc":"--gc:orc --d:useMalloc", #crash, avoid for now
   "mute":"--warning[LockLevel]:off --hint[Processing]:off"
 }.toTable
 
+#stable tcc config, vcc crashes with arc or orc
 var taskCompilerFlagsTable = {
   "lib":"--app:lib --noMain",
   "cc":"--cc:tcc",
-  "debug":"--debugger:native --stackTrace:on",
-  #"release":"--d:danger",
-  "arc":"--gc:arc --d:useMalloc",
+  "release":"--d:danger",
+  "gc":"--gc:arc --d:useMalloc",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off"
 }.toTable
 
@@ -60,16 +64,15 @@ proc setFlag(flag:string, val:string = "") =
     of "gcc", "vcc", "tcc":
       taskCompilerFlagsTable.del("cc")
       taskCompilerFlagsTable["cc"] = allCompilerFlagsTable[flag]
+    of "arc", "orc":
+      taskCompilerFlagsTable.del("gc")
+      taskCompilerFlagsTable["gc"] = allCompilerFlagsTable[flag]
     else:
-      if allCompilerFlagsTable.haskey(flag):
+      if allCompilerFlagsTable.haskey(flag) or taskCompilerFlagsTable.haskey(flag):
         if val == "on" or val == "":
           taskCompilerFlagsTable[flag] = allCompilerFlagsTable[flag]
         else:
-          case flag:
-          of "arc", "lib":
-            echo &">>> Cannot disable build flag for '{flag}' <<<"
-          else:
-            taskCompilerFlagsTable.del(flag)
+          taskCompilerFlagsTable.del(flag)
       else:
         otherFlagsTable[flag] = val
 

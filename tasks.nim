@@ -9,9 +9,6 @@ task gdengine, "build the godot engine with dll unloading mod":
     echo "Please set GODOT_SRC_PATH env variable to godot source directory."
     quit(1)
 
-  var curDir = getCurrentDir()
-  setCurrentDir(godotSrcPath)
-
   # run scons --help to see godot flags
   var flags = ""
   var info = ""
@@ -31,6 +28,13 @@ task gdengine, "build the godot engine with dll unloading mod":
     else:
       flags = "target=debug debug_symbols=full vsproj=yes"
       info &= "debug"
+
+  var curDir = getCurrentDir()
+  setCurrentDir(godotSrcPath)
+
+  if "clean" in args:
+    echo &"Cleaning godot engine"
+    discard execShellCmd &"scons -c"
 
   var threads = if "fast" in args: "11" else: "6"
   echo &"Compiling godot {info} threads:{threads}"
@@ -170,7 +174,7 @@ task comp, "build component and generate a gdns file\n\tno component name means 
     for compFilename in walkFiles(&"components/*.nim"):
       buildComp(splitFile(compFilename)[1].snake, move, newOnly)
 
-task compilerflags, "display the flags used for compiling components":
+task flags, "display the flags used for compiling components":
   for flag in taskCompilerFlagsTable.keys:
     echo &"\t{flag} {taskCompilerFlagsTable[flag]}"
 
@@ -178,3 +182,11 @@ task help, "display list of tasks":
   echo "Call build with a task:"
   for i in 0..<tasks.len:
     echo "  ", tasks[i].task_name, " : ", tasks[i].description
+
+
+task all, "Clean and rebuild all":
+  cleandllTask()
+  setFlag("force")
+  setFlag("move")
+  coreTask()
+  compTask()
