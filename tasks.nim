@@ -3,7 +3,7 @@ from sequtils import toSeq, filter, mapIt
 import times
 import anycase
 
-task godot, "build the godot engine with dll unloading mod":
+task gdengine, "build the godot engine with dll unloading mod":
   var godotSrcPath = getEnv("GODOT_SRC_PATH")
   if godotSrcPath == "":
     echo "Please set GODOT_SRC_PATH env variable to godot source directory."
@@ -37,8 +37,20 @@ task godot, "build the godot engine with dll unloading mod":
   discard execShellCmd &"scons -j{threads}  p=windows bits=64 {flags}"
   setCurrentDir(curDir)
 
-task gdrun, "launches godot with the specified project":
-  discard
+task gd, "launches terminal with godot project\n-e option to open editor\nlast argument is a scene to open\n":
+  #echo "Windows Terminal doesn't support launching a command or starting from a directory"
+  var gdbin = getEnv("GODOT_BIN")
+  var projDir = getCurrentDir() & "\\app"
+
+  var withEditor = ""
+  if "e" in otherFlagsTable:
+    withEditor = "-e"
+
+  var scn = ""
+  if args.len == 1:
+    scn = projDir & "\\" & args[0] & ".tscn"
+
+  discard execShellCmd &"wt {gdbin} {withEditor} --path {projDir} {scn}"
 
 task cleanapi, "clean generated api":
   removeDir "logs"
@@ -115,7 +127,6 @@ library = SubResource( 1 )
 """
 
 proc buildComp(compName:string, move:bool, newOnly:bool) =
-  echo &">>> Build {compName} <<<"
   let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
   let hotDllFilePath = &"app/_dlls/{compName}.dll"
   let nimFilePath = &"components/{compName}.nim"
@@ -138,6 +149,8 @@ proc buildComp(compName:string, move:bool, newOnly:bool) =
       (fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath)) or
       (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
     )):
+
+    echo &">>> Build {compName} <<<"
     execnim("--path:deps --path:deps/godot --path:.", &"{safeDllFilePath}", &"{nimFilePath}")
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and

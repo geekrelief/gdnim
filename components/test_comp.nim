@@ -9,7 +9,7 @@ gdobj TestComp of Node:
   var tick:int
   var elapsedSeconds:float
   var tickIntervalSeconds:float = 2
-  var anInt:int = 4
+  var anInt:int = 5
   var aString1:string = "hi"
 
   method enter_tree() =
