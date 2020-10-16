@@ -37,6 +37,9 @@ task godot, "build the godot engine with dll unloading mod":
   discard execShellCmd &"scons -j{threads}  p=windows bits=64 {flags}"
   setCurrentDir(curDir)
 
+task gdrun, "launches godot with the specified project":
+  discard
+
 task cleanapi, "clean generated api":
   removeDir "logs"
   removeDir "deps/godotapi"
@@ -62,8 +65,9 @@ task genapi, "generate the godot api bindings":
 # include to include libgcc_s_seh-1.dll, libwinpthread-1.dll in the app/_dlls folder for project to run
 const gccDlls = @["libgcc_s_seh-1", "libwinpthread-1"]
 
-task final, "executed after other tasks"
+final:
   if taskCompilerFlagsTable["cc"] == allCompilerFlagsTable["gcc"]:
+    echo ">>> gcc dlls check <<<"
     for dll in gccDlls:
       if not fileExists(&"app/_dlls/{dll}.dll"):
         echo "Missing app/_dlls/{dll}.dll, please copy from gcc/bin"
@@ -146,7 +150,7 @@ proc buildComp(compName:string, move:bool, newOnly:bool) =
 # the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
 # folder to see if _safe.dll is rebuilt.
 task comp, "build component and generate a gdns file\n\tno component name means all components are rebuilt\n\tmove safe to hot with 'move' or 'm' flag (e.g.) build -m target":
-  var move = "move" in otherFlags
+  var move = "move" in otherFlagsTable
   var newOnly = not ("force" in taskCompilerFlagsTable)
   if not (compName == ""):
     compName = compName.snake
@@ -156,12 +160,7 @@ task comp, "build component and generate a gdns file\n\tno component name means 
     for compFilename in walkFiles(&"components/*.nim"):
       buildComp(splitFile(compFilename)[1].snake, move, newOnly)
 
-#[
-task help
-  let params = commandLineParams()
-  if params.len == 0:
-    echo "Call build with a task:"
-    for i in 0..<tasks.len:
-      echo "  ", tasks[i].task_name, " : ", tasks[i].description
-    quit()
-]#
+task help, "display list of tasks":
+  echo "Call build with a task:"
+  for i in 0..<tasks.len:
+    echo "  ", tasks[i].task_name, " : ", tasks[i].description

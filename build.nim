@@ -16,7 +16,17 @@ template task(name:untyped, desc:string, body:untyped):untyped =
     body
   tasks.add((task_name: astToStr(name), description: desc, task_proc: `name Task`))
 
+# special task that's executed after build finishes
+var innerFinalTask:proc()
+proc finalTask() =
+  if not(innerFinalTask.isNil):
+    innerFinalTask()
 
+tasks.add((task_name: "final", description: "executed after build finishes, specified with 'final:' instead of 'task:'", task_proc: finalTask))
+
+template final(body:untyped):untyped =
+  innerFinalTask = proc() {.nimcall.} =
+    body
 
 let allCompilerFlagsTable = {
   "release":"--d:danger",
@@ -39,9 +49,9 @@ var taskCompilerFlagsTable = {
   "mute":"--warning[LockLevel]:off --hint[Processing]:off"
 }.toTable
 
-var otherFlags:seq[string]
+var otherFlagsTable:Table[string, string]
 
-proc setFlag(flag:string, state:bool = true) =
+proc setFlag(flag:string, val:string = "") =
   case flag:
     of "release":
       taskCompilerFlagsTable.del("debug")
@@ -54,15 +64,16 @@ proc setFlag(flag:string, state:bool = true) =
       taskCompilerFlagsTable["cc"] = allCompilerFlagsTable["vcc"]
     else:
       if allCompilerFlagsTable.haskey(flag):
-        if state:
-            taskCompilerFlagsTable[flag] = allCompilerFlagsTable[flag]
+        if val == "on" or val == "":
+          taskCompilerFlagsTable[flag] = allCompilerFlagsTable[flag]
         else:
           case flag:
-          of "arc", "lib": discard # cannot disable these
+          of "arc", "lib":
+            echo &">>> Cannot disable build flag for '{flag}' <<<"
           else:
             taskCompilerFlagsTable.del(flag)
       else:
-        otherFlags.add flag
+        otherFlagsTable[flag] = val
 
 var taskName = ""
 var compName = ""
@@ -79,9 +90,7 @@ for kind, key, val in p.getopt():
     of "m":
       setFlag("move")
     else:
-      var state = true
-      if val == "off": state = false
-      setFlag(key, state)
+      setFlag(key, val)
   of cmdArgument:
     if taskName == "":
       taskName = key
