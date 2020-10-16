@@ -173,6 +173,10 @@ task comp, "build component and generate a gdns file\n\tno component name means 
     for compFilename in walkFiles(&"components/*.nim"):
       buildComp(splitFile(compFilename)[1].snake, move, newOnly)
 
+task compilerflags, "display the flags used for compiling components":
+  for flag in taskCompilerFlagsTable.keys:
+    echo &"\t{flag} {taskCompilerFlagsTable[flag]}"
+
 task help, "display list of tasks":
   echo "Call build with a task:"
   for i in 0..<tasks.len:

@@ -32,6 +32,7 @@ let allCompilerFlagsTable = {
   "release":"--d:danger",
   "force":"--forceBuild:on",
   "cc":"--cc:gcc",
+  "tcc":"--cc:tcc",
   "gcc":"--cc:gcc",
   "vcc":"--cc:vcc",
   "lib":"--app:lib --noMain",
@@ -42,7 +43,7 @@ let allCompilerFlagsTable = {
 
 var taskCompilerFlagsTable = {
   "lib":"--app:lib --noMain",
-  "cc":"--cc:vcc",
+  "cc":"--cc:tcc",
   #"debug":"--debugger:native --stackTrace:on",
   "release":"--d:danger",
   "arc":"--gc:arc --d:useMalloc",
@@ -56,12 +57,9 @@ proc setFlag(flag:string, val:string = "") =
     of "release":
       taskCompilerFlagsTable.del("debug")
       taskCompilerFlagsTable["release"] = allCompilerFlagsTable["release"]
-    of "gcc":
+    of "gcc", "vcc", "tcc":
       taskCompilerFlagsTable.del("cc")
-      taskCompilerFlagsTable["cc"] = allCompilerFlagsTable["gcc"]
-    of "vcc":
-      taskCompilerFlagsTable.del("cc")
-      taskCompilerFlagsTable["cc"] = allCompilerFlagsTable["vcc"]
+      taskCompilerFlagsTable["cc"] = allCompilerFlagsTable[flag]
     else:
       if allCompilerFlagsTable.haskey(flag):
         if val == "on" or val == "":

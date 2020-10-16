@@ -11,7 +11,7 @@ gdobj SpriteComp of Sprite:
   var radius* {.gdExport.}:int = 30
   var speed* {.gdExport.}:float = 0.55
   var startTime:DateTime
-  var first = false
+  var first = true
 
   method enter_tree() =
     var data = registerReloadMeta(self.compName, (
