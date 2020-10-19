@@ -15,7 +15,8 @@ config/icon="res://icon.png"
 
 [autoload]
 
-Watcher="*res://gdns/watcher.gdns"
+Watcher="res://gdns/watcher.gdns"
+CallsWatcher="*res://gdns/calls_watcher.gdns"
 
 [rendering]
 

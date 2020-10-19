@@ -3,7 +3,7 @@ import godotapi / [global_constants, engine, node, objects]
 import godotapi / [resource_loader, texture, sprite, packed_scene, scene_tree, viewport, label]
 import godotapi / scene_tree_timer
 import os, strutils, strformat, times, sequtils
-import storage
+import tables
 
 const dllDir:string = "_dlls"
 
@@ -14,12 +14,16 @@ func hotDllPath(compName:string):string =
 func resourcePath(compName:string):string =
   &"res://{compName}.tscn"
 
-gdobj Watcher of Node:
+type ReloadMeta = tuple[compName:string, parentPath:string, scenePath:string]
+
+gdobj CallsWatcher of Node:
 
   var enableWatch {.gdExport.}:bool = true
   var watchIntervalSeconds {.gdExport.}:float = 0.5
   var reloadIntervalSeconds {.gdExport.}:float = 0.5
 
+  var reloadMetaTable:Table[string, ReloadMeta]
+  var reloadSaveDataTable:Table[string, string]
   var reloadingKeys:seq[string]
   var watchElapsedSeconds:float
   var reloadElapsedSeconds:float
@@ -36,7 +40,7 @@ gdobj Watcher of Node:
       var finReloadingKeys:seq[string]
 
       for key in self.reloadingKeys:
-        var rmeta = getReloadMetaTable()[key]
+        var rmeta = self.reloadMetaTable[key]
         var compName = rmeta.compName
 
         if not resource_loader.has_cached(compName.resourcePath):
@@ -61,41 +65,18 @@ gdobj Watcher of Node:
     if self.watchElapsedSeconds > self.watchIntervalSeconds:
       self.watchElapsedSeconds = 0.0
 
-      for key in getReloadMetaTable().keys:
-        var rmeta = getReloadMetaTable()[key]
+      for key in self.reloadMetaTable.keys:
+        var rmeta = self.reloadMetaTable[key]
         var compName = rmeta.compName
-        if (not (key in self.reloadingKeys)) and
-          fileExists(compName.safeDllPath) and
+        if (not (key in self.reloadingKeys)) and fileExists(compName.safeDllPath) and
           getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
-          rmeta.reloadProc()
+
+          var compNode = self.get_node(rmeta.scenePath)
+          var saveData = compNode.call("reload").asString
+          self.reloadSaveDataTable[compName] = saveData
           self.reloadingKeys.add(key)
 
-#========== calls
-  var testCompName = ""
-  var testCompPath = ""
-  var timer:SceneTreeTimer
-
-  proc register_component(compName:string, path:string):string {.gdExport.} =
-    self.testCompName = compName
-    self.testCompPath = path
-    print &"Watcher registering {compName} @ {path}, returning dummy data"
-    result ="dummy 123"
-
-    print &"Watcher creating a timer to call {compName} reload"
-
-    self.timer = self.get_tree().create_timer(3.0)
-    discard self.timer.connect("timeout", self, "detect_reload", flags=CONNECT_ONESHOT and CONNECT_DEFERRED)
-
-  proc detect_reload() {.gdExport.} =
-    suspend(1)
-    self.call_deferred("free_timer")
-    print &"Watcher detect_reload fires, calling {self.testCompName} {self.testCompPath} reload"
-    var compNode = self.get_node(self.testCompPath)
-    var saveData = compNode.call("reload").asString
-    var b = MsgStream.init(saveData)
-    var a:int
-    b.unpack(a)
-    print &"Watcher: got saveData from {self.testCompName} reload = '{a}'"
-
-  proc free_timer() {.gdExport.} =
-    self.timer = nil
+  proc register_component(compName:string, parentPath:string, scenePath:string):string {.gdExport.} =
+    print &"Watcher registering {compName} @ {scenePath}"
+    self.reloadMetaTable[compName] = (compName:compName, parentPath:parentPath, scenePath:scenePath)
+    result = if self.reloadSaveDataTable.hasKey(compName): self.reloadSaveDataTable[compName] else: ""

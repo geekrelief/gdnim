@@ -49,7 +49,8 @@ let allCompilerFlagsTable = {
 var taskCompilerFlagsTable = {
   "lib":"--app:lib --noMain",
   "cc":"--cc:tcc",
-  "release":"--d:danger",
+  #"release":"--d:danger",
+  "debug":"--debugger:native --stackTrace:on",
   "gc":"--gc:arc --d:useMalloc",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off"
 }.toTable

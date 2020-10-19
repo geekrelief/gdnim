@@ -102,18 +102,6 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
     removeFile dllPath
 
 
-task watcher, "build the watcher dll":
-  execnim("--path:deps --path:deps/godot", "app/_dlls/watcher.dll", "watcher.nim")
-
-task storage, "build the storage dll":
-  execnim("--d:exportStorage", "app/_dlls/storage.dll", "storage.nim")
-
-
-task core, "build the core":
-  watcherTask()
-  storageTask()
-
-# components generator
 const gdns_template = """
 [gd_resource type="NativeScript" load_steps=2 format=2]
 
@@ -127,6 +115,35 @@ class_name = "$2"
 library = SubResource( 1 )
 """
 
+proc genGdns(scriptName:string) =
+  let gdns = &"app/gdns/{scriptName}.gdns"
+  if not fileExists(gdns):
+    var gdnsContent = gdns_template % [scriptName, scriptName.pascal]
+    var f = open(gdns, fmWrite)
+    f.write(gdnsContent)
+    f.close()
+    echo &"generated {gdns}"
+
+task gdns, "create a new gdnative script file for non-components, pass in a scriptName as the only argument":
+  if args.len == 1:
+    genGdns(args[0].snake)
+  else:
+    echo "gdns needs a scriptName as an argument"
+
+task watcher, "build the watcher dll":
+  execnim("--path:deps --path:deps/godot", "app/_dlls/watcher.dll", "watcher.nim")
+
+task calls_watcher, "build the calls_watcher dll":
+  execnim("--path:deps --path:deps/godot", "app/_dlls/calls_watcher.dll", "calls_watcher.nim")
+
+task storage, "build the storage dll":
+  execnim("--d:exportStorage", "app/_dlls/storage.dll", "storage.nim")
+
+task core, "build the core":
+  watcherTask()
+  storageTask()
+
+
 proc buildComp(compName:string, move:bool, newOnly:bool) =
   let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
   let hotDllFilePath = &"app/_dlls/{compName}.dll"
@@ -136,13 +153,7 @@ proc buildComp(compName:string, move:bool, newOnly:bool) =
     echo &"Error compiling {nimFilePath} [Not Found]"
     quit(1)
 
-  let gdns = &"app/gdns/{compName}.gdns"
-  if not fileExists(gdns):
-    var gdnsContent = gdns_template % [compName, compName.pascal]
-    var f = open(gdns, fmWrite)
-    f.write(gdnsContent)
-    f.close()
-    echo &"generated {gdns}"
+  genGdns(compName)
 
   if (not newOnly) or
     (newOnly and (
