@@ -1,5 +1,5 @@
 from sequtils import filterIt
-import os, tables, parseopt, strutils, strformat
+import os, osproc, tables, parseopt, strutils, strformat
 
 # Dependencies
 #requires "godot >= 0.8.1"
@@ -42,17 +42,19 @@ let allCompilerFlagsTable = {
   "debug":"--debugger:native --stackTrace:on",
   "arc":"--gc:arc --d:useMalloc",
   "orc":"--gc:orc --d:useMalloc", #crash, avoid for now
-  "mute":"--warning[LockLevel]:off --hint[Processing]:off"
+  "mute":"--warning[LockLevel]:off --hint[Processing]:off",
+  "parallel":"--parallelBuild:0"
 }.toTable
 
 #stable tcc config, vcc crashes with arc or orc
 var taskCompilerFlagsTable = {
-  "lib":"--app:lib --noMain",
-  "cc":"--cc:tcc",
+  "mute":"--warning[LockLevel]:off --hint[Processing]:off",
+  "parallel":"--parallelBuild:0",
   #"release":"--d:danger",
   "debug":"--debugger:native --stackTrace:on",
   "gc":"--gc:arc --d:useMalloc",
-  "mute":"--warning[LockLevel]:off --hint[Processing]:off"
+  "lib":"--app:lib --noMain",
+  "cc":"--cc:tcc"
 }.toTable
 
 var otherFlagsTable:Table[string, string]
@@ -99,13 +101,15 @@ for kind, key, val in p.getopt():
     else:
       args.add key
 
-
-proc execnim(otherFlags:string, outputPath:string, projNim:string) =
+proc getSharedFlags():string =
   var sharedFlags = ""
   for key in taskCompilerFlagsTable.keys:
     sharedFlags &= taskCompilerFlagsTable[key] & " "
+  sharedFlags
 
-  discard execShellCmd &"nim c {otherFlags} {sharedFlags} --o:{outputPath} {projNim}"
+proc execnim(otherFlags:string, sharedFlags:string, outputPath:string, projNim:string):string {.gcsafe.} =
+  #discard execShellCmd &"nim c {otherFlags} {sharedFlags} --o:{outputPath} {projNim}"
+  execProcess &"nim c {otherFlags} {sharedFlags} --o:{outputPath} {projNim}"
 
 include "tasks.nim"
 

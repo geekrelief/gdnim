@@ -2,12 +2,13 @@ import godotapigen
 from sequtils import toSeq, filter, mapIt
 import times
 import anycase
+import threadpool
 
 task gdengine, "build the godot engine with dll unloading mod":
   var godotSrcPath = getEnv("GODOT_SRC_PATH")
   if godotSrcPath == "":
     echo "Please set GODOT_SRC_PATH env variable to godot source directory."
-    quit(1)
+    return
 
   # run scons --help to see godot flags
   var flags = ""
@@ -33,7 +34,7 @@ task gdengine, "build the godot engine with dll unloading mod":
   setCurrentDir(godotSrcPath)
 
   if "clean" in args:
-    echo &"Cleaning godot engine"
+    echo "Cleaning godot engine"
     discard execShellCmd &"scons -c"
 
   var threads = if "fast" in args: "11" else: "6"
@@ -115,7 +116,7 @@ class_name = "$2"
 library = SubResource( 1 )
 """
 
-proc genGdns(scriptName:string) =
+proc genGdns(scriptName:string) {.gcsafe.} =
   let gdns = &"app/gdns/{scriptName}.gdns"
   if not fileExists(gdns):
     var gdnsContent = gdns_template % [scriptName, scriptName.pascal]
@@ -131,30 +132,24 @@ task gdns, "create a new gdnative script file for non-components, pass in a scri
     echo "gdns needs a scriptName as an argument"
 
 task watcher, "build the watcher dll":
-  execnim("--path:deps --path:deps/godot", "app/_dlls/watcher.dll", "watcher.nim")
+  if not fileExists("app/_dlls/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime("app/_dlls/watcher.dll")):
+    echo execnim("--path:deps --path:deps/godot", getSharedFlags(), "app/_dlls/watcher.dll", "watcher.nim")
+  else:
+    echo "Watcher is unchanged"
 
-task calls_watcher, "build the calls_watcher dll":
-  execnim("--path:deps --path:deps/godot", "app/_dlls/calls_watcher.dll", "calls_watcher.nim")
-
-task storage, "build the storage dll":
-  execnim("--d:exportStorage", "app/_dlls/storage.dll", "storage.nim")
-
-task core, "build the core":
-  watcherTask()
-  storageTask()
-
-
-proc buildComp(compName:string, move:bool, newOnly:bool) =
+proc buildComp(compName:string, sharedFlags:string, move:bool, newOnly:bool):string {.gcsafe.} =
+  var outp = ""
   let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
   let hotDllFilePath = &"app/_dlls/{compName}.dll"
   let nimFilePath = &"components/{compName}.nim"
 
   if not fileExists(nimFilePath):
-    echo &"Error compiling {nimFilePath} [Not Found]"
-    quit(1)
+    result &= &"Error compiling {nimFilePath} [Not Found]"
+    return
 
   genGdns(compName)
 
+  #[
   if (not newOnly) or
     (newOnly and (
       (not fileExists(hotDllFilePath) and not fileExists(safeDllFilePath)) or
@@ -162,28 +157,39 @@ proc buildComp(compName:string, move:bool, newOnly:bool) =
       (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
     )):
 
-    echo &">>> Build {compName} <<<"
-    execnim("--path:deps --path:deps/godot --path:.", &"{safeDllFilePath}", &"{nimFilePath}")
+  ]#
+  result &= &">>> Build {compName} <<<"
+  result &= execnim("--path:deps --path:deps/godot --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
     (not fileExists(hotDllFilePath) or move):
-    echo ">>> dll moved safe to hot <<<"
     moveFile(safeDllFilePath, hotDllFilePath)
+    result &= ">>> dll moved safe to hot <<<"
 
 # components are named {compName}_safe.dll and
 # are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
 # the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
 # folder to see if _safe.dll is rebuilt.
 task comp, "build component and generate a gdns file\n\tno component name means all components are rebuilt\n\tmove safe to hot with 'move' or 'm' flag (e.g.) build -m target":
+  var sharedFlags = getSharedFlags()
   var move = "move" in otherFlagsTable
-  var newOnly = not ("force" in taskCompilerFlagsTable)
+  var newOnly = not ("force" in sharedFlags)
+  var nospawn = "nospawn" in otherFlagsTable
   if not (compName == ""):
     compName = compName.snake
-    buildComp(compName, move, newOnly)
+    echo buildComp(compName, sharedFlags, move, newOnly)
   else:
     # compile all the comps
-    for compFilename in walkFiles(&"components/*.nim"):
-      buildComp(splitFile(compFilename)[1].snake, move, newOnly)
+    if nospawn:
+      for compFilename in walkFiles(&"components/*.nim"):
+        echo buildComp(splitFile(compFilename)[1].snake, sharedFlags, move, newOnly)
+    else:
+      var res = newSeq[FlowVar[string]]()
+      for compFilename in walkFiles(&"components/*.nim"):
+        res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, move, newOnly))
+      sync()
+      for f in res:
+        echo ^f
 
 task flags, "display the flags used for compiling components":
   for flag in taskCompilerFlagsTable.keys:
@@ -194,10 +200,16 @@ task help, "display list of tasks":
   for i in 0..<tasks.len:
     echo "  ", tasks[i].task_name, " : ", tasks[i].description
 
-
-task all, "Clean and rebuild all":
+task cleanbuild, "Rebuild all":
   cleandllTask()
   setFlag("force")
   setFlag("move")
-  coreTask()
+  watcherTask()
+  compTask()
+
+task c, "Recompile all components":
+  compTask()
+
+task cm, "Recompile and move all components":
+  setFlag("move")
   compTask()
