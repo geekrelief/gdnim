@@ -137,8 +137,7 @@ task watcher, "build the watcher dll":
   else:
     echo "Watcher is unchanged"
 
-proc buildComp(compName:string, sharedFlags:string, move:bool, newOnly:bool):string {.gcsafe.} =
-  var outp = ""
+proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string {.gcsafe.} =
   let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
   let hotDllFilePath = &"app/_dlls/{compName}.dll"
   let nimFilePath = &"components/{compName}.nim"
@@ -149,20 +148,18 @@ proc buildComp(compName:string, sharedFlags:string, move:bool, newOnly:bool):str
 
   genGdns(compName)
 
-  #[
-  if (not newOnly) or
-    (newOnly and (
+  if buildSettings["noCheck"] or
+    (not buildSettings["newOnly"]) or
+    (buildSettings["newOnly"] and (
       (not fileExists(hotDllFilePath) and not fileExists(safeDllFilePath)) or
       (fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath)) or
       (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
     )):
-
-  ]#
-  result &= &">>> Build {compName} <<<"
-  result &= execnim("--path:deps --path:deps/godot --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
+    result &= &">>> Build {compName} <<<"
+    result &= execnim("--path:deps --path:deps/godot --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
-    (not fileExists(hotDllFilePath) or move):
+    (not fileExists(hotDllFilePath) or buildSettings["move"]):
     moveFile(safeDllFilePath, hotDllFilePath)
     result &= ">>> dll moved safe to hot <<<"
 
@@ -170,30 +167,38 @@ proc buildComp(compName:string, sharedFlags:string, move:bool, newOnly:bool):str
 # are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
 # the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
 # folder to see if _safe.dll is rebuilt.
-task comp, "build component and generate a gdns file\n\tno component name means all components are rebuilt\n\tmove safe to hot with 'move' or 'm' flag (e.g.) build -m target":
+task comp, "build component and generate a gdns file\n\tno component name means all components are rebuilt\n\tmove safe to hot with 'move' or 'm' flag (e.g.) build -m target\n\t--force or --f force rebuilds\n\t--nocheck or --nc skips compile without dll check but not force rebuilt":
   var sharedFlags = getSharedFlags()
-  var move = "move" in otherFlagsTable
-  var newOnly = not ("force" in sharedFlags)
+  var buildSettings: Table[string, bool]
+  buildSettings["move"] = "move" in otherFlagsTable
+  buildSettings["newOnly"] = not ("force" in sharedFlags)
+  buildSettings["noCheck"] = "nocheck" in otherFlagsTable
+
   var nospawn = "nospawn" in otherFlagsTable
+
   if not (compName == ""):
     compName = compName.snake
-    echo buildComp(compName, sharedFlags, move, newOnly)
+    echo buildComp(compName, sharedFlags, buildSettings)
   else:
     # compile all the comps
     if nospawn:
       for compFilename in walkFiles(&"components/*.nim"):
-        echo buildComp(splitFile(compFilename)[1].snake, sharedFlags, move, newOnly)
+        echo buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings)
     else:
       var res = newSeq[FlowVar[string]]()
       for compFilename in walkFiles(&"components/*.nim"):
-        res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, move, newOnly))
+        res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings))
       sync()
       for f in res:
         echo ^f
 
 task flags, "display the flags used for compiling components":
+  echo ">>> Task  compiler flags <<<"
   for flag in taskCompilerFlagsTable.keys:
     echo &"\t{flag} {taskCompilerFlagsTable[flag]}"
+  echo ">>> Other flags <<<"
+  for flag in otherFlagsTable.keys:
+    echo &"\t{flag} {otherFlagsTable[flag]}"
 
 task help, "display list of tasks":
   echo "Call build with a task:"

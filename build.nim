@@ -50,8 +50,8 @@ let allCompilerFlagsTable = {
 var taskCompilerFlagsTable = {
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
   "parallel":"--parallelBuild:0",
-  #"release":"--d:danger",
-  "debug":"--debugger:native --stackTrace:on",
+  "release":"--d:danger",
+  #"debug":"--debugger:native --stackTrace:on",
   "gc":"--gc:arc --d:useMalloc",
   "lib":"--app:lib --noMain",
   "cc":"--cc:tcc"
@@ -70,6 +70,8 @@ proc setFlag(flag:string, val:string = "") =
     of "arc", "orc":
       taskCompilerFlagsTable.del("gc")
       taskCompilerFlagsTable["gc"] = allCompilerFlagsTable[flag]
+    of "nocheck", "nc":
+      otherFlagsTable["nocheck"] = "on"
     else:
       if allCompilerFlagsTable.haskey(flag) or taskCompilerFlagsTable.haskey(flag):
         if val == "on" or val == "":

@@ -7,7 +7,7 @@ gdobj MsgpackComp of Node:
   var compName = "msgpack_comp"
   var i:int
   var f:float = 2.0
-  var s:string = "ok! oh yeah"
+  var s:string = "cynix"
   var tickRate:float = 1
   var elapsedSeconds:float
 
