@@ -13,7 +13,7 @@ macro save*(args: varargs[typed]):untyped =
     b.pack(self.i)
     b.pack(self.f)
     b.pack(self.s)
-    b.data
+    cast[seq[byte]](b.data)
   ]#
   var stmts = newStmtList()
   stmts.add newCall(newDotExpr(^"self", ^"queue_free"))
@@ -22,7 +22,8 @@ macro save*(args: varargs[typed]):untyped =
     stmts.add newCall(newDotExpr(^"b", ^"pack"),
       newDotExpr(^"self", ^(arg[1].repr))
     )
-  stmts.add newDotExpr(^"b", ^"data")
+  stmts.add nnkCast.newTree(nnkBracketExpr.newTree(^"seq", ^"byte"), newDotExpr(^"b", ^"data"))
+
   result = stmts
 
 macro load*(args: varargs[typed]):untyped =
@@ -32,10 +33,12 @@ macro load*(args: varargs[typed]):untyped =
     if w.isNil:
       raise newException(Defect, "Watcher not found")
 
-    var data = w.call("register_component",
+    var v = w.call("register_component",
       self.compName.toVariant,
       ($self.get_parent().get_path()).toVariant,
-      ($self.get_path()).toVariant).asString
+      ($self.get_path()).toVariant)
+    var data:seq[byte]
+    discard fromVariant(data, v)
     if data.len == 0: return
     var b = MsgStream.init(data)
     var i:int
@@ -51,16 +54,21 @@ macro load*(args: varargs[typed]):untyped =
     (newDotExpr(^"w", ^"isNil"), newStmtlist(nnkRaiseStmt.newTree(newCall(^"newException", ^"Defect", newLit("Watcher not found")))))
   )
   stmts.add nnkVarSection.newTree(
-    nnkIdentDefs.newTree(^"data", newEmptyNode(), newDotExpr(
+    nnkIdentDefs.newTree(^"v", newEmptyNode(),
       newCall(
         newDotExpr(^"w", ^"call"),
         newLit("register_component"),
         newDotExpr(newDotExpr(^"self", ^"compName"), ^"toVariant"),
         newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(newCall(newDotExpr(^"self", ^"get_parent")),^"get_path")))), ^"toVariant"),
         newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(^"self", ^"get_path")))), ^"toVariant")
-      ),
-      ^"asString")
+      )
     )
+  )
+  stmts.add nnkVarSection.newTree(
+    nnkIdentDefs.newTree(^"data", nnkBracketExpr.newTree(^"seq", ^"byte"), newEmptyNode())
+  )
+  stmts.add nnkDiscardStmt.newTree(
+    newCall(^"fromVariant", ^"data", ^"v")
   )
 
   stmts.add newIfStmt(
@@ -68,7 +76,7 @@ macro load*(args: varargs[typed]):untyped =
       newStmtList(nnkReturnStmt.newTree(newEmptyNode())))
   )
 
-  stmts.add newVarStmt(^"b", newCall(newDotExpr(^"MsgStream", ^"init"), ^"data"))
+  stmts.add newVarStmt(^"b", newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", ^"data")))
 
   for aprop in args:
     var prop = ^($aprop[1])

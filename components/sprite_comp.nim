@@ -2,36 +2,28 @@ import godot
 import godotapi / [sprite]
 import math
 import times
-import storage
-import macros
+import hot
 
 gdobj SpriteComp of Sprite:
   var compName = "sprite_comp"
   var startPos* {.gdExport.}:Vector2
-  var radius* {.gdExport.}:int = 10
+  var radius* {.gdExport.}:int = 100
   var speed* {.gdExport.}:float = 0.55
   var startTime:DateTime
-  var first = true
+  var first = false
 
   method enter_tree() =
-    var data = registerReloadMeta(self.compName, (
-      compName: self.compName,
-      parentPath: $self.getParent().getPath(),
-      reloadProc: proc(){.closure, gcsafe.} =
-        self.onBeforeReload()
-      ))
-    self.onAfterReload(data)
+    print "SpriteComp enter_tree"
+    load(self.speed)
+
+  proc reload():seq[byte] {.gdExport.} =
+    save(self.speed)
 
   method ready() =
     print "Plugin ready"
     self.startPos = self.position + vec2(200.0, 100.0)
     self.startTime = now()
 
-  proc onBeforeReload() =
-    save(self.speed)
-
-  proc onAfterReload(data:string) =
-    load(data, self.speed)
 
   method process(delta: float64) =
     var deltaSeconds:float64 =  float64((now() - self.startTime).inMilliseconds()) / 1000.0

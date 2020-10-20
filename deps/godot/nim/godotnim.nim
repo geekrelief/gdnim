@@ -788,8 +788,8 @@ template arrayToVariant(s: untyped): Variant =
   newVariant(arr)
 
 proc toVariant*[T](s: seq[T]): Variant =
-  if s.isNil:
-    return newVariant()
+  #if s.isNil: # seq can't be nil
+  #  return newVariant()
   result = arrayToVariant(s)
 
 proc toVariant*[I, T](s: array[I, T]): Variant =
@@ -797,7 +797,8 @@ proc toVariant*[I, T](s: array[I, T]): Variant =
 
 proc fromVariant*[T](s: var seq[T], val: Variant): ConversionResult =
   if val.getType() == VariantType.Nil:
-    s = nil
+    #s = nil # seq can't be nil
+    s = @[]
   elif val.getType() == VariantType.Array:
     let arr = val.asArray()
     var newS = newSeq[T](arr.len)

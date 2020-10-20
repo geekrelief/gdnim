@@ -23,7 +23,7 @@ gdobj Watcher of Node:
   var reloadIntervalSeconds {.gdExport.}:float = 0.5
 
   var reloadMetaTable:Table[string, ReloadMeta]
-  var reloadSaveDataTable:Table[string, string]
+  var reloadSaveDataTable:Table[string, seq[byte]]
   var reloadingKeys:seq[string]
   var watchElapsedSeconds:float
   var reloadElapsedSeconds:float
@@ -72,11 +72,12 @@ gdobj Watcher of Node:
           getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
 
           var compNode = self.get_node(rmeta.scenePath)
-          var saveData = compNode.call("reload").asString
+          var saveData:seq[byte]
+          discard saveData.fromVariant(compNode.call("reload"))
           self.reloadSaveDataTable[compName] = saveData
           self.reloadingKeys.add(key)
 
-  proc register_component(compName:string, parentPath:string, scenePath:string):string {.gdExport.} =
+  proc register_component(compName:string, parentPath:string, scenePath:string):seq[byte] {.gdExport.} =
     print &"Watcher registering {compName} @ {scenePath}"
     self.reloadMetaTable[compName] = (compName:compName, parentPath:parentPath, scenePath:scenePath)
-    result = if self.reloadSaveDataTable.hasKey(compName): self.reloadSaveDataTable[compName] else: ""
+    result = if self.reloadSaveDataTable.hasKey(compName): self.reloadSaveDataTable[compName] else: result
