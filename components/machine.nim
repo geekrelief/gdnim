@@ -3,15 +3,18 @@ import godotapi / node
 import strformat
 
 import msgpack4nim
+import hot
 
 gdobj Machine of Node:
 
+  var compName = "machine"
   var intVal = 4
-  var int2Val = 22
+  var int2Val = 11
   var strVal = "so far so good"
   var tickRate = 2.0
   var elapsedSeconds:float
 
+#[
   method enter_tree() =
     var cwatcher = self.get_node("/root/CallsWatcher") #case sensitive
     if not cwatcher.isNil:
@@ -33,6 +36,13 @@ gdobj Machine of Node:
     var b = MsgStream.init()
     b.pack(self.intVal)
     b.data
+]#
+  method enter_tree() =
+    print "Machine enter_tree"
+    load(self.intVal)
+
+  proc reload():string {.gdExport.} =
+    save(self.intVal)
 
   method process(delta:float64) =
     self.elapsedSeconds += delta
