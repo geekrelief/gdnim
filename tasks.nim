@@ -32,6 +32,8 @@ task gdengine, "build the godot engine with dll unloading mod":
 
   var curDir = getCurrentDir()
   setCurrentDir(godotSrcPath)
+  
+  discard execShellCmd &"git checkout 3.2_custom"
 
   if "clean" in args:
     echo "Cleaning godot engine"

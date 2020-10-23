@@ -35,8 +35,8 @@ macro load*(args: varargs[typed]):untyped =
 
     var v = w.call("register_component",
       self.compName.toVariant,
-      ($self.get_parent().get_path()).toVariant,
-      ($self.get_path()).toVariant)
+      ($self.get_path()).toVariant), #savePath
+      ($self.get_parent().get_path()).toVariant) #loadPath
     var data:seq[byte]
     discard fromVariant(data, v)
     if data.len == 0: return
@@ -59,8 +59,8 @@ macro load*(args: varargs[typed]):untyped =
         newDotExpr(^"w", ^"call"),
         newLit("register_component"),
         newDotExpr(newDotExpr(^"self", ^"compName"), ^"toVariant"),
-        newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(newCall(newDotExpr(^"self", ^"get_parent")),^"get_path")))), ^"toVariant"),
-        newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(^"self", ^"get_path")))), ^"toVariant")
+        newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(^"self", ^"get_path")))), ^"toVariant"),
+        newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(newCall(newDotExpr(^"self", ^"get_parent")),^"get_path")))), ^"toVariant")
       )
     )
   )

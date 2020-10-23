@@ -14,7 +14,7 @@ func hotDllPath(compName:string):string =
 func resourcePath(compName:string):string =
   &"res://{compName}.tscn"
 
-type ReloadMeta = tuple[compName:string, parentPath:string, scenePath:string]
+type ReloadMeta = tuple[compName:string, savePath:string, loadPath:string, saveProc:string, loadProc:string]
 
 gdobj Watcher of Node:
 
@@ -47,10 +47,13 @@ gdobj Watcher of Node:
           try:
             moveFile(compName.safeDllPath, compName.hotDllPath)
             #reload the scene
-            var parentNode = self.get_node(rmeta.parentPath)
-            if not parentNode.isNil:
-              var pscene = resource_loader.load(compName.resourcePath) as PackedScene
-              parentNode.call_deferred("add_child", toVariant(pscene.instance()))
+            var loadNode = self.get_node(rmeta.loadPath)
+            if not loadNode.isNil:
+              if rmeta.loadProc == "add_child":
+                var pscene = resource_loader.load(compName.resourcePath) as PackedScene
+                loadNode.call_deferred("add_child", toVariant(pscene.instance()))
+              else:
+                loadNode.call_deferred(rmeta.loadProc, toVariant(compName.resourcePath))
           except:
             print &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
 
@@ -71,13 +74,13 @@ gdobj Watcher of Node:
         if (not (key in self.reloadingKeys)) and fileExists(compName.safeDllPath) and
           getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
 
-          var compNode = self.get_node(rmeta.scenePath)
+          var compNode = self.get_node(rmeta.savePath)
           var saveData:seq[byte]
-          discard saveData.fromVariant(compNode.call("reload"))
+          discard saveData.fromVariant(compNode.call(rmeta.saveProc))
           self.reloadSaveDataTable[compName] = saveData
           self.reloadingKeys.add(key)
 
-  proc register_component(compName:string, parentPath:string, scenePath:string):seq[byte] {.gdExport.} =
-    print &"Watcher registering {compName} @ {scenePath}"
-    self.reloadMetaTable[compName] = (compName:compName, parentPath:parentPath, scenePath:scenePath)
+  proc register_component(compName:string, savePath:string, loadPath:string, saveProc="reload", loadProc="add_child"):seq[byte] {.gdExport.} =
+    print &"Watcher registering {compName} @ {savePath}"
+    self.reloadMetaTable[compName] = (compName, savePath, loadPath, saveProc, loadProc)
     result = if self.reloadSaveDataTable.hasKey(compName): self.reloadSaveDataTable[compName] else: result
