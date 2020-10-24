@@ -53,7 +53,8 @@ gdobj Watcher of Node:
                 var pscene = resource_loader.load(compName.resourcePath) as PackedScene
                 loadNode.call_deferred("add_child", toVariant(pscene.instance()))
               else:
-                loadNode.call_deferred(rmeta.loadProc, toVariant(compName.resourcePath))
+                print &"Watcher: calling {rmeta.loadProc}"
+                loadNode.call_deferred(rmeta.loadProc)
           except:
             print &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
 
@@ -76,11 +77,12 @@ gdobj Watcher of Node:
 
           var compNode = self.get_node(rmeta.savePath)
           var saveData:seq[byte]
+          print &"calling {rmeta.savePath} {rmeta.saveProc}"
           discard saveData.fromVariant(compNode.call(rmeta.saveProc))
           self.reloadSaveDataTable[compName] = saveData
           self.reloadingKeys.add(key)
 
   proc register_component(compName:string, savePath:string, loadPath:string, saveProc="reload", loadProc="add_child"):seq[byte] {.gdExport.} =
-    print &"Watcher registering {compName} @ {savePath}"
+    print &"Watcher registering {compName} @ {savePath} {saveProc} {loadProc}"
     self.reloadMetaTable[compName] = (compName, savePath, loadPath, saveProc, loadProc)
     result = if self.reloadSaveDataTable.hasKey(compName): self.reloadSaveDataTable[compName] else: result

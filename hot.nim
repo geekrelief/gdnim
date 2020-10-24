@@ -40,7 +40,7 @@ macro load*(args: varargs[typed]):untyped =
     var data:seq[byte]
     discard fromVariant(data, v)
     if data.len == 0: return
-    var b = MsgStream.init(data)
+    var b = MsgStream.init(cast[string](data))
     var i:int
     b.unpack(i)
     self.intVal = i
