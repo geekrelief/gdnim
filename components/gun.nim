@@ -19,14 +19,10 @@ gdobj Gun of Sprite:
   method enter_tree() =
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
     self.button_fireSingle = button_fireSingle
-    if button_fireSingle.isNil:
-      print "wtf"
-    if button_fireSingle != nil:
-      print "got the Button_FireSingle"
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
-    self.setupBullet()
+    self.setupBullets()
 
   method exit_tree() =
     self.bulletRes = nil
@@ -35,8 +31,8 @@ gdobj Gun of Sprite:
     self.queue_free()
     # don't save anything for now
 
-  proc setupBullet() {.gdExport.} =
-    print "gun: setupBullet"
+  proc setupBullets() {.gdExport.} =
+    print "gun: setupBullets"
     self.bulletRes = resource_loader.load(self.bulletResPath) as PackedScene
 
     var pathv = ($self.get_path()).toVariant
@@ -49,31 +45,43 @@ gdobj Gun of Sprite:
       pathv, #savePath
       pathv, #loadPath,
       "save_bullets".toVariant,
-      "setup_bullet".toVariant
+      "setup_bullets".toVariant
     )
     var data:seq[byte]
     discard fromVariant(data, bv)
     if data.len == 0: return
-    var b = MsgStream.init(cast[string](data))
+    var bb = MsgStream.init(cast[string](data))
     var count:int
-    b.unpack(count)
+    bb.unpack(count)
     if count == 0:
       return
+    print &"got {count} bullets"
     for i in 0..<count:
-      # get bullet velocity and position
-      var barr:array[4, float]
-      b.unpack(barr)
-      self.createBullet(vec2(barr[0], barr[1]), vec2(barr[2], barr[3]))
+      var bdata:seq[byte]
+      bb.unpack(bdata)
+      var bullet = self.bulletRes.instance()
+      var vid = bullet.call("unpack_data", bdata.toVariant)
+      var bid = vid.asString
+      print &"reload bullet {bid}"
+      discard bullet.connect("dead", self, "bullet_dead")
+      self.get_tree().root.add_child(bullet)
+      self.bullets[bid] = bullet
 
   proc saveBullets():seq[byte] {.gdExport.} =
-    print "gun: bullet reload"
+    print "gun: bullet reload return saveData"
+    var ms = MsgStream.init()
     #destroy any existing bullets
     var bullets = self.bullets
+    ms.pack(bullets.len)
     for id, b in bullets:
+      var bv = b.call("pack_data")
+      var bdata:seq[byte]
+      discard fromVariant(bdata, bv)
+      ms.pack(bdata)
       self.bullet_dead(id)
     self.bulletRes = nil
 
-    result
+    result = cast[seq[byte]](ms.data)
 
 
   proc createBullet(v:Vector2, p:Vector2) =
@@ -86,8 +94,6 @@ gdobj Gun of Sprite:
     self.bullets[$id] = b
 
   proc bullet_dead(id:string) {.gdExport.} =
-    print &"gun got {id} is dead"
-
     if self.bullets.hasKey(id):
       var b = self.bullets[id]
       b.disconnect("dead", self, "bullet_dead")
@@ -95,5 +101,4 @@ gdobj Gun of Sprite:
       self.bullets.del(id)
 
   proc fireSingle() {.gdExport.} =
-    print "fire single"
-    self.createBullet(vec2(1.0,0.0), self.bulletSpawnPoint.global_position)
+    self.createBullet(vec2(0.20,0.0), self.bulletSpawnPoint.global_position)

@@ -2,13 +2,14 @@ import godot
 import godotapi / [sprite, global_constants]
 import strformat
 import math
+import msgpack4nim
 
 
 gdobj Bullet of Sprite:
   # gun will spawn
   var id:string
   var velocity = vec2()
-  var maxlifeTime:float = 10.0
+  var maxlifeTime:float = 20.0
   var elapsedLife:float
   var isDead:bool
 
@@ -31,15 +32,31 @@ gdobj Bullet of Sprite:
 
     self.elapsedLife += delta
     if self.elapsedLife >= self.maxLifeTime:
-      print &"{self.id} is dead"
       self.isDead = true
       self.emitSignal("dead", self.id.toVariant)
       return
     self.position = self.position + self.velocity + vec2(0, 1 * sin(self.elapsedLife*TAU*0.55-TAU*0.25))
 
-  proc getData():seq[float] {.gdExport.} =
-    result.setLen(4)
-    result[0] = self.velocity.x
-    result[1] = self.velocity.y
-    result[2] = self.position.x
-    result[3] = self.position.y
+  proc packData():seq[byte] {.gdExport.} =
+    var b = MsgStream.init()
+    b.pack(self.id)
+    b.pack(self.elapsedLife)
+    b.pack(self.velocity)
+    b.pack(self.position)
+    cast[seq[byte]](b.data)
+
+  proc unpackData(data:seq[byte]):string {.gdExport.} =
+    var b = MsgStream.init(cast[string](data))
+    var id:string
+    b.unpack(id)
+    self.id = id
+    var elapsedLife:float
+    b.unpack(elapsedLife)
+    self.elapsedLife = elapsedLife
+    var velocity:Vector2
+    b.unpack(velocity)
+    self.velocity = velocity
+    var position:Vector2
+    b.unpack(position)
+    self.position = position
+    self.id
