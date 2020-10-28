@@ -1,8 +1,7 @@
 import godot
-import godotapi / [global_constants, engine, node, objects]
-import godotapi / [resource_loader, texture, sprite, packed_scene, scene_tree, viewport, label]
-import godotapi / scene_tree_timer
-import os, strutils, strformat, times, sequtils
+import godotapi / [node, resource_loader, packed_scene]
+import os, strformat, times
+from sequtils import filterIt
 import tables
 
 const dllDir:string = "_dlls"
@@ -14,7 +13,7 @@ func hotDllPath(compName:string):string =
 func resourcePath(compName:string):string =
   &"res://{compName}.tscn"
 
-type ReloadMeta = tuple[compName:string, savePath:string, loadPath:string, saveProc:string, loadProc:string]
+type ReloadMeta = tuple[compName:string, saverPath:string, loaderPath:string, saverProc:string, loaderProc:string]
 
 gdobj Watcher of Node:
 
@@ -47,20 +46,20 @@ gdobj Watcher of Node:
           try:
             moveFile(compName.safeDllPath, compName.hotDllPath)
             #reload the scene
-            var loadNode = self.get_node(rmeta.loadPath)
-            if not loadNode.isNil:
-              if rmeta.loadProc == "add_child":
+            var loaderNode = self.get_node(rmeta.loaderPath)
+            if not loaderNode.isNil:
+              if rmeta.loaderProc == "add_child":
                 var pscene = resource_loader.load(compName.resourcePath) as PackedScene
-                loadNode.call_deferred("add_child", toVariant(pscene.instance()))
+                loaderNode.call_deferred("add_child", toVariant(pscene.instance()))
               else:
-                print &"Watcher: calling {rmeta.loadProc}"
-                loadNode.call_deferred(rmeta.loadProc)
+                printWarning &"Watcher: calling {rmeta.loaderProc}"
+                loaderNode.call_deferred(rmeta.loaderProc)
           except:
-            print &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
+            printWarning &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
 
           finReloadingKeys.add(key)
         else:
-          print &"Watcher: {compName} still cached"
+          printWarning &"Watcher: {compName} still cached"
 
       self.reloadingKeys = self.reloadingKeys.filterIt(not (it in finReloadingKeys))
       return
@@ -75,14 +74,14 @@ gdobj Watcher of Node:
         if (not (key in self.reloadingKeys)) and fileExists(compName.safeDllPath) and
           getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
 
-          var compNode = self.get_node(rmeta.savePath)
+          var compNode = self.get_node(rmeta.saverPath)
           var saveData:seq[byte]
-          print &"calling {rmeta.savePath} {rmeta.saveProc}"
-          discard saveData.fromVariant(compNode.call(rmeta.saveProc))
+          printWarning &"calling {rmeta.saverPath} {rmeta.saverProc}"
+          discard saveData.fromVariant(compNode.call(rmeta.saverProc))
           self.reloadSaveDataTable[compName] = saveData
           self.reloadingKeys.add(key)
 
   proc register_component(compName:string, saverPath:string, loaderPath:string, saverProc="reload", loaderProc="add_child"):seq[byte] {.gdExport.} =
-    print &"Watcher registering {compName} @ {saverPath} {loaderPath} {saverProc} {loaderProc}"
+    printWarning &"Watcher registering {compName} @ {saverPath} {loaderPath} {saverProc} {loaderProc}"
     self.reloadMetaTable[compName] = (compName, saverPath, loaderPath, saverProc, loaderProc)
     result = if self.reloadSaveDataTable.hasKey(compName): self.reloadSaveDataTable[compName] else: result

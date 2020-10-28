@@ -5,18 +5,19 @@ import strformat
 import tables
 
 gdobj TestComp of Node:
-  var compName:string = "test_comp"
   var tick:int
   var elapsedSeconds:float
   var tickIntervalSeconds:float = 2
-  var anInt:int = 3456
+  var anInt:int = 111
   var aString1:string = "longer"
 
   method enter_tree() =
     print "TestComp enter_tree"
-    load(self.tick, self.aString1)
+    var b = register(test_comp)
+    load(b, self.tick, self.aString1)
 
   proc reload():seq[byte] {.gdExport.} =
+    self.queue_free()
     save(self.tick, self.aString1)
 
   method process(delta:float) =

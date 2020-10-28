@@ -10,13 +10,15 @@ gdobj SpriteComp of Sprite:
   var radius* {.gdExport.}:int = 100
   var speed* {.gdExport.}:float = 0.55
   var startTime:DateTime
-  var first = false
+  var first = true
 
   method enter_tree() =
     print "SpriteComp enter_tree"
-    load(self.speed)
+    var b = register(sprite_comp)
+    load(b, self.speed)
 
   proc reload():seq[byte] {.gdExport.} =
+    self.queue_free()
     save(self.speed)
 
   method ready() =

@@ -4,7 +4,6 @@ import strformat
 import hot
 
 gdobj MsgpackComp of Node:
-  var compName = "msgpack_comp"
   var i:int
   var f:float = 2.0
   var s:string = "cynix"
@@ -13,9 +12,11 @@ gdobj MsgpackComp of Node:
 
   method enter_tree() =
     print "MsgpackComp enter_tree"
-    load(self.i)
+    var b = register(msgpack_comp)
+    load(b, self.i)
 
   proc reload():seq[byte] {.gdExport.} =
+    self.queue_free()
     save(self.i)
 
   method process(delta:float) =

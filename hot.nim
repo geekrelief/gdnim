@@ -16,7 +16,6 @@ macro save*(args: varargs[typed]):untyped =
     cast[seq[byte]](b.data)
   ]#
   var stmts = newStmtList()
-  stmts.add newCall(newDotExpr(^"self", ^"queue_free"))
   stmts.add newVarStmt(^"b", newCall(newDotExpr(^"MsgStream", ^"init")))
   for arg in args:
     stmts.add newCall(newDotExpr(^"b", ^"pack"),
@@ -26,115 +25,103 @@ macro save*(args: varargs[typed]):untyped =
 
   result = stmts
 
-macro load*(args: varargs[typed]):untyped =
+macro load*(buffer:untyped, args: varargs[typed]):untyped =
   #[
-    load(data, self.i)
-    var w = self.get_node("/root/Watcher")
-    if w.isNil:
-      raise newException(Defect, "Watcher not found")
-
-    var v = w.call("register_component",
-      self.compName.toVariant,
-      ($self.get_path()).toVariant), #savePath
-      ($self.get_parent().get_path()).toVariant) #loadPath
-    var data:seq[byte]
-    discard fromVariant(data, v)
-    if data.len == 0: return
-    var b = MsgStream.init(cast[string](data))
+    load(b, self.i)
     var i:int
     b.unpack(i)
     self.intVal = i
   ]#
   var stmts = newStmtList()
-  stmts.add nnkVarSection.newTree(
-    nnkIdentDefs.newTree(^"w", newEmptyNode(), newCall(newDotExpr(^"self", ^"get_node"), newLit("/root/Watcher")))
-  )
-
-  stmts.add newIfStmt(
-    (newDotExpr(^"w", ^"isNil"), newStmtlist(nnkRaiseStmt.newTree(newCall(^"newException", ^"Defect", newLit("Watcher not found")))))
-  )
-  stmts.add nnkVarSection.newTree(
-    nnkIdentDefs.newTree(^"v", newEmptyNode(),
-      newCall(
-        newDotExpr(^"w", ^"call"),
-        newLit("register_component"),
-        newDotExpr(newDotExpr(^"self", ^"compName"), ^"toVariant"),
-        newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(^"self", ^"get_path")))), ^"toVariant"),
-        newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(newCall(newDotExpr(^"self", ^"get_parent")),^"get_path")))), ^"toVariant")
-      )
-    )
-  )
-  stmts.add nnkVarSection.newTree(
-    nnkIdentDefs.newTree(^"data", nnkBracketExpr.newTree(^"seq", ^"byte"), newEmptyNode())
-  )
-  stmts.add nnkDiscardStmt.newTree(
-    newCall(^"fromVariant", ^"data", ^"v")
-  )
-
-  stmts.add newIfStmt(
-    (nnkInfix.newTree(^"==", newDotExpr(^"data", ^"len"), newLit(0)),
-      newStmtList(nnkReturnStmt.newTree(newEmptyNode())))
-  )
-
-  stmts.add newVarStmt(^"b", newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", ^"data")))
-
   for aprop in args:
     var prop = ^($aprop[1])
     var propType = ^($getType(aprop[1]))
     stmts.add(
       nnkVarSection.newTree( nnkIdentDefs.newTree(prop, propType, newEmptyNode())),
-      newCall(newDotExpr(^"b", ^"unpack"), prop),
+      newCall(newDotExpr(buffer, ^"unpack"), prop),
       newAssignment(newDotExpr(^"self", prop), prop)
     )
   #echo stmts.astGenRepr
   result = stmts
 
-#register with the watcher and returns a MsgStream, exits the proc if there's no data
+# simple register, pass in the compName as a symbol, returns MsgStream or exits proc
+macro register*(compName:untyped):untyped =
+  var blockStmt = nnkBlockStmt.newTree()
+  blockStmt.add newEmptyNode()
+  blockStmt.add newStmtList(
+    newVarStmt(^"w", newCall(newDotExpr(^"self", ^"get_node"), newLit("/root/Watcher"))),
+    newIfStmt((newDotExpr(^"w", ^"isNil"), newStmtList(nnkRaiseStmt.newTree(newCall(^"newException", ^"Defect", newLit("Watcher not found")))))),
+    newStmtList(
+      nnkVarSection.newTree(
+        nnkIdentDefs.newTree(^"bv", newEmptyNode(),
+          newCall(
+            newDotExpr(^"w", ^"call"),
+            newLit("register_component"),
+            newDotExpr(newLit(compName.repr), ^"toVariant"),
+            newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(^"self", ^"get_path")))), ^"toVariant"),
+            newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(newCall(newDotExpr(^"self", ^"get_parent")),^"get_path")))), ^"toVariant")
+          )
+        )
+      ),
+      nnkVarSection.newTree(newIdentDefs(^"data", nnkBracketExpr.newTree(^"seq", ^"byte"))),
+      nnkDiscardStmt.newTree(newCall(^"fromVariant", ^"data", ^"bv")),
+
+      newIfStmt(
+        (nnkInfix.newTree(^"==", newDotExpr(^"data", ^"len"), newLit(0)),
+          newStmtList(nnkReturnStmt.newTree(newEmptyNode())))
+      ),
+      newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", ^"data"))
+    )
+  )
+  result = blockStmt
+
+
+#register with the watcher and returns a MsgStream or exits proc
 # compName, saverProc, loaderProc are symbols, converted to strings
 macro register*(compName:untyped, saverPath:string, loaderPath:string, saverProc:untyped, loaderProc:untyped):untyped =
-    # var path = $self.get_path()
-    #var stream = register_component(bullet, path, path, save_bullets, setup_bullets) # returns from caller proc if there's no data
-    #[
-      block:
-        var w = self.get_node("/root/Watcher")
-        if w.isNil:
-          raise newException(Defect, "Watcher not found")
+  # var path = $self.get_path()
+  #var stream = register_component(bullet, path, path, save_bullets, setup_bullets) # returns from caller proc if there's no data
+  #[
+    block:
+      var w = self.get_node("/root/Watcher")
+      if w.isNil:
+        raise newException(Defect, "Watcher not found")
 
-        var bv = w.call("register_component",
-          compName.toVariant,
-          pathv, #savePath
-          pathv, #loadPath,
-          saverProc.toVariant,
-          loaderProc.toVariant
-        )
-        var data:seq[byte]
-        discard fromVariant(data, bv)
-        if data.len == 0: return
-        MsgStream.init(cast[string](data))
-    ]#
-    var blockStmt = nnkBlockStmt.newTree()
-    blockStmt.add newEmptyNode()
-    blockStmt.add newStmtList(
-      newVarStmt(^"w", newCall(newDotExpr(^"self", ^"get_node"), newLit("/root/Watcher"))),
-      newIfStmt((newDotExpr(^"w", ^"isNil"), newStmtList(nnkRaiseStmt.newTree(newCall(^"newException", ^"Defect", newLit("Watcher not found")))))),
-      newStmtList(
-        newVarStmt(^"bv",
-          newCall(newDotExpr(^"w", ^"call"), newLit("register_component"),
-            newDotExpr(newLit(compName.repr), ^"toVariant"),
-            newDotExpr(saverPath, ^"toVariant"),
-            newDotExpr(loaderPath, ^"toVariant"),
-            newDotExpr(newLit(saverProc.repr), ^"toVariant"),
-            newDotExpr(newLit(loaderProc.repr), ^"toVariant"),
-          )
-        ),
-        nnkVarSection.newTree(newIdentDefs(^"data", nnkBracketExpr.newTree(^"seq", ^"byte"))),
-        nnkDiscardStmt.newTree(newCall(^"fromVariant", ^"data", ^"bv")),
-
-        newIfStmt(
-          (nnkInfix.newTree(^"==", newDotExpr(^"data", ^"len"), newLit(0)),
-            newStmtList(nnkReturnStmt.newTree(newEmptyNode())))
-        ),
-        newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", ^"data"))
+      var bv = w.call("register_component",
+        compName.toVariant,
+        pathv, #savePath
+        pathv, #loadPath,
+        saverProc.toVariant,
+        loaderProc.toVariant
       )
+      var data:seq[byte]
+      discard fromVariant(data, bv)
+      if data.len == 0: return
+      MsgStream.init(cast[string](data))
+  ]#
+  var blockStmt = nnkBlockStmt.newTree()
+  blockStmt.add newEmptyNode()
+  blockStmt.add newStmtList(
+    newVarStmt(^"w", newCall(newDotExpr(^"self", ^"get_node"), newLit("/root/Watcher"))),
+    newIfStmt((newDotExpr(^"w", ^"isNil"), newStmtList(nnkRaiseStmt.newTree(newCall(^"newException", ^"Defect", newLit("Watcher not found")))))),
+    newStmtList(
+      newVarStmt(^"bv",
+        newCall(newDotExpr(^"w", ^"call"), newLit("register_component"),
+          newDotExpr(newLit(compName.repr), ^"toVariant"),
+          newDotExpr(saverPath, ^"toVariant"),
+          newDotExpr(loaderPath, ^"toVariant"),
+          newDotExpr(newLit(saverProc.repr), ^"toVariant"),
+          newDotExpr(newLit(loaderProc.repr), ^"toVariant"),
+        )
+      ),
+      nnkVarSection.newTree(newIdentDefs(^"data", nnkBracketExpr.newTree(^"seq", ^"byte"))),
+      nnkDiscardStmt.newTree(newCall(^"fromVariant", ^"data", ^"bv")),
+
+      newIfStmt(
+        (nnkInfix.newTree(^"==", newDotExpr(^"data", ^"len"), newLit(0)),
+          newStmtList(nnkReturnStmt.newTree(newEmptyNode())))
+      ),
+      newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", ^"data"))
     )
-    result = blockStmt
+  )
+  result = blockStmt

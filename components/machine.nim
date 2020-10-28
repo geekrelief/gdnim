@@ -11,15 +11,16 @@ gdobj Machine of Node:
   var intVal = 4
   var int2Val = 11
   var floatVal = 0.8
-  var strVal = "so ok"
+  var strVal = "inside"
   var tickRate = 2.0
   var elapsedSeconds:float
 
   method enter_tree() =
     print "Machine enter_tree"
-    load(self.floatVal)
+    load(register(machine), self.floatVal)
 
   proc reload():seq[byte] {.gdExport.} =
+    self.queue_free()
     save(self.floatVal)
 
   method process(delta:float64) =

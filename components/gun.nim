@@ -22,6 +22,8 @@ gdobj Gun of Sprite:
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
+    var b = register(gun)
+    load(b, self.bulletId)
     self.setupBullets()
 
   method exit_tree() =
@@ -29,7 +31,7 @@ gdobj Gun of Sprite:
 
   proc reload():seq[byte] =
     self.queue_free()
-    # don't save anything for now
+    save(self.bulletId)
 
   proc setupBullets() {.gdExport.} =
     print "gun: setupBullets"
