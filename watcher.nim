@@ -82,7 +82,7 @@ gdobj Watcher of Node:
           self.reloadSaveDataTable[compName] = saveData
           self.reloadingKeys.add(key)
 
-  proc register_component(compName:string, savePath:string, loadPath:string, saveProc="reload", loadProc="add_child"):seq[byte] {.gdExport.} =
-    print &"Watcher registering {compName} @ {savePath} {saveProc} {loadProc}"
-    self.reloadMetaTable[compName] = (compName, savePath, loadPath, saveProc, loadProc)
+  proc register_component(compName:string, saverPath:string, loaderPath:string, saverProc="reload", loaderProc="add_child"):seq[byte] {.gdExport.} =
+    print &"Watcher registering {compName} @ {saverPath} {loaderPath} {saverProc} {loaderProc}"
+    self.reloadMetaTable[compName] = (compName, saverPath, loaderPath, saverProc, loaderProc)
     result = if self.reloadSaveDataTable.hasKey(compName): self.reloadSaveDataTable[compName] else: result

@@ -4,12 +4,11 @@ import strformat
 import math
 import msgpack4nim
 
-
 gdobj Bullet of Sprite:
   # gun will spawn
   var id:string
   var velocity = vec2()
-  var maxlifeTime:float = 20.0
+  var maxlifeTime:float = 40.0
   var elapsedLife:float
   var isDead:bool
 
@@ -35,7 +34,7 @@ gdobj Bullet of Sprite:
       self.isDead = true
       self.emitSignal("dead", self.id.toVariant)
       return
-    self.position = self.position + self.velocity + vec2(0, 1 * sin(self.elapsedLife*TAU*0.55-TAU*0.25))
+    self.position = self.position + self.velocity + vec2(0, 1 * sin(self.elapsedLife*TAU*5.55-TAU*0.25))
 
   proc packData():seq[byte] {.gdExport.} =
     var b = MsgStream.init()

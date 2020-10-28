@@ -35,22 +35,8 @@ gdobj Gun of Sprite:
     print "gun: setupBullets"
     self.bulletRes = resource_loader.load(self.bulletResPath) as PackedScene
 
-    var pathv = ($self.get_path()).toVariant
-    var w = self.get_node("/root/Watcher")
-    if w.isNil:
-      raise newException(Defect, "Watcher not found")
-
-    var bv = w.call("register_component",
-      "bullet".toVariant,
-      pathv, #savePath
-      pathv, #loadPath,
-      "save_bullets".toVariant,
-      "setup_bullets".toVariant
-    )
-    var data:seq[byte]
-    discard fromVariant(data, bv)
-    if data.len == 0: return
-    var bb = MsgStream.init(cast[string](data))
+    var pathv = $self.get_path()
+    var bb = register(bullet, pathv, pathv, save_bullets, setup_bullets)
     var count:int
     bb.unpack(count)
     if count == 0:
@@ -69,9 +55,9 @@ gdobj Gun of Sprite:
 
   proc saveBullets():seq[byte] {.gdExport.} =
     print "gun: bullet reload return saveData"
-    var ms = MsgStream.init()
     #destroy any existing bullets
     var bullets = self.bullets
+    var ms = MsgStream.init()
     ms.pack(bullets.len)
     for id, b in bullets:
       var bv = b.call("pack_data")
