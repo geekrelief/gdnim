@@ -3,6 +3,7 @@ import godotapi/[sprite, scene_tree, packed_scene, resource_loader, node_2d]
 import hot
 import tables
 import strformat
+import macros
 
 gdobj Gun of Sprite:
 
@@ -22,8 +23,7 @@ gdobj Gun of Sprite:
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
-    var b = register(gun)
-    load(b, self.bulletId)
+    load(register(gun), self.bulletId)
     self.setupBullets()
 
   method exit_tree() =
@@ -39,10 +39,10 @@ gdobj Gun of Sprite:
 
     var pathv = $self.get_path()
     var bb = register(bullet, pathv, pathv, save_bullets, setup_bullets)
+    if bb.isNil: return
     var count:int
     bb.unpack(count)
-    if count == 0:
-      return
+    if count == 0: return
     print &"got {count} bullets"
     for i in 0..<count:
       var bdata:seq[byte]

@@ -64,6 +64,9 @@ proc setFlag(flag:string, val:string = "") =
     of "release":
       taskCompilerFlagsTable.del("debug")
       taskCompilerFlagsTable["release"] = allCompilerFlagsTable["release"]
+    of "debug":
+      taskCompilerFlagsTable.del("release")
+      taskCompilerFlagsTable["debug"] = allCompilerFlagsTable["debug"]
     of "gcc", "vcc", "tcc":
       taskCompilerFlagsTable.del("cc")
       taskCompilerFlagsTable["cc"] = allCompilerFlagsTable[flag]
@@ -109,9 +112,18 @@ proc getSharedFlags():string =
     sharedFlags &= taskCompilerFlagsTable[key] & " "
   sharedFlags
 
+const pdbdir = "vcc_pdb"
+proc customizeFormatFlags(projNim:string, sharedFlags:string):string {.gcsafe.} =
+  var flags = sharedFlags
+  if ("vcc" in flags) and ("debug" in flags):
+    createDir(pdbdir)
+    var filename = splitFile(projNim)[1]
+    flags &= &"--passC=\"/Fd{pdbdir}/{filename}.pdb\"" #https://docs.microsoft.com/en-us/cpp/build/reference/fd-program-database-file-name?view=vs-2019
+  flags
+
 proc execnim(otherFlags:string, sharedFlags:string, outputPath:string, projNim:string):string {.gcsafe.} =
-  #discard execShellCmd &"nim c {otherFlags} {sharedFlags} --o:{outputPath} {projNim}"
-  execProcess &"nim c {otherFlags} {sharedFlags} --o:{outputPath} {projNim}"
+  var flags = customizeFormatFlags(projNim, sharedFlags)
+  execProcess &"nim c {otherFlags} {flags} --o:{outputPath} {projNim}"
 
 include "tasks.nim"
 

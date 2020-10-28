@@ -7,10 +7,10 @@ import hot
 gdobj SpriteComp of Sprite:
   var compName = "sprite_comp"
   var startPos* {.gdExport.}:Vector2
-  var radius* {.gdExport.}:int = 100
+  var radius* {.gdExport.}:int = 20
   var speed* {.gdExport.}:float = 0.55
   var startTime:DateTime
-  var first = true
+  var first = false
 
   method enter_tree() =
     print "SpriteComp enter_tree"

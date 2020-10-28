@@ -55,11 +55,11 @@ gdobj Watcher of Node:
                 printWarning &"Watcher: calling {rmeta.loaderProc}"
                 loaderNode.call_deferred(rmeta.loaderProc)
           except:
-            printWarning &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
+            printError &"Fail! could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
 
           finReloadingKeys.add(key)
         else:
-          printWarning &"Watcher: {compName} still cached"
+          printError &"Watcher: {compName} still cached"
 
       self.reloadingKeys = self.reloadingKeys.filterIt(not (it in finReloadingKeys))
       return

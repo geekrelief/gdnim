@@ -32,7 +32,7 @@ task gdengine, "build the godot engine with dll unloading mod":
 
   var curDir = getCurrentDir()
   setCurrentDir(godotSrcPath)
-  
+
   discard execShellCmd &"git checkout 3.2_custom"
 
   if "clean" in args:
@@ -134,8 +134,9 @@ task gdns, "create a new gdnative script file for non-components, pass in a scri
     echo "gdns needs a scriptName as an argument"
 
 task watcher, "build the watcher dll":
-  if not fileExists("app/_dlls/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime("app/_dlls/watcher.dll")):
-    echo execnim("--path:deps --path:deps/godot", getSharedFlags(), "app/_dlls/watcher.dll", "watcher.nim")
+  var flags = getSharedFlags()
+  if ("force" in flags) or not fileExists("app/_dlls/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime("app/_dlls/watcher.dll")):
+    echo execnim("--path:deps --path:deps/godot", flags, "app/_dlls/watcher.dll", "watcher.nim")
   else:
     echo "Watcher is unchanged"
 
@@ -209,6 +210,7 @@ task help, "display list of tasks":
 
 task cleanbuild, "Rebuild all":
   cleandllTask()
+  removeDir(pdbdir) # created if vcc and debug flags are used
   setFlag("force")
   setFlag("move")
   watcherTask()
