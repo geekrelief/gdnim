@@ -12,8 +12,7 @@ gdobj MsgpackComp of Node:
 
   method enter_tree() =
     print "MsgpackComp enter_tree"
-    var b = register(msgpack_comp)
-    load(b, self.i)
+    register(msgpack_comp)?.load(self.i)
 
   proc reload():seq[byte] {.gdExport.} =
     self.queue_free()

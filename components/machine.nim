@@ -17,7 +17,7 @@ gdobj Machine of Node:
 
   method enter_tree() =
     print "Machine enter_tree"
-    load(register(machine), self.floatVal)
+    register(machine)?.load(self.floatVal)
 
   proc reload():seq[byte] {.gdExport.} =
     self.queue_free()

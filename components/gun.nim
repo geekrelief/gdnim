@@ -3,7 +3,6 @@ import godotapi/[sprite, scene_tree, packed_scene, resource_loader, node_2d]
 import hot
 import tables
 import strformat
-import macros
 
 gdobj Gun of Sprite:
 
@@ -23,7 +22,7 @@ gdobj Gun of Sprite:
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
-    load(register(gun), self.bulletId)
+    register(gun)?.load(self.bulletId)
     self.setupBullets()
 
   method exit_tree() =
@@ -38,22 +37,22 @@ gdobj Gun of Sprite:
     self.bulletRes = resource_loader.load(self.bulletResPath) as PackedScene
 
     var pathv = $self.get_path()
-    var bb = register(bullet, pathv, pathv, save_bullets, setup_bullets)
-    if bb.isNil: return
-    var count:int
-    bb.unpack(count)
-    if count == 0: return
-    print &"got {count} bullets"
-    for i in 0..<count:
-      var bdata:seq[byte]
-      bb.unpack(bdata)
-      var bullet = self.bulletRes.instance()
-      var vid = bullet.call("unpack_data", bdata.toVariant)
-      var bid = vid.asString
-      print &"reload bullet {bid}"
-      discard bullet.connect("dead", self, "bullet_dead")
-      self.get_tree().root.add_child(bullet)
-      self.bullets[bid] = bullet
+    withSome register(bullet, pathv, pathv, save_bullets, setup_bullets):
+      some bb:
+        var count:int
+        bb.unpack(count)
+        if count == 0: return
+        print &"got {count} bullets"
+        for i in 0..<count:
+          var bdata:seq[byte]
+          bb.unpack(bdata)
+          var bullet = self.bulletRes.instance()
+          var vid = bullet.call("unpack_data", bdata.toVariant)
+          var bid = vid.asString
+          print &"reload bullet {bid}"
+          discard bullet.connect("dead", self, "bullet_dead")
+          self.get_tree().root.add_child(bullet)
+          self.bullets[bid] = bullet
 
   proc saveBullets():seq[byte] {.gdExport.} =
     print "gun: bullet reload return saveData"

@@ -7,15 +7,14 @@ import hot
 gdobj SpriteComp of Sprite:
   var compName = "sprite_comp"
   var startPos* {.gdExport.}:Vector2
-  var radius* {.gdExport.}:int = 20
+  var radius* {.gdExport.}:int = 60
   var speed* {.gdExport.}:float = 0.55
   var startTime:DateTime
-  var first = false
+  var first = true
 
   method enter_tree() =
     print "SpriteComp enter_tree"
-    var b = register(sprite_comp)
-    load(b, self.speed)
+    register(sprite_comp)?.load(self.speed)
 
   proc reload():seq[byte] {.gdExport.} =
     self.queue_free()

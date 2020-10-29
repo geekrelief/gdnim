@@ -13,8 +13,7 @@ gdobj TestComp of Node:
 
   method enter_tree() =
     print "TestComp enter_tree"
-    var b = register(test_comp)
-    load(b, self.tick, self.aString1)
+    register(test_comp)?.load(self.tick, self.aString1)
 
   proc reload():seq[byte] {.gdExport.} =
     self.queue_free()

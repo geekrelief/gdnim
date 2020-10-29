@@ -4,15 +4,29 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "nimble build_host",
+      "label": "build c",
       "type": "shell",
-      "command": "nimble build_host",
+      "command": ".\\build c",
       "group": {
         "kind": "build",
         "isDefault": true
       },
       "presentation": {
         "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "build gd",
+      "type": "shell",
+      "command": ".\\build gd",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "never",
         "panel": "dedicated",
         "clear": true
       }

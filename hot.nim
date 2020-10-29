@@ -1,6 +1,6 @@
 import macros
-import msgpack4nim
-export msgpack4nim
+import msgpack4nim, options, optionsutils
+export msgpack4nim, options, optionsutils
 
 proc `^`*(s:string):NimNode {.inline.} =
   ident(s)
@@ -51,7 +51,7 @@ macro load*(buffer:untyped, args: varargs[typed]):untyped =
   #echo stmts.astGenRepr
   result = stmts
 
-# simple register, pass in the compName as a symbol, returns MsgStream or nil
+# simple register, pass in the compName as a symbol, returns Option[MsgStream]
 macro register*(compName:untyped):untyped =
   let watcher = genSym(nskVar, "w")
   let saveDataVariant = genSym(nskVar, "v")
@@ -79,9 +79,9 @@ macro register*(compName:untyped):untyped =
       nnkIfStmt.newTree(
         nnkElifBranch.newTree(
           nnkInfix.newTree(^"!=", newDotExpr(saveData, ^"len"), newLit(0)),
-          newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", saveData))
+          newCall(^"some", newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", saveData)))
         ),
-        nnkElse.newTree(newNilLit())
+        nnkElse.newTree(newCall(^"none", ^"MsgStream"))
       )
     )
   )
@@ -135,17 +135,10 @@ macro register*(compName:untyped, saverPath:string, loaderPath:string, saverProc
       nnkIfStmt.newTree(
         nnkElifBranch.newTree(
           nnkInfix.newTree(^"!=", newDotExpr(saveData, ^"len"), newLit(0)),
-          newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", saveData))
+          newCall(^"some", newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", saveData)))
         ),
-        nnkElse.newTree(newNilLit())
+        nnkElse.newTree(newCall(^"none", ^"MsgStream"))
       )
-      #[
-      newIfStmt(
-        (nnkInfix.newTree(^"==", newDotExpr(saveData, ^"len"), newLit(0)),
-          newStmtList(nnkReturnStmt.newTree(newEmptyNode())))
-      ),
-      newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", saveData))
-      ]#
     )
   )
   result = blockStmt

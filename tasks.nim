@@ -24,7 +24,8 @@ task gdengine, "build the godot engine with dll unloading mod":
   else:
     info &= "tools, "
     if "release" in args :
-      flags = "target=release_debug debug_symbols=fulcons-H vsproj=yes"
+      #flags = "target=release_debug debug_symbols=full vsproj=yes"
+      flags = "target=release_debug"
       info &= "release"
     else:
       flags = "target=debug debug_symbols=full vsproj=yes"
@@ -37,7 +38,7 @@ task gdengine, "build the godot engine with dll unloading mod":
 
   if "clean" in args:
     echo "Cleaning godot engine"
-    discard execShellCmd &"scons -c"
+    discard execShellCmd &"scons -c {flags}"
 
   var threads = if "fast" in args: "11" else: "6"
   echo &"Compiling godot {info} threads:{threads}"
@@ -45,8 +46,11 @@ task gdengine, "build the godot engine with dll unloading mod":
   setCurrentDir(curDir)
 
 task gd, "launches terminal with godot project\n-e option to open editor\nlast argument is a scene to open\n":
-  #echo "Windows Terminal doesn't support launching a command or starting from a directory"
-  var gdbin = getEnv("GODOT_BIN")
+  var gdbin = if "debug" in getSharedFlags(): getEnv("GODOT_TOOLS_DEBUG_BIN") else: getEnv("GODOT_TOOLS_RELEASE_BIN")
+  if gdbin == "":
+    echo "Please set GODOT_TOOLS_DEBUG_BIN and/or GODOT_TOOLS_RELEASE_BIN to the path to the godot editor."
+    quit(1)
+
   var curDir = getCurrentDir()
   var projDir = "app"
 
