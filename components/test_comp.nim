@@ -1,18 +1,20 @@
 import godot
-import godotapi / node
+import godotapi / [node, label]
 import hot
 import strformat
 import tables
 
-gdobj TestComp of Node:
+gdobj TestComp of Label:
   var tick:int
   var elapsedSeconds:float
-  var tickIntervalSeconds:float = 2
+  var tickIntervalSeconds:float = 1.4
   var anInt:int = 111
   var aString1:string = "longer"
 
   method enter_tree() =
     print "TestComp enter_tree"
+    print &"text {self.text}"
+    self.text = "TestComp" & " 2"
     register(test_comp)?.load(self.tick, self.aString1)
 
   proc reload():seq[byte] {.gdExport.} =
@@ -27,4 +29,5 @@ gdobj TestComp of Node:
       self.printData
 
   proc printData() =
-    print &"TestComp {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"
+    print &"TestComp ok {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"
+    #self.text = &"TestComp {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"

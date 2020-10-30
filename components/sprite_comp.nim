@@ -8,17 +8,17 @@ gdobj SpriteComp of Sprite:
   var compName = "sprite_comp"
   var startPos* {.gdExport.}:Vector2
   var radius* {.gdExport.}:int = 60
-  var speed* {.gdExport.}:float = 0.55
+  var speed* {.gdExport.}:float = 1.55
   var startTime:DateTime
-  var first = true
+  var first = false
 
   method enter_tree() =
     print "SpriteComp enter_tree"
-    register(sprite_comp)?.load(self.speed)
+    discard register(sprite_comp)#?.load(self.speed)
 
   proc reload():seq[byte] {.gdExport.} =
     self.queue_free()
-    save(self.speed)
+    #save(self.speed)
 
   method ready() =
     print "Plugin ready"
