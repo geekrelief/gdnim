@@ -13,7 +13,6 @@ gdobj Bullet of Sprite:
   var isDead:bool
 
   method init() =
-    print "bullet: init"
     self.isDead = false
     var arg0 = newDictionary()
     arg0["name".toVariant] = "id".toVariant
@@ -34,12 +33,11 @@ gdobj Bullet of Sprite:
       self.isDead = true
       self.emitSignal("dead", self.id.toVariant)
       return
-    self.position = self.position + self.velocity + vec2(0, 5 * sin(self.elapsedLife*TAU*1.0 - TAU*0.25))
+    self.position = self.position + self.velocity + vec2(0, 3 * sin(self.elapsedLife*TAU*1.0 - TAU*0.25))
 
   proc packData():seq[byte] {.gdExport.} =
     save(self.id, self.elapsedLife, self.velocity, self.position)
 
   proc unpackData(data:seq[byte]):int64 {.gdExport.} =
     load(data, self.id, self.elapsedLife, self.velocity, self.position)
-    print &"bullet: unpack {self.id}"
     self.id

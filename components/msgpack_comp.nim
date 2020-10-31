@@ -11,7 +11,7 @@ gdobj MsgpackComp of Node:
   var elapsedSeconds:float
 
   method enter_tree() =
-    print "MsgpackComp enter_tree"
+    printWarning "MsgpackComp enter_tree"
     register(msgpack_comp)?.load(self.i)
 
   proc reload():seq[byte] {.gdExport.} =
@@ -25,4 +25,4 @@ gdobj MsgpackComp of Node:
 
     self.i += 1
 
-    print &"MsgPack {self.i = } {self.f = } {self.s = }"
+    printWarning &"MsgPack {self.i = } {self.f = } {self.s = }"

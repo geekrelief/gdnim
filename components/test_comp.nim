@@ -7,14 +7,12 @@ import tables
 gdobj TestComp of Label:
   var tick:int
   var elapsedSeconds:float
-  var tickIntervalSeconds:float = 1.4
+  var tickIntervalSeconds:float = 0.1
   var anInt:int = 111
-  var aString1:string = "longer"
+  var aString1:string = "update"
 
   method enter_tree() =
-    print "TestComp enter_tree"
-    print &"text {self.text}"
-    self.text = "TestComp" & " 2"
+    self.text = "TestComp enter_tree"
     register(test_comp)?.load(self.tick, self.aString1)
 
   proc reload():seq[byte] {.gdExport.} =
@@ -26,8 +24,7 @@ gdobj TestComp of Label:
     if self.elapsedSeconds >= self.tickIntervalSeconds:
       self.elapsedSeconds = 0
       self.tick += 1
-      self.printData
+      self.printData()
 
   proc printData() =
-    print &"TestComp ok {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"
-    #self.text = &"TestComp {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"
+    self.text = &"TestComp {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"

@@ -1,6 +1,9 @@
-import macros
+import macros, strformat, os
+from strutils import contains
 import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils
+
+const sceneDir = "_scenes"
 
 proc `^`*(s:string):NimNode {.inline.} =
   ident(s)
@@ -57,7 +60,6 @@ macro load*(data:typed, args: varargs[typed]):untyped =
       newCall(newDotExpr(buffer, ^"unpack"), prop),
       newAssignment(newDotExpr(^"self", prop), prop)
     )
-
 
   #echo stmts.repr
   result = stmts
@@ -153,3 +155,17 @@ macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loader
     )
   )
   result = blockStmt
+
+# find the resource at runtime, returns the first resource that matches compName
+proc findSceneResource*(compName:string):string =
+  var sceneFilename = &"{compName}.tscn"
+  var matches:seq[string]
+  for f in walkDirRec(&"{sceneDir}"):
+    if f.contains(sceneFilename):
+      matches.add move(&"res://{f}")
+  if matches.len == 1:
+    return matches[0]
+  if matches.len == 0:
+    raise newException(IOError, &"Scene resource for {compName} could not be found!")
+  if matches.len > 1:
+    raise newException(ValueError, &"Multiple resources found with {compName}:\n\t{matches}")

@@ -7,7 +7,6 @@ import hot
 
 gdobj Machine of Node:
 
-  var compName = "machine"
   var intVal = 4
   var int2Val = 11
   var floatVal = 0.8
@@ -16,7 +15,7 @@ gdobj Machine of Node:
   var elapsedSeconds:float
 
   method enter_tree() =
-    print "Machine enter_tree"
+    printWarning "Machine enter_tree"
     register(machine)?.load(self.floatVal)
 
   proc reload():seq[byte] {.gdExport.} =
@@ -28,4 +27,4 @@ gdobj Machine of Node:
     if self.elapsedSeconds < self.tickRate: return
     self.elapsedSeconds = 0.0
 
-    print &"Machine tick: {self.intVal = } {self.floatVal = } {self.int2Val} {self.strVal} len {len(self.strVal)}"
+    printWarning &"Machine tick: {self.intVal = } {self.floatVal = } {self.int2Val} {self.strVal} len {len(self.strVal)}"
