@@ -41,7 +41,7 @@ gdobj Gun of Sprite:
     self.bulletRes = resource_loader.load(self.bulletResPath) as PackedScene
 
     var pathv = $self.get_path()
-    withSome register(bullet, pathv, pathv, save_bullets, setup_bullets):
+    withSome register(bullet, pathv, save_bullets, setup_bullets):
       some bb:
         var count:int
         bb.unpack(count)

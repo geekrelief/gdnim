@@ -101,9 +101,9 @@ macro register*(compName:untyped):untyped =
 
 #register with the watcher and returns a MsgStream or exits proc
 # compName, saverProc, loaderProc are symbols, converted to strings
-macro register*(compName:untyped, saverPath:string, loaderPath:string, saverProc:untyped, loaderProc:untyped):untyped =
+macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loaderProc:untyped):untyped =
   # var path = $self.get_path()
-  #var stream = register_component(bullet, path, path, save_bullets, setup_bullets) # returns from caller proc if there's no data
+  #var stream = register_component(bullet, path, save_bullets, setup_bullets) # returns from caller proc if there's no data
   #[
     block:
       var w = self.get_node("/root/Watcher")
@@ -112,8 +112,8 @@ macro register*(compName:untyped, saverPath:string, loaderPath:string, saverProc
 
       var bv = w.call("register_component",
         compName.toVariant,
-        pathv, #savePath
-        pathv, #loadPath,
+        path, #savePath
+        path, #loadPath,
         saverProc.toVariant,
         loaderProc.toVariant
       )
@@ -134,8 +134,8 @@ macro register*(compName:untyped, saverPath:string, loaderPath:string, saverProc
       newVarStmt(saveDataVariant,
         newCall(newDotExpr(watcher, ^"call"), newLit("register_component"),
           newDotExpr(newLit(compName.repr), ^"toVariant"),
-          newDotExpr(saverPath, ^"toVariant"),
-          newDotExpr(loaderPath, ^"toVariant"),
+          newDotExpr(reloaderPath, ^"toVariant"),
+          newDotExpr(reloaderPath, ^"toVariant"),
           newDotExpr(newLit(saverProc.repr), ^"toVariant"),
           newDotExpr(newLit(loaderProc.repr), ^"toVariant"),
         )
