@@ -22,17 +22,17 @@ gdobj Gun of Sprite:
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
-    register(gun)?.load(self.bulletId)
+    register(gun)?.load(self.bulletId, self.position)
     self.setupBullets()
 
   method exit_tree() =
     self.bulletRes = nil
 
-  proc reload():seq[byte] =
+  proc reload():seq[byte] {.gdExport.} =
     self.queue_free()
-    save(self.bulletId)
+    save(self.bulletId, self.position)
 
-  proc setupBullets() {.gdExport.} =
+  proc setupBullets(bulletData:seq[byte] = @[]) {.gdExport.} =
     print "gun: setupBullets"
     self.bulletRes = resource_loader.load(self.bulletResPath) as PackedScene
 
@@ -42,14 +42,14 @@ gdobj Gun of Sprite:
         var count:int
         bb.unpack(count)
         if count == 0: return
-        print &"got {count} bullets"
+        print &"gun: got {count} bullets"
         for i in 0..<count:
           var bdata:seq[byte]
           bb.unpack(bdata)
           var bullet = self.bulletRes.instance()
           var vid = bullet.call("unpack_data", bdata.toVariant)
           var bid = vid.asString
-          print &"reload bullet {bid}"
+          print &"gun: reload bullet {bid}"
           discard bullet.connect("dead", self, "bullet_dead")
           self.get_tree().root.add_child(bullet)
           self.bullets[bid] = bullet
@@ -61,6 +61,7 @@ gdobj Gun of Sprite:
     var ms = MsgStream.init()
     ms.pack(bullets.len)
     for id, b in bullets:
+      b.disconnect("dead", self, "bullet_dead")
       var bv = b.call("pack_data")
       var bdata:seq[byte]
       discard fromVariant(bdata, bv)
@@ -82,10 +83,10 @@ gdobj Gun of Sprite:
 
   proc bullet_dead(id:string) {.gdExport.} =
     if self.bullets.hasKey(id):
+      print &"gun: dead bullet {id}"
       var b = self.bullets[id]
-      b.disconnect("dead", self, "bullet_dead")
       b.queue_free()
       self.bullets.del(id)
 
   proc fireSingle() {.gdExport.} =
-    self.createBullet(vec2(0.20,0.0), self.bulletSpawnPoint.global_position)
+    self.createBullet(vec2(1.2,0.0), self.bulletSpawnPoint.global_position)
