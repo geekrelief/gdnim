@@ -1,28 +1,18 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=2 format=2]
 
-[ext_resource path="res://gun.png" type="Texture" id=1]
-[ext_resource path="res://gdns/gun.gdns" type="Script" id=2]
+[ext_resource path="res://gun.tscn" type="PackedScene" id=1]
 
 [node name="Dependents" type="Node2D"]
 
 [node name="Button_FireSingle" type="Button" parent="."]
-margin_left = 52.0
-margin_top = 24.0
-margin_right = 185.0
-margin_bottom = 91.0
+margin_left = 23.0
+margin_top = 154.0
+margin_right = 156.0
+margin_bottom = 221.0
 text = "Fire Single"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Gun" type="Sprite" parent="."]
-position = Vector2( 169.5, 233.5 )
-scale = Vector2( 4, 4 )
-texture = ExtResource( 1 )
-script = ExtResource( 2 )
-__meta__ = {
-"_edit_group_": true
-}
-
-[node name="BulletSpawnPoint" type="Node2D" parent="Gun"]
-position = Vector2( 7.41053, 0.405064 )
+[node name="Gun" parent="." instance=ExtResource( 1 )]
+position = Vector2( 55, 301 )

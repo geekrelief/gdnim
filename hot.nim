@@ -19,36 +19,47 @@ macro save*(args: varargs[typed]):untyped =
   var buffer = genSym(nskVar, "buffer")
   stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init")))
   for arg in args:
+    var prop:NimNode
+    case arg.kind:
+    of nnkCall: prop = ^($arg[0])
+    else: prop = ^($arg[1])
     stmts.add newCall(newDotExpr(buffer, ^"pack"),
-      newDotExpr(^"self", ^(arg[1].repr))
+      newDotExpr(^"self", prop)
     )
   stmts.add nnkCast.newTree(nnkBracketExpr.newTree(^"seq", ^"byte"), newDotExpr(buffer, ^"data"))
 
   result = stmts
 
-macro load*(buffer:untyped, args: varargs[typed]):untyped =
-  #[
-    load(buffer, self.i)
-    if not buffer.isNil:
-      var i:int
-      buffer.unpack(i)
-      self.intVal = i
-  ]#
+#load takes a MsgStream or seq[byte] for loading#
+macro load*(data:typed, args: varargs[typed]):untyped =
+  # load(buffer, self.i)
   var stmts = newStmtList()
+  var buffer = data
+  if getTypeInst(data).repr == "seq[byte]":
+    buffer = genSym(nskVar, "buffer")
+    stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", data)))
+
   var unpackStmts = newStmtList()
+  stmts.add unpackStmts
   for aprop in args:
-    var prop = ^($aprop[1])
-    var propType = ^($getType(aprop[1]))
+    var prop:NimNode
+    var propType:NimNode
+    case aprop.kind
+    of nnkCall:
+      prop = ^($aprop[0])
+      propType = ^($getTypeInst(aprop))
+    else:
+      prop = ^($aprop[1])
+      propType = ^($getTypeInst(aprop[1]))
+
     unpackStmts.add(
       nnkVarSection.newTree( nnkIdentDefs.newTree(prop, propType, newEmptyNode())),
       newCall(newDotExpr(buffer, ^"unpack"), prop),
       newAssignment(newDotExpr(^"self", prop), prop)
     )
 
-  stmts.add newIfStmt(
-    (prefix(newDotExpr(buffer, ^"isNil"), "not"), unpackStmts)
-  )
-  #echo stmts.astGenRepr
+
+  #echo stmts.repr
   result = stmts
 
 # simple register, pass in the compName as a symbol, returns Option[MsgStream]

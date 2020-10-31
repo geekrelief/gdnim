@@ -13,7 +13,12 @@ func hotDllPath(compName:string):string =
 func resourcePath(compName:string):string =
   &"res://{compName}.tscn"
 
-type ReloadMeta = tuple[compName:string, saverPath:string, loaderPath:string, saverProc:string, loaderProc:string]
+type ReloadMeta = object
+  compName:string
+  saverPath:string
+  loaderPath:string
+  saverProc:string
+  loaderProc:string
 
 gdobj Watcher of Node:
 
@@ -83,5 +88,7 @@ gdobj Watcher of Node:
 
   proc register_component(compName:string, saverPath:string, loaderPath:string, saverProc="reload", loaderProc="add_child"):seq[byte] {.gdExport.} =
     printWarning &"Watcher registering {compName} @ {saverPath} {loaderPath} {saverProc} {loaderProc}"
-    self.reloadMetaTable[compName] = (compName, saverPath, loaderPath, saverProc, loaderProc)
-    result = if self.reloadSaveDataTable.hasKey(compName): self.reloadSaveDataTable[compName] else: result
+    self.reloadMetaTable[compName] = ReloadMeta(compName:compName, saverPath:saverPath, loaderPath:loaderPath, saverProc:saverProc, loaderProc:loaderProc)
+    if self.reloadSaveDataTable.hasKey(compName):
+      result = self.reloadSaveDataTable[compName]
+      self.reloadSaveDataTable.del(compName)
