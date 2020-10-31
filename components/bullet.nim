@@ -6,23 +6,22 @@ import hot
 
 gdobj Bullet of Sprite:
   # gun will spawn
-  var id:string
+  var id:int64
   var velocity = vec2()
   var maxlifeTime:float = 30.0
   var elapsedLife:float
   var isDead:bool
 
   method init() =
+    print "bullet: init"
     self.isDead = false
     var arg0 = newDictionary()
     arg0["name".toVariant] = "id".toVariant
-    arg0["type".toVariant] = TYPE_STRING.toVariant
+    arg0["type".toVariant] = TYPE_INT.toVariant
     var args = newArray(arg0.toVariant)
-    print "bullet: added signal"
     self.addUserSignal("dead", args)
 
-  proc setData(id:string, v:Vector2, p:Vector2) {.gdExport.} =
-    print &"set bullet data {id} {v} {p}"
+  proc setData(id:int64, v:Vector2, p:Vector2) {.gdExport.} =
     self.id = id
     self.velocity = v
     self.global_position = p
@@ -40,7 +39,7 @@ gdobj Bullet of Sprite:
   proc packData():seq[byte] {.gdExport.} =
     save(self.id, self.elapsedLife, self.velocity, self.position)
 
-  proc unpackData(data:seq[byte]):string {.gdExport.} =
+  proc unpackData(data:seq[byte]):int64 {.gdExport.} =
     load(data, self.id, self.elapsedLife, self.velocity, self.position)
     print &"bullet: unpack {self.id}"
     self.id
