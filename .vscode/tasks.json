@@ -4,9 +4,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build c",
+      "label": "build",
       "type": "shell",
-      "command": ".\\build c",
+      "command": ".\\build",
       "group": {
         "kind": "build",
         "isDefault": true
