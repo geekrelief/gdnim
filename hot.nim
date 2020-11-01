@@ -3,7 +3,6 @@ from strutils import contains
 import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils
 
-const sceneDir = "_scenes"
 
 proc `^`*(s:string):NimNode {.inline.} =
   ident(s)
@@ -156,12 +155,13 @@ macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loader
   )
   result = blockStmt
 
+const tscnDir = "_tscn"
 # find the resource at runtime, returns the first resource that matches compName
-proc findSceneResource*(compName:string):string =
-  var sceneFilename = &"{compName}.tscn"
+proc findCompTscn*(compName:string):string =
+  var tscnFilename = &"{compName}.tscn"
   var matches:seq[string]
-  for f in walkDirRec(&"{sceneDir}"):
-    if f.contains(sceneFilename):
+  for f in walkDirRec(&"{tscnDir}"):
+    if f.contains(tscnFilename):
       matches.add move(&"res://{f}")
   if matches.len == 1:
     return matches[0]

@@ -106,7 +106,7 @@ gdobj Watcher of Node:
 
   proc register_component(compName:string, saverPath:string, loaderPath:string, saverProc="reload", loaderProc="add_child"):seq[byte] {.gdExport.} =
     printWarning &"Watcher registering {compName} @ {saverPath} {loaderPath} {saverProc} {loaderProc}"
-    var resourcePath = findSceneResource(compName)
+    var resourcePath = findCompTscn(compName)
     self.reloadMetaTable[compName] = ReloadMeta(compName:compName, saverPath:saverPath, loaderPath:loaderPath, saverProc:saverProc, loaderProc:loaderProc, resourcePath:resourcePath)
 
     for parentCompName, parentMeta in self.reloadMetaTable:

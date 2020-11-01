@@ -4,6 +4,13 @@ import times
 import anycase
 import threadpool
 
+const appDir = "app" #godot project directory
+const compDir = "components" # your components that hot reload
+# generated files
+const dllDir = appDir & "/_dlls"
+const gdnsDir = appDir & "/_gdns"
+const tscnDir = appDir & "/_tscn" # only need to touch these
+
 task gdengine, "build the godot engine with dll unloading mod":
   var godotSrcPath = getEnv("GODOT_SRC_PATH")
   if godotSrcPath == "":
@@ -81,6 +88,13 @@ task genapi, "generate the godot api bindings":
     quit -1
   genApi(apidir, apidir / "api.json")
 
+task watcher, "build the watcher dll":
+  var flags = getSharedFlags()
+  if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
+    echo execnim("--path:deps --path:deps/godot", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+  else:
+    echo "Watcher is unchanged"
+
 # compiling with gcc, vcc spitting out warnings about incompatible pointer types with NimGodotObj, which was added for gc:arc
 # include to include libgcc_s_seh-1.dll, libwinpthread-1.dll in the app/_dlls folder for project to run
 const gccDlls = @["libgcc_s_seh-1", "libwinpthread-1"]
@@ -89,11 +103,11 @@ final:
   if taskCompilerFlagsTable["cc"] == allCompilerFlagsTable["gcc"]:
     echo ">>> gcc dlls check <<<"
     for dll in gccDlls:
-      if not fileExists(&"app/_dlls/{dll}.dll"):
-        echo "Missing app/_dlls/{dll}.dll, please copy from gcc/bin"
+      if not fileExists(&"{dllDir}/{dll}.dll"):
+        echo &"Missing {dllDir}/{dll}.dll, please copy from gcc/bin"
+
 
 task cleandll, "clean the dlls, arguments are component names, default all non-gcc dlls":
-  let dllDir = "app/_dlls"
   var dllPaths:seq[string]
   if args.len > 1:
     var seqDllPaths = args.mapIt(toSeq(walkFiles(&"{dllDir}/{it}*.*")))
@@ -113,7 +127,7 @@ const gdns_template = """
 [gd_resource type="NativeScript" load_steps=2 format=2]
 
 [sub_resource type="GDNativeLibrary" id=1]
-entry/Windows.64 = "res://_dlls/$1.dll"
+entry/Windows.64 = "res://$3/$1.dll"
 dependency/Windows.64 = [  ]
 
 [resource]
@@ -122,38 +136,37 @@ class_name = "$2"
 library = SubResource( 1 )
 """
 
-proc genGdns(scriptName:string) {.gcsafe.} =
-  let gdns = &"app/gdns/{scriptName}.gdns"
-  if not fileExists(gdns):
-    var gdnsContent = gdns_template % [scriptName, scriptName.pascal]
-    var f = open(gdns, fmWrite)
-    f.write(gdnsContent)
-    f.close()
-    echo &"generated {gdns}"
+const tscn_template = """
+[gd_scene load_steps=2 format=2]
 
-task gdns, "create a new gdnative script file for non-components, pass in a scriptName as the only argument":
-  if args.len == 1:
-    genGdns(args[0].snake)
-  else:
-    echo "gdns needs a scriptName as an argument"
+[ext_resource path="res://$3/$1.gdns" type="Script" id=1]
 
-task watcher, "build the watcher dll":
-  var flags = getSharedFlags()
-  if ("force" in flags) or not fileExists("app/_dlls/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime("app/_dlls/watcher.dll")):
-    echo execnim("--path:deps --path:deps/godot", flags, "app/_dlls/watcher.dll", "watcher.nim")
-  else:
-    echo "Watcher is unchanged"
+[node name="$2" type="Node"]
+script = ExtResource( 1 )
+"""
 
 proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string {.gcsafe.} =
-  let safeDllFilePath = &"app/_dlls/{compName}_safe.dll"
-  let hotDllFilePath = &"app/_dlls/{compName}.dll"
-  let nimFilePath = &"components/{compName}.nim"
+  let safeDllFilePath = &"{dllDir}/{compName}_safe.dll"
+  let hotDllFilePath = &"{dllDir}/{compName}.dll"
+  let nimFilePath = &"{compDir}/{compName}.nim"
 
   if not fileExists(nimFilePath):
     result &= &"Error compiling {nimFilePath} [Not Found]"
     return
 
-  genGdns(compName)
+  let gdns = &"{gdnsDir}/{compName}.gdns"
+  if not fileExists(gdns):
+    var f = open(gdns, fmWrite)
+    f.write(gdns_template % [compName, compName.pascal, relativePath(dllDir, appDir)])
+    f.close()
+    echo &"generated {gdns}"
+
+  let tscn = &"{tscnDir}/{compName}.tscn"
+  if not fileExists(tscn):
+    var f = open(tscn, fmWrite)
+    f.write(tscn_template % [compName, compName.pascal, relativePath(gdnsDir, appDir)])
+    f.close()
+    echo &"generated {tscn}"
 
   if buildSettings["noCheck"] or
     (not buildSettings["newOnly"]) or
@@ -189,11 +202,11 @@ task comp, "build component and generate a gdns file\n\tno component name means 
   else:
     # compile all the comps
     if nospawn:
-      for compFilename in walkFiles(&"components/*.nim"):
+      for compFilename in walkFiles(&"{compDir}/*.nim"):
         echo buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings)
     else:
       var res = newSeq[FlowVar[string]]()
-      for compFilename in walkFiles(&"components/*.nim"):
+      for compFilename in walkFiles(&"{compDir}/*.nim"):
         res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings))
       sync()
       for f in res:

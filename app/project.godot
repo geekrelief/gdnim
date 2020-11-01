@@ -11,12 +11,12 @@ config_version=4
 [application]
 
 config/name="Gonim"
-run/main_scene="res://_scenes/hot.tscn"
+run/main_scene="res://scenes/hot.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
-Watcher="*res://gdns/watcher.gdns"
+Watcher="*res://_gdns/watcher.gdns"
 
 [rendering]
 
