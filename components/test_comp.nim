@@ -27,4 +27,4 @@ gdobj TestComp of Label:
       self.printData()
 
   proc printData() =
-    self.text = &"TestComp {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"
+    self.text = &"TestComp test {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"

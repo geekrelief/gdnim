@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=2]
-
-[ext_resource path="res://_gdns/machine.gdns" type="Script" id=1]
-
-[node name="Machine" type="Node"]
-script = ExtResource( 1 )

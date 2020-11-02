@@ -11,7 +11,7 @@ config_version=4
 [application]
 
 config/name="Gonim"
-run/main_scene="res://scenes/hot.tscn"
+run/main_scene="res://scenes/main.tscn"
 config/icon="res://icon.png"
 
 [autoload]
