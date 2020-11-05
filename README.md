@@ -7,14 +7,14 @@ killer feature is automated, hot code reloading through the use of scenes as
 resources for components and a Watcher node.
 
 *Prerequites:*
-  VSCode
-  [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom)
-  [Tiny C Compiler](https://github.com/mirror/tinycc)
-  [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
-  [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
-  [anycase](https://nimble.directory/pkg/anycase)
-  [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
-  vcc, gcc (optional)
+  1. VSCode
+  1. [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom)
+  1. [Tiny C Compiler](https://github.com/mirror/tinycc)
+  1. [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
+  1. [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
+  1. [anycase](https://nimble.directory/pkg/anycase)
+  1. [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
+  1. vcc, gcc (optional)
 
 It uses a customized build script and [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom) which unloads gdnative libraries when their resource is no longer
 referenced. It removes the dependency on nake and nimscript and is easier to
