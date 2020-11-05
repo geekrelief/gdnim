@@ -11,11 +11,45 @@ const dllDir = appDir & "/_dlls"
 const gdnsDir = appDir & "/_gdns"
 const tscnDir = appDir & "/_tscn" # only need to touch these
 
-task gdengine, "build the godot engine with dll unloading mod":
+proc execOrQuit(command:string) =
+  if execShellCmd(command) != 0: quit(QuitFailure)
+
+task gdengine_update, "update the 3.2 custom branch with changes from upstream":
+  var branches = @["3.2_script_data_error", "3.2_gdnative_unload", "3.2_filter_import"]
+
   var godotSrcPath = getEnv("GODOT_SRC_PATH")
   if godotSrcPath == "":
     echo "Please set GODOT_SRC_PATH env variable to godot source directory."
-    return
+    quit()
+
+  var projDir = getCurrentDir()
+  setCurrentDir(godotSrcPath)
+
+  execOrQuit("git checkout 3.2")
+  execOrQuit("git pull")
+
+  for branch in branches:
+    execOrQuit(&"git checkout {branch}")
+    execOrQuit("git rebase 3.2")
+
+  execOrQuit("git branch -D 3.2_custom")
+  execOrQuit("git checkout -b 3.2_custom 3.2")
+
+  for branch in branches:
+    execOrQuit(&"git merge {branch}")
+
+  execOrQuit("git push origin :3.2_custom")
+  execOrQuit("git push origin 3.2_custom")
+
+  setCurrentDir(projDir)
+
+task gdengine, "build the godot engine, default with debugging and tools args:\tupstream: updates the branch with branches in gdengine_upstream task\tclean: clean build\texport export build without tools\trelease: relead build without debugging":
+  if "update" in args: gdengineUpdateTask()
+
+  var godotSrcPath = getEnv("GODOT_SRC_PATH")
+  if godotSrcPath == "":
+    echo "Please set GODOT_SRC_PATH env variable to godot source directory."
+    quit()
 
   # run scons --help to see godot flags
   var flags = ""
@@ -38,19 +72,20 @@ task gdengine, "build the godot engine with dll unloading mod":
       flags = "target=debug debug_symbols=full vsproj=yes"
       info &= "debug"
 
-  var curDir = getCurrentDir()
+  var projDir = getCurrentDir()
   setCurrentDir(godotSrcPath)
 
-  discard execShellCmd &"git checkout 3.2_custom"
+  discard execShellCmd "git checkout 3.2_custom"
 
   if "clean" in args:
     echo "Cleaning godot engine"
+    discard execShellCmd "git clean -fdx" # clean generated files
     discard execShellCmd &"scons -c {flags}"
 
   var threads = if "fast" in args: "11" else: "6"
   echo &"Compiling godot {info} threads:{threads}"
   discard execShellCmd &"scons -j{threads}  p=windows bits=64 {flags}"
-  setCurrentDir(curDir)
+  setCurrentDir(projDir)
 
 task gd, "launches terminal with godot project\n-e option to open editor\nlast argument is a scene to open\n":
   var gdbin = if "debug" in getSharedFlags(): getEnv("GODOT_TOOLS_DEBUG_BIN") else: getEnv("GODOT_TOOLS_RELEASE_BIN")
