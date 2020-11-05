@@ -1,17 +1,28 @@
 Warning: This repo has been tailored for my system. If you happen to find this,
-feel free to customize yourself.
+feel free to customize it yourself.
 
 gdnim bootstraps a [godot-nim](https://github.com/pragmagic/godot-nim) project,
 with a customized build of godot-nim that enables easier project managment. It's
 killer feature is automated, hot code reloading through the use of scenes as
 resources for components and a Watcher node.
 
-It uses a customized build script and [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom) which unloads gdnative libraries when their resource is not longer
-referenced. It removes the dependency on nake and nimscript and is easier to
-customize than the godot-nim-stub.
+*Prerequites:*
+  VSCode
+  [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom)
+  [Tiny C Compiler](https://github.com/mirror/tinycc)
+  [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
+  [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
+  [anycase](https://nimble.directory/pkg/anycase)
+  [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
+  vcc, gcc (optional)
 
-The project is windows only for now.  Modify the build.nim and tasks.nim script
-for your needs. The build script expects some environment variables for paths
+It uses a customized build script and [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom) which unloads gdnative libraries when their resource is no longer
+referenced. It removes the dependency on nake and nimscript and is easier to
+customize and understand than the godot-nim-stub.
+
+The project is developed and tested only on Windows.
+Modify the build.nim and tasks.nim script for your needs.
+tasks.nim expects some environment variables for paths
 to my godot 3.2 custom engine source and editor executables.
 
 The app folder contains the godot project. Generated files are stored in
@@ -33,8 +44,7 @@ Watcher will check if safe dll is newer than hot dll and start a reload if so.
 
 The godot-nim bindings are in the deps folder. They're customized to use nim's
 new gc ARC and removes cruft code pre nim 1.0. Gdnim, and the godot-nim bindings
-are built against nim's devel branch:
-version 1.5.1, hash: d8fb2379c9a6e83b7e8151ba13116afb1bedc00f
+are built against nim's devel branch.
 
 Gdnim also makes use of tcc, the [Tiny C Compiler](https://github.com/mirror/tinycc).
 It compiles much faster than gcc or vcc, though the other compilers are also
