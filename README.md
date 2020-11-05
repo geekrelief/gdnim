@@ -34,17 +34,21 @@ Watcher monitors the _dlls folder for updates and coordinates the reload process
 with the components. The components use the hot module save and load macros to
 persist data. See the example in the components folder.
 
-Use the build script to download the godot source, compile the engine, compile
-the watcher and components, etc. When a component is compiled it generates a
-nativescript file (gdns), scene file (tscn), and a library file (safe dll). If
-the godot project is not currently running in the editor or the editor is
-has the project open but not in focus, you can tell the build script to move
-the safe dll to the hot dll path. When the project application is running,
+Use the build script to download the godot source, compile the engine, create
+godot-nim bindings api, compile the watcher and components, etc.
+
+When a component is compiled it generates a nativescript file (gdns),
+scene file (tscn), and a library file (safe dll). If the godot editor is in
+focuse with the project opened the safe dll cannot be copied to the hot dll path.
+
+When the project application is running, update and build the components.
 Watcher will check if safe dll is newer than hot dll and start a reload if so.
 
-The godot-nim bindings are in the deps folder. They're customized to use nim's
-new gc ARC and removes cruft code pre nim 1.0. Gdnim, and the godot-nim bindings
-are built against nim's devel branch.
+The godot-nim library has been customized to use new gc ARC and removes
+cruft code pre nim 1.0. Use the build script to generate the godotapi into the
+deps folder.
+
+Gdnim, and the godot-nim bindings are built against nim's devel branch.
 
 Gdnim also makes use of tcc, the [Tiny C Compiler](https://github.com/mirror/tinycc).
 It compiles much faster than gcc or vcc, though the other compilers are also
