@@ -7,3 +7,4 @@ nimcache
 *.exe
 *.pdb
 .idea
+.nimcache
