@@ -6,6 +6,12 @@ with a customized build of godot-nim that enables easier project managment. It's
 killer feature is automated, hot code reloading through the use of scenes as
 resources for components and a Watcher node.
 
+Quick Start:
+ - Compile the build script: nim c build
+ - Build the godot binaries: ./build gdengine update fast release
+ - Generate the godot-nim bindings: ./build genapi
+ - Build watcher and components: ./build cleanbuild
+
 *Prerequites:*
   - VSCode
   - [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom)
