@@ -43,7 +43,7 @@ task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
   setCurrentDir(projDir)
 
-task gdengine, "build the godot engine, default with debugging and tools args:\tupstream: updates the branch with branches in gdengine_upstream task\tclean: clean build\texport export build without tools\trelease: relead build without debugging":
+task gdengine, "build the godot engine, default with debugging and tools args:\tupdate: updates the branch with branches in gdengine_upstream task\tclean: clean build\texport export build without tools\trelease: relead build without debugging":
   if "update" in args: gdengineUpdateTask()
 
   var godotSrcPath = getEnv("GODOT_SRC_PATH")
@@ -64,13 +64,12 @@ task gdengine, "build the godot engine, default with debugging and tools args:\t
       info &= "debug"
   else:
     info &= "tools, "
-    if "release" in args :
-      #flags = "target=release_debug debug_symbols=full vsproj=yes"
-      flags = "target=release_debug"
-      info &= "release"
-    else:
+    if "debug" in args :
       flags = "target=debug debug_symbols=full vsproj=yes"
       info &= "debug"
+    else:
+      flags = "target=release_debug"
+      info &= "release"
 
   var projDir = getCurrentDir()
   setCurrentDir(godotSrcPath)
@@ -82,7 +81,7 @@ task gdengine, "build the godot engine, default with debugging and tools args:\t
     discard execShellCmd "git clean -fdx" # clean generated files
     discard execShellCmd &"scons -c {flags}"
 
-  var threads = if "fast" in args: "11" else: "6"
+  var threads = countProcessors()
   echo &"Compiling godot {info} threads:{threads}"
   discard execShellCmd &"scons -j{threads}  p=windows bits=64 {flags}"
   setCurrentDir(projDir)
