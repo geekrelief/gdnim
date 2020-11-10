@@ -121,6 +121,7 @@ task genapi, "generate the godot api bindings":
     echo &"Could not generate api with '{cmd}'"
     quit -1
   genApi(apidir, apidir / "api.json")
+  removeFile(apidir / "api.json")
 
 task watcher, "build the watcher dll":
   var flags = getSharedFlags()
