@@ -6,6 +6,8 @@ import threadpool
 
 const appDir = "app" #godot project directory
 const compDir = "components" # your components that hot reload
+const depsDir = "deps" # location of the godot api, move to parent directory to make it shareable
+
 # generated files
 const dllDir = appDir & "/_dlls"
 const gdnsDir = appDir & "/_gdns"
@@ -103,7 +105,7 @@ task gd, "launches terminal with godot project\n-e option to open editor\nlast a
 
 task cleanapi, "clean generated api":
   removeDir "logs"
-  removeDir "deps/godotapi"
+  removeDir &"{depsDir}/godotapi"
 
 task genapi, "generate the godot api bindings":
   let godotBin = if existsEnv "GODOT_BIN":
@@ -114,7 +116,7 @@ task genapi, "generate the godot api bindings":
 
   cleanapiTask()
 
-  let apidir = "deps/godotapi"
+  let apidir = &"{depsDir}/godotapi"
   createDir apidir
   let cmd = &"{godotBin} --gdnative-generate-json-api {apidir}/api.json"
   if (execShellCmd cmd) != 0:
@@ -126,7 +128,7 @@ task genapi, "generate the godot api bindings":
 task watcher, "build the watcher dll":
   var flags = getSharedFlags()
   if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
-    echo execnim("--path:deps --path:deps/godot", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+    echo execnim(&"--path:{depsDir} --path:{depsDir}/godot", flags, &"{dllDir}/watcher.dll", "watcher.nim")
   else:
     echo "Watcher is unchanged"
 
@@ -211,7 +213,7 @@ proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, 
       (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
     )):
     result &= &">>> Build {compName} <<<"
-    result &= execnim("--path:deps --path:deps/godot --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
+    result &= execnim(&"--path:{depsDir} --path:{depsDir}/godot --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
     (not fileExists(hotDllFilePath) or buildSettings["move"]):
