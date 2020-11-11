@@ -48,7 +48,6 @@ let allCompilerFlagsTable = {
 
 #stable tcc config, vcc crashes with arc or orc
 var taskCompilerFlagsTable = {
-  "nimcache": "--nimcache:.nimcache",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
   "parallel":"--parallelBuild:0",
   "release":"--d:danger",

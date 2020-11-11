@@ -6,7 +6,9 @@ import threadpool
 
 const appDir = "app" #godot project directory
 const compDir = "components" # your components that hot reload
+# depsDir and nimcacheDir need to be updated in build.nim.cfg too
 const depsDir = "deps" # location of the godot api, move to parent directory to make it shareable
+const nimcacheDir = ".nimcache"
 
 # generated files
 const dllDir = appDir & "/_dlls"
@@ -128,7 +130,7 @@ task genapi, "generate the godot api bindings":
 task watcher, "build the watcher dll":
   var flags = getSharedFlags()
   if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
-    echo execnim(&"--path:{depsDir} --path:{depsDir}/godot", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+    echo execnim(&"--path:{depsDir} --path:{depsDir}/godot --nimcache:{nimcacheDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
   else:
     echo "Watcher is unchanged"
 
@@ -213,7 +215,7 @@ proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, 
       (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
     )):
     result &= &">>> Build {compName} <<<"
-    result &= execnim(&"--path:{depsDir} --path:{depsDir}/godot --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
+    result &= execnim(&"--path:{depsDir} --path:{depsDir}/godot --nimcache:{nimcacheDir} --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
 
   if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
     (not fileExists(hotDllFilePath) or buildSettings["move"]):
