@@ -1,5 +1,5 @@
 from sequtils import filterIt
-import os, osproc, tables, parseopt, strutils, strformat
+import os, osproc, tables, parseopt, strutils, strformat, parsecfg
 
 # Dependencies
 #requires "godot >= 0.8.1"
@@ -84,6 +84,8 @@ proc setFlag(flag:string, val:string = "") =
       else:
         otherFlagsTable[flag] = val
 
+var config = loadConfig("build.ini")
+
 var taskName = ""
 var compName = ""
 var args:seq[string]
@@ -112,16 +114,16 @@ proc getSharedFlags():string =
     sharedFlags &= taskCompilerFlagsTable[key] & " "
   sharedFlags
 
-const pdbdir = "vcc_pdb"
-proc customizeFormatFlags(projNim:string, sharedFlags:string):string {.gcsafe.} =
+proc customizeFormatFlags(projNim:string, sharedFlags:string):string =
   var flags = sharedFlags
   if ("vcc" in flags) and ("debug" in flags):
-    createDir(pdbdir)
+    let vcc_pdbdir = config.getSectionValue("VCC", "pdbdir")
+    createDir(vcc_pdbdir)
     var filename = splitFile(projNim)[1]
-    flags &= &"--passC=\"/Fd{pdbdir}/{filename}.pdb\"" #https://docs.microsoft.com/en-us/cpp/build/reference/fd-program-database-file-name?view=vs-2019
+    flags &= &"--passC=\"/Fd{vcc_pdbdir}/{filename}.pdb\"" #https://docs.microsoft.com/en-us/cpp/build/reference/fd-program-database-file-name?view=vs-2019
   flags
 
-proc execnim(otherFlags:string, sharedFlags:string, outputPath:string, projNim:string):string {.gcsafe.} =
+proc execnim(otherFlags:string, sharedFlags:string, outputPath:string, projNim:string):string =
   var flags = customizeFormatFlags(projNim, sharedFlags)
   execProcess &"nim c {otherFlags} {flags} --o:{outputPath} {projNim}"
 

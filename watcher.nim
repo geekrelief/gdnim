@@ -1,6 +1,6 @@
 import godot
 import godotapi / [node, resource_loader, packed_scene]
-import os, strformat, times
+import os, strformat, times, streams
 from sequtils import filterIt
 import tables, sets
 import hot
@@ -12,8 +12,7 @@ to the resource that uses the dll and reload the resource.
 Components need to register with the Watcher, so they can be reloaded.
 During a reload phase, the components data can be save and restored upon reload.
 ]#
-
-const dllDir:string = "_dlls"
+const dllDir {.strdefine.}:string = "_dlls"
 
 func safeDllPath(compName:string):string =
   &"{dllDir}/{compName}_safe.dll"

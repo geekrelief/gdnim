@@ -4,22 +4,31 @@ import times
 import anycase
 import threadpool
 
-const appDir = "app" #godot project directory
-const compDir = "components" # your components that hot reload
-# depsDir and nimcacheDir need to be updated in build.nim.cfg too
-const depsDir = "deps" # location of the godot api, move to parent directory to make it shareable
-const nimcacheDir = ".nimcache"
+let appDir = config.getSectionValue("Dir", "app")
+let compsDir = config.getSectionValue("Dir", "comps")
+let depsDir = config.getSectionValue("Dir", "deps")
+let nimcacheDir = config.getSectionValue("Dir", "nimcache")
 
 # generated files
-const dllDir = appDir & "/_dlls"
-const gdnsDir = appDir & "/_gdns"
-const tscnDir = appDir & "/_tscn" # only need to touch these
+let baseDllDir = config.getSectionValue("App", "dll")
+let dllDir = appDir / baseDllDir
+let gdnsDir = appDir / config.getSectionValue("App", "gdns")
+let tscnDir = appDir / config.getSectionValue("App", "tscn")
+
+let gd_src = config.getSectionValue("Godot", "src")
+let gd_base_branch = config.getSectionValue("Godot", "base_branch")
+let gd_build_branch = config.getSectionValue("Godot", "build_branch")
+let gd_branches = config.getSectionValue("Godot", "merge_branches").split(",")
+let gd_platform = config.getSectionValue("Godot", "platform")
+let gd_bits = config.getSectionValue("Godot", "bits")
+let gd_bin = config.getSectionValue("Godot", "bin")
+let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
+let gd_tools_release_bin = config.getSectionValue("Godot", "tools_release_bin")
 
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
 
 task gdengine_update, "update the 3.2 custom branch with changes from upstream":
-  var branches = @["3.2_script_data_error", "3.2_gdnative_unload", "3.2_filter_import"]
 
   var godotSrcPath = getEnv("GODOT_SRC_PATH")
   if godotSrcPath == "":
@@ -29,31 +38,26 @@ task gdengine_update, "update the 3.2 custom branch with changes from upstream":
   var projDir = getCurrentDir()
   setCurrentDir(godotSrcPath)
 
-  execOrQuit("git checkout 3.2")
+  execOrQuit(&"git checkout {gd_base_branch}")
   execOrQuit("git pull")
 
-  for branch in branches:
+  for branch in gd_branches:
     execOrQuit(&"git checkout {branch}")
-    execOrQuit("git rebase 3.2")
+    execOrQuit(&"git rebase {gd_base_branch}")
 
-  execOrQuit("git branch -D 3.2_custom")
-  execOrQuit("git checkout -b 3.2_custom 3.2")
+  execOrQuit(&"git branch -D {gd_build_branch}")
+  execOrQuit(&"git checkout -b {gd_build_branch} {gd_base_branch}")
 
-  for branch in branches:
+  for branch in gd_branches:
     execOrQuit(&"git merge {branch}")
 
-  execOrQuit("git push origin :3.2_custom")
-  execOrQuit("git push origin 3.2_custom")
+  execOrQuit(&"git push origin :{gd_build_branch}")
+  execOrQuit(&"git push origin {gd_build_branch}")
 
   setCurrentDir(projDir)
 
 task gdengine, "build the godot engine, default with debugging and tools args:\tupdate: updates the branch with branches in gdengine_upstream task\tclean: clean build\texport export build without tools\trelease: relead build without debugging":
   if "update" in args: gdengineUpdateTask()
-
-  var godotSrcPath = getEnv("GODOT_SRC_PATH")
-  if godotSrcPath == "":
-    echo "Please set GODOT_SRC_PATH env variable to godot source directory."
-    quit()
 
   # run scons --help to see godot flags
   var flags = ""
@@ -76,9 +80,9 @@ task gdengine, "build the godot engine, default with debugging and tools args:\t
       info &= "release"
 
   var projDir = getCurrentDir()
-  setCurrentDir(godotSrcPath)
+  setCurrentDir(gd_src)
 
-  discard execShellCmd "git checkout 3.2_custom"
+  discard execShellCmd &"git checkout {gd_build_branch}"
 
   if "clean" in args:
     echo "Cleaning godot engine"
@@ -87,14 +91,11 @@ task gdengine, "build the godot engine, default with debugging and tools args:\t
 
   var threads = countProcessors()
   echo &"Compiling godot {info} threads:{threads}"
-  discard execShellCmd &"scons -j{threads}  p=windows bits=64 {flags}"
+  discard execShellCmd &"scons -j{threads}  p={gd_platform} bits={gd_bits} {flags}"
   setCurrentDir(projDir)
 
 task gd, "launches terminal with godot project\n-e option to open editor\nlast argument is a scene to open\n":
-  var gdbin = if "debug" in getSharedFlags(): getEnv("GODOT_TOOLS_DEBUG_BIN") else: getEnv("GODOT_TOOLS_RELEASE_BIN")
-  if gdbin == "":
-    echo "Please set GODOT_TOOLS_DEBUG_BIN and/or GODOT_TOOLS_RELEASE_BIN to the path to the godot editor."
-    quit(1)
+  var gdbin = if "debug" in getSharedFlags(): gd_tools_debug_bin else: gd_tools_release_bin
 
   var curDir = getCurrentDir()
   var projDir = "app"
@@ -107,20 +108,14 @@ task gd, "launches terminal with godot project\n-e option to open editor\nlast a
 
 task cleanapi, "clean generated api":
   removeDir "logs"
-  removeDir &"{depsDir}/godotapi"
+  removeDir(depsDir / "godotapi")
 
 task genapi, "generate the godot api bindings":
-  let godotBin = if existsEnv "GODOT_BIN":
-    getEnv "GODOT_BIN"
-  else:
-    echo "GODOT_BIN environment variable is not set"
-    quit -1
-
   cleanapiTask()
 
-  let apidir = &"{depsDir}/godotapi"
+  let apidir = depsDir / "godotapi"
   createDir apidir
-  let cmd = &"{godotBin} --gdnative-generate-json-api {apidir}/api.json"
+  let cmd = &"{gd_bin} --gdnative-generate-json-api {apidir}/api.json"
   if (execShellCmd cmd) != 0:
     echo &"Could not generate api with '{cmd}'"
     quit -1
@@ -130,7 +125,7 @@ task genapi, "generate the godot api bindings":
 task watcher, "build the watcher dll":
   var flags = getSharedFlags()
   if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
-    echo execnim(&"--path:{depsDir} --path:{depsDir}/godot --nimcache:{nimcacheDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+    echo execnim(&"--path:{depsDir} --path:{depsDir}/godot --nimcache:{nimcacheDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
   else:
     echo "Watcher is unchanged"
 
@@ -184,43 +179,44 @@ const tscn_template = """
 script = ExtResource( 1 )
 """
 
-proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string {.gcsafe.} =
-  let safeDllFilePath = &"{dllDir}/{compName}_safe.dll"
-  let hotDllFilePath = &"{dllDir}/{compName}.dll"
-  let nimFilePath = &"{compDir}/{compName}.nim"
+proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
+  {.cast(gcsafe).}:
+    let safeDllFilePath = &"{dllDir}/{compName}_safe.dll"
+    let hotDllFilePath = &"{dllDir}/{compName}.dll"
+    let nimFilePath = &"{compsDir}/{compName}.nim"
 
-  if not fileExists(nimFilePath):
-    result &= &"Error compiling {nimFilePath} [Not Found]"
-    return
+    if not fileExists(nimFilePath):
+      result &= &"Error compiling {nimFilePath} [Not Found]"
+      return
 
-  let gdns = &"{gdnsDir}/{compName}.gdns"
-  if not fileExists(gdns):
-    var f = open(gdns, fmWrite)
-    f.write(gdns_template % [compName, compName.pascal, relativePath(dllDir, appDir)])
-    f.close()
-    echo &"generated {gdns}"
+    let gdns = &"{gdnsDir}/{compName}.gdns"
+    if not fileExists(gdns):
+      var f = open(gdns, fmWrite)
+      f.write(gdns_template % [compName, compName.pascal, relativePath(dllDir, appDir)])
+      f.close()
+      echo &"generated {gdns}"
 
-  let tscn = &"{tscnDir}/{compName}.tscn"
-  if not fileExists(tscn):
-    var f = open(tscn, fmWrite)
-    f.write(tscn_template % [compName, compName.pascal, relativePath(gdnsDir, appDir)])
-    f.close()
-    echo &"generated {tscn}"
+    let tscn = &"{tscnDir}/{compName}.tscn"
+    if not fileExists(tscn):
+      var f = open(tscn, fmWrite)
+      f.write(tscn_template % [compName, compName.pascal, relativePath(gdnsDir, appDir)])
+      f.close()
+      echo &"generated {tscn}"
 
-  if buildSettings["noCheck"] or
-    (not buildSettings["newOnly"]) or
-    (buildSettings["newOnly"] and (
-      (not fileExists(hotDllFilePath) and not fileExists(safeDllFilePath)) or
-      (fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath)) or
-      (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
-    )):
-    result &= &">>> Build {compName} <<<"
-    result &= execnim(&"--path:{depsDir} --path:{depsDir}/godot --nimcache:{nimcacheDir} --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
+    if buildSettings["noCheck"] or
+      (not buildSettings["newOnly"]) or
+      (buildSettings["newOnly"] and (
+        (not fileExists(hotDllFilePath) and not fileExists(safeDllFilePath)) or
+        (fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath)) or
+        (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
+      )):
+      result &= &">>> Build {compName} <<<"
+      result &= execnim(&"--path:{depsDir} --path:{depsDir}/godot --nimcache:{nimcacheDir} --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
 
-  if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
-    (not fileExists(hotDllFilePath) or buildSettings["move"]):
-    moveFile(safeDllFilePath, hotDllFilePath)
-    result &= ">>> dll moved safe to hot <<<"
+    if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
+      (not fileExists(hotDllFilePath) or buildSettings["move"]):
+      moveFile(safeDllFilePath, hotDllFilePath)
+      result &= ">>> dll moved safe to hot <<<"
 
 # components are named {compName}_safe.dll and
 # are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
@@ -241,11 +237,11 @@ task comp, "build component and generate a gdns file\n\tno component name means 
   else:
     # compile all the comps
     if nospawn:
-      for compFilename in walkFiles(&"{compDir}/*.nim"):
+      for compFilename in walkFiles(&"{compsDir}/*.nim"):
         echo buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings)
     else:
       var res = newSeq[FlowVar[string]]()
-      for compFilename in walkFiles(&"{compDir}/*.nim"):
+      for compFilename in walkFiles(&"{compsDir}/*.nim"):
         res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings))
       sync()
       for f in res:
@@ -266,7 +262,8 @@ task help, "display list of tasks":
 
 task cleanbuild, "Rebuild all":
   cleandllTask()
-  removeDir(pdbdir) # created if vcc and debug flags are used
+  # created if vcc and debug flags are used
+  removeDir(config.getSectionValue("VCC", "pdbdir"))
   setFlag("force")
   setFlag("move")
   watcherTask()

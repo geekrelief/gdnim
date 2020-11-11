@@ -8,7 +8,7 @@ gdobj TestComp of Label:
   var tick:int
   var elapsedSeconds:float
   var tickIntervalSeconds:float = 0.1
-  var anInt:int = 111
+  var anInt:int = 222
   var aString1:string = "update"
 
   method enter_tree() =
