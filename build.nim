@@ -125,7 +125,8 @@ proc customizeFormatFlags(projNim:string, sharedFlags:string):string =
 
 proc execnim(otherFlags:string, sharedFlags:string, outputPath:string, projNim:string):string =
   var flags = customizeFormatFlags(projNim, sharedFlags)
-  execProcess &"nim c {otherFlags} --nimcache:.nimcache {flags} --o:{outputPath} {projNim}"
+  var projName = splitFile(projNim)[1]
+  execProcess &"nim c {otherFlags} --nimcache:.nimcache/{projName} {flags} --o:{outputPath} {projNim}"
 
 include "tasks.nim"
 
