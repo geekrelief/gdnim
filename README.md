@@ -38,7 +38,13 @@ The watcher.gdns should autoload in the godot project.
 
 Watcher monitors the _dlls folder for updates and coordinates the reload process
 with the components. The components use the hot module save and load macros to
-persist data. See the example in the components folder.
+persist data. To set up a component for reloading, the component needs to:
+ - in method enter_tree, call register with the component and optionally specify the save method
+ - by default the save proc is a proc named 'reload' that returns seq[byte], make sure to {.gdExport.} it
+ - the save proc uses the hot module's 'save' macro to specify member fields to save
+ - to reload the data, after registering you can call the hot 'load' macro if it exists like register(comp)?.load(self.data)
+
+See the temp_comp example in the components folder.
 
 Use the build script to download the godot source, compile the engine, create
 godot-nim bindings api, compile the watcher and components, etc.

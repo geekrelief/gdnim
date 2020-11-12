@@ -93,15 +93,19 @@ gdobj Watcher of Node:
           getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
 
           var saveOrder = self.getSaveOrder(compName)
-          self.reloadingComps.add(compName)
           # save descendents
           for dname in saveOrder:
             var dmeta = self.reloadMetaTable[dname]
             var dnode = self.get_node(dmeta.saverPath)
             var saveData:seq[byte]
-            printWarning &"calling {dmeta.saverPath} {dmeta.saverProc}"
-            discard saveData.fromVariant(dnode.call(dmeta.saverProc))
-            self.reloadSaveDataTable[dname] = move(saveData)
+            printWarning &"Watcher reloading: calling {dmeta.saverPath} {dmeta.saverProc}"
+            try:
+              discard saveData.fromVariant(dnode.call(dmeta.saverProc))
+              self.reloadSaveDataTable[dname] = move(saveData)
+            except CallError as e:
+              printError &"Watcher reloading: Error '{e.err.error}'. From {compName}.{dmeta.saverProc} @ {dmeta.saverPath}"
+              raise
+          self.reloadingComps.add(compName)
 
   proc register_component(compName:string, saverPath:string, loaderPath:string, saverProc="reload", loaderProc="add_child"):seq[byte] {.gdExport.} =
     printWarning &"Watcher registering {compName} @ {saverPath} {loaderPath} {saverProc} {loaderProc}"

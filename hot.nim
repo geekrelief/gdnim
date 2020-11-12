@@ -169,3 +169,10 @@ proc findCompTscn*(compName:string):string =
     raise newException(IOError, &"Scene resource for {compName} could not be found!")
   if matches.len > 1:
     raise newException(ValueError, &"Multiple resources found with {compName}:\n\t{matches}")
+
+# helper to convert types and execute body, if object can be cast to type
+# example: ifis(event, InputEventKey): print it.scancode
+template ifis*(a:typed, T:typed, body:untyped):untyped =
+  if a of T:
+    var it {.inject.} = a as T
+    body
