@@ -109,15 +109,21 @@ gdobj Watcher of Node:
 
   proc register_component(compName:string, saverPath:string, loaderPath:string, saverProc="reload", loaderProc="add_child"):seq[byte] {.gdExport.} =
     printWarning &"Watcher registering {compName} @ {saverPath} {loaderPath} {saverProc} {loaderProc}"
-    var resourcePath = findCompTscn(compName)
-    self.reloadMetaTable[compName] = ReloadMeta(compName:compName, saverPath:saverPath, loaderPath:loaderPath, saverProc:saverProc, loaderProc:loaderProc, resourcePath:resourcePath)
+    if not fileExists(compName.hotDllPath):
+      printError &"Watcher failed to register {compName}. No dll with this name."
+      return
+    try:
+      var resourcePath = findCompTscn(compName)
+      self.reloadMetaTable[compName] = ReloadMeta(compName:compName, saverPath:saverPath, loaderPath:loaderPath, saverProc:saverProc, loaderProc:loaderProc, resourcePath:resourcePath)
 
-    for parentCompName, parentMeta in self.reloadMetaTable:
-      if parentCompName == compName: continue
-      if parentMeta.saverPath == loaderPath:
-        if not self.dependents.hasKey(parentCompName): self.dependents[parentCompName] = initHashSet[string]()
-        self.dependents[parentCompName].incl(compName)
+      for parentCompName, parentMeta in self.reloadMetaTable:
+        if parentCompName == compName: continue
+        if parentMeta.saverPath == loaderPath:
+          if not self.dependents.hasKey(parentCompName): self.dependents[parentCompName] = initHashSet[string]()
+          self.dependents[parentCompName].incl(compName)
 
-    if self.reloadSaveDataTable.hasKey(compName):
-      result = self.reloadSaveDataTable[compName]
-      self.reloadSaveDataTable.del(compName)
+      if self.reloadSaveDataTable.hasKey(compName):
+        result = self.reloadSaveDataTable[compName]
+        self.reloadSaveDataTable.del(compName)
+    except IOError as e:
+      printError e.msg

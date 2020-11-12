@@ -4,10 +4,31 @@ import times
 import anycase
 import threadpool
 
+const gdns_template = """
+[gd_resource type="NativeScript" load_steps=2 format=2]
+
+[sub_resource type="GDNativeLibrary" id=1]
+entry/Windows.64 = "res://$3/$1.dll"
+dependency/Windows.64 = [  ]
+
+[resource]
+resource_name = "$2"
+class_name = "$2"
+library = SubResource( 1 )
+"""
+
+const tscn_template = """
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://$3/$1.gdns" type="Script" id=1]
+
+[node name="$2" type="Node"]
+script = ExtResource( 1 )
+"""
+
 let appDir = config.getSectionValue("Dir", "app")
 let compsDir = config.getSectionValue("Dir", "comps")
 let depsDir = config.getSectionValue("Dir", "deps")
-let nimcacheDir = config.getSectionValue("Dir", "nimcache")
 
 # generated files
 let baseDllDir = config.getSectionValue("App", "dll")
@@ -24,6 +45,24 @@ let gd_bits = config.getSectionValue("Godot", "bits")
 let gd_bin = config.getSectionValue("Godot", "bin")
 let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
 let gd_tools_release_bin = config.getSectionValue("Godot", "tools_release_bin")
+
+
+proc genGdns(name:string) =
+  let gdns = &"{gdnsDir}/{name}.gdns"
+  if not fileExists(gdns):
+    var f = open(gdns, fmWrite)
+    f.write(gdns_template % [name, name.pascal, relativePath(dllDir, appDir)])
+    f.close()
+    echo &"generated {gdns}"
+
+proc genTscn(name:string) =
+  let tscn = &"{tscnDir}/{name}.tscn"
+  if not fileExists(tscn):
+    var f = open(tscn, fmWrite)
+    f.write(tscn_template % [name, name.pascal, relativePath(gdnsDir, appDir)])
+    f.close()
+    echo &"generated {tscn}"
+
 
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
@@ -122,12 +161,15 @@ task genapi, "generate the godot api bindings":
   genApi(apidir, apidir / "api.json")
   removeFile(apidir / "api.json")
 
+
 task watcher, "build the watcher dll":
+  genGdns("watcher")
   var flags = getSharedFlags()
   if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
-    echo execnim(&"--path:{depsDir} --path:{depsDir}/godot --nimcache:{nimcacheDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+    echo execnim(&"--path:{depsDir} --path:{depsDir}/godot --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
   else:
     echo "Watcher is unchanged"
+
 
 # compiling with gcc, vcc spitting out warnings about incompatible pointer types with NimGodotObj, which was added for gc:arc
 # include to include libgcc_s_seh-1.dll, libwinpthread-1.dll in the app/_dlls folder for project to run
@@ -157,28 +199,6 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
     removeFile dllPath
 
 
-const gdns_template = """
-[gd_resource type="NativeScript" load_steps=2 format=2]
-
-[sub_resource type="GDNativeLibrary" id=1]
-entry/Windows.64 = "res://$3/$1.dll"
-dependency/Windows.64 = [  ]
-
-[resource]
-resource_name = "$2"
-class_name = "$2"
-library = SubResource( 1 )
-"""
-
-const tscn_template = """
-[gd_scene load_steps=2 format=2]
-
-[ext_resource path="res://$3/$1.gdns" type="Script" id=1]
-
-[node name="$2" type="Node"]
-script = ExtResource( 1 )
-"""
-
 proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
   {.cast(gcsafe).}:
     let safeDllFilePath = &"{dllDir}/{compName}_safe.dll"
@@ -189,19 +209,8 @@ proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, 
       result &= &"Error compiling {nimFilePath} [Not Found]"
       return
 
-    let gdns = &"{gdnsDir}/{compName}.gdns"
-    if not fileExists(gdns):
-      var f = open(gdns, fmWrite)
-      f.write(gdns_template % [compName, compName.pascal, relativePath(dllDir, appDir)])
-      f.close()
-      echo &"generated {gdns}"
-
-    let tscn = &"{tscnDir}/{compName}.tscn"
-    if not fileExists(tscn):
-      var f = open(tscn, fmWrite)
-      f.write(tscn_template % [compName, compName.pascal, relativePath(gdnsDir, appDir)])
-      f.close()
-      echo &"generated {tscn}"
+    genGdns(compName)
+    genTscn(compName)
 
     if buildSettings["noCheck"] or
       (not buildSettings["newOnly"]) or
@@ -211,7 +220,7 @@ proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, 
         (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
       )):
       result &= &">>> Build {compName} <<<"
-      result &= execnim(&"--path:{depsDir} --path:{depsDir}/godot --nimcache:{nimcacheDir} --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
+      result &= execnim(&"--path:{depsDir} --path:{depsDir}/godot --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
 
     if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
       (not fileExists(hotDllFilePath) or buildSettings["move"]):
