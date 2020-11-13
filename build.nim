@@ -31,17 +31,18 @@ template final(body:untyped):untyped =
 let allCompilerFlagsTable = {
   "release":"--d:danger",
   "force":"--forceBuild:on",
-  "cc":"--cc:tcc",
+  "cc":"--cc:tcc", # doesn't work with threads:on
   # compiles that fastest, clean compile output, less perfomant?
   "tcc":"--cc:tcc",
   # clean compile output, needs gcc dlls, produces large dlls
-  "gcc":"--cc:gcc",
+  "gcc":"--cc:gcc --threads:on --tlsEmulation:off",
   # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
-  "vcc":"--cc:vcc --passC=\"/wd4133\"",
+  "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
   "lib":"--app:lib --noMain",
   "debug":"--debugger:native --stackTrace:on",
   "arc":"--gc:arc --d:useMalloc",
   "orc":"--gc:orc --d:useMalloc", #crash, avoid for now
+  "realtime":"--d:useRealtimeGC",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
   "parallel":"--parallelBuild:0"
 }.toTable
@@ -53,8 +54,13 @@ var taskCompilerFlagsTable = {
   "release":"--d:danger",
   #"debug":"--debugger:native --stackTrace:on",
   "gc":"--gc:arc --d:useMalloc",
+  #"gc":"--d:useRealtimeGc",
   "lib":"--app:lib --noMain",
-  "cc":"--cc:tcc"
+  "cc":"--cc:tcc" # does not work with threads
+  # vcc clean compile output, needs gcc dlls, produces large dlls
+  #"cc":"--cc:gcc --threads:on --tlsEmulation:off"
+  # gcc smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
+  #"cc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off"
 }.toTable
 
 var otherFlagsTable:Table[string, string]
@@ -70,7 +76,7 @@ proc setFlag(flag:string, val:string = "") =
     of "gcc", "vcc", "tcc":
       taskCompilerFlagsTable.del("cc")
       taskCompilerFlagsTable["cc"] = allCompilerFlagsTable[flag]
-    of "arc", "orc":
+    of "arc", "orc", "realtime":
       taskCompilerFlagsTable.del("gc")
       taskCompilerFlagsTable["gc"] = allCompilerFlagsTable[flag]
     of "nocheck", "nc":

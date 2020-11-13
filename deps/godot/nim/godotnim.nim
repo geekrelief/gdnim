@@ -188,42 +188,19 @@ proc deinit*(obj: NimGodotObject) =
   obj.godotObject.deinit()
   obj.godotObject = nil
 
-# overloaded for =destroy
-proc deinit(obj: var NimGodotObj) =
-  ## Destroy the object. You only need to call this for objects not inherited
-  ## from Reference, where manual lifecycle control is necessary.
-  assert(not obj.godotObject.isNil)
-  obj.godotObject.deinit()
-  obj.godotObject = nil
-
-#lifetime-tracking hooks to replace the nimGodotObjectFinalizer to work with ARC
 proc `=destroy`*(obj: var NimGodotObj) =
   if obj.godotObject.isNil or obj.isNative: return
   # important to set it before so that ``unreference`` is aware
   obj.isFinalized = true
-  # if (obj.isRef or not obj.linkedObject.isNil and obj.linkedObject.isRef) and
+
   let linkedGodotObject = cast[NimGodotObject](obj.linkedObjectPtr)
-  if (obj.isRef or not linkedGodotObject.isNil and linkedGodotObject.isRef and
-    obj.godotObject.unreference()):
-    obj.deinit()
+  if (obj.isRef or not linkedGodotObject.isNil and linkedGodotObject.isRef) and
+    obj.godotObject.unreference():
+    obj.godotObject.deinit()
+    obj.godotObject = nil
 
 proc linkedObject(obj: NimGodotObject): NimGodotObject {.inline.} =
   cast[NimGodotObject](obj.linkedObjectPtr)
-
-proc linkedObject(obj: NimGodotObj): NimGodotObject {.inline.} =
-  cast[NimGodotObject](obj.linkedObjectPtr)
-
-#[
-proc `=sink`
-proc `=`
-proc nimGodotObjectFinalizer*[T: NimGodotObject](obj: T) =
-  if obj.godotObject.isNil or obj.isNative: return
-  # important to set it before so that ``unreference`` is aware
-  obj.isFinalized = true
-  if (obj.isRef or not obj.linkedObject.isNil and obj.linkedObject.isRef) and
-     obj.godotObject.unreference():
-    obj.deinit()
-]#
 
 macro baseNativeType(T: typedesc): cstring =
   var t = getType(getType(T)[1][1])
@@ -233,7 +210,6 @@ macro baseNativeType(T: typedesc): cstring =
     if typeName in nativeClasses:
       baseT = typeName
       break
-    #if typeName == "NimGodotObject":
     if typeName == "NimGodotObj":
       break
     t = getType(t[1][1])
@@ -250,7 +226,6 @@ proc inherits(t: NimNode, parent: string): bool {.compileTime.} =
     let typeName = ($curT[1][1]).split(':')[0]
     if typeName == parent:
       return true
-    #if typeName == "NimGodotObject":
     if typeName == "NimGodotObj":
       break
     curT = getType(curT[1][1])
@@ -271,9 +246,6 @@ template registerClass*(T: typedesc; godotClassName: string or cstring,
     classRegistry = newTable[FNV1Hash, ObjectInfo]()
   let constructor = proc(): NimGodotObject =
     result = new(T)
-    #var t: T
-    #new(t, nimGodotObjectFinalizer[T])
-    #result = t
 
   const base = baseNativeType(T)
   const isRef: bool = isReference(T)
@@ -454,7 +426,6 @@ proc gdnew*[T: NimGodotObject](): T =
   const objInfo = classRegistryStatic[fnv1Hash(godotName)]
   when objInfo.isNative:
     let godotObject = getClassConstructor(cGodotName)()
-    #new(result, nimGodotObjectFinalizer[T])
     new(result)
     result.godotObject = godotObject
     when objInfo.isRef:
@@ -788,8 +759,6 @@ template arrayToVariant(s: untyped): Variant =
   newVariant(arr)
 
 proc toVariant*[T](s: seq[T]): Variant =
-  #if s.isNil: # seq can't be nil
-  #  return newVariant()
   result = arrayToVariant(s)
 
 proc toVariant*[I, T](s: array[I, T]): Variant =
@@ -905,7 +874,6 @@ proc getNativeLibHandle*(): pointer =
 proc godot_nativescript_init(handle: pointer) {.
     cdecl, exportc, dynlib.} =
   nativeLibHandle = handle
-
   {.emit: """
     NimMain();
   """.}
@@ -917,7 +885,7 @@ proc godot_gdnative_init(options: ptr GDNativeInitOptions) {.
 
 proc godot_gdnative_terminate(options: ptr GDNativeTerminateOptions) {.
     cdecl, exportc, dynlib.} =
-    discard
+  discard
 
 const nimGcStepLengthUs {.intdefine.} = 2000
 

@@ -29,6 +29,7 @@ script = ExtResource( 1 )
 let appDir = config.getSectionValue("Dir", "app")
 let compsDir = config.getSectionValue("Dir", "comps")
 let depsDir = config.getSectionValue("Dir", "deps")
+let depsGodotDir = config.getSectionValue("Dir", "deps_godot")
 
 # generated files
 let baseDllDir = config.getSectionValue("App", "dll")
@@ -166,7 +167,7 @@ task watcher, "build the watcher dll":
   genGdns("watcher")
   var flags = getSharedFlags()
   if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
-    echo execnim(&"--path:{depsDir} --path:{depsDir}/godot --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+    echo execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
   else:
     echo "Watcher is unchanged"
 
@@ -220,7 +221,7 @@ proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, 
         (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
       )):
       result &= &">>> Build {compName} <<<"
-      result &= execnim(&"--path:{depsDir} --path:{depsDir}/godot --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
+      result &= execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
 
     if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
       (not fileExists(hotDllFilePath) or buildSettings["move"]):
