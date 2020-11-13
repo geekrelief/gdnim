@@ -7,20 +7,25 @@ killer feature is automated, hot code reloading through the use of scenes as
 resources for components and a Watcher node.
 
 Quick Start:
+ - Configure the build.ini for your setup
  - Compile the build script: nim c build
- - Build the godot binaries: ./build gdengine update fast release
+ - Build the godot binaries: ./build gdengine update
  - Generate the godot-nim bindings: ./build genapi
  - Build watcher and components: ./build cleanbuild
+Main commands:
+ - Run Godot: ./build gd
+ - Hot Reload your script (after modification): ./build
+ - If you need to restart the app, build and move the dll with then run again: ./build -m
 
 *Prerequites:*
   - VSCode
   - [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom)
-  - [Tiny C Compiler](https://github.com/mirror/tinycc)
+  - [Tiny C Compiler](https://github.com/mirror/tinycc) (fast compiles, but does not support threads)
   - [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
   - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
   - [anycase](https://nimble.directory/pkg/anycase)
   - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
-  - vcc, gcc (optional)
+  - vcc, gcc (optional, but required for threads)
 
 It uses a customized build script and [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom) which unloads gdnative libraries when their resource is no longer
 referenced. It removes the dependency on nake and nimscript and is easier to
@@ -51,14 +56,14 @@ godot-nim bindings api, compile the watcher and components, etc.
 
 When a component is compiled it generates a nativescript file (gdns),
 scene file (tscn), and a library file (safe dll). If the godot editor is in
-focuse with the project opened the safe dll cannot be copied to the hot dll path.
+focus with the project opened the safe dll cannot be copied to the hot dll path.
 
 When the project application is running, update and build the components.
 Watcher will check if safe dll is newer than hot dll and start a reload if so.
 
 The godot-nim library has been customized to use new gc ARC and removes
-cruft code pre nim 1.0. Use the build script to generate the godotapi into the
-deps folder.
+cruft code to support nim pre gc:arc/orc.
+Use the build script to generate the godotapi into the deps folder.
 
 Gdnim, and the godot-nim bindings are built against nim's devel branch.
 
