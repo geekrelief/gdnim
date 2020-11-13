@@ -1,23 +1,25 @@
 Warning: This repo has been tailored for my system. If you happen to find this,
 feel free to customize it yourself.
 
+#Gdnim#
 gdnim bootstraps a [godot-nim](https://github.com/pragmagic/godot-nim) project,
 with a customized build of godot-nim that enables easier project managment. It's
 killer feature is automated, hot code reloading through the use of scenes as
 resources for components and a Watcher node.
 
-Quick Start:
+##Quick Start##
  - Configure the build.ini for your setup
  - Compile the build script: nim c build
  - Build the godot binaries: ./build gdengine update
  - Generate the godot-nim bindings: ./build genapi
  - Build watcher and components: ./build cleanbuild
-Main commands:
+
+###Main commands###
  - Run Godot: ./build gd
  - Hot Reload your script (after modification): ./build
  - If you need to restart the app, build and move the dll with then run again: ./build -m
 
-*Prerequites:*
+##Prerequites##
   - VSCode
   - [custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom)
   - [Tiny C Compiler](https://github.com/mirror/tinycc) (fast compiles, but does not support threads)
