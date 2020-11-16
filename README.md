@@ -13,6 +13,11 @@ resources for components and a Watcher node.
  - Build the godot binaries: ./build gdengine update
  - Generate the godot-nim bindings: ./build genapi
  - Build watcher and components: ./build cleanbuild
+ - Generate a component specifying base class module: ./build my_comp node_2d
+ - Modify components/my_comp.nim
+ - Run editor: ./build gd
+ - Run scene using component, make a modification to component: ./build
+ - Hot reload should occur (check console or editor console for output)
 
 ### Main commands ###
  - Run Godot: ./build gd

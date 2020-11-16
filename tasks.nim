@@ -3,6 +3,21 @@ from sequtils import toSeq, filter, mapIt
 import times
 import anycase
 import threadpool
+import strutils
+
+const nim_template = """
+import godot
+import godotapi / [$3]
+import hot
+
+gdobj $2 of $4:
+
+  method enter_tree() =
+    register($1)
+
+  proc reload():seq[byte] {.gdExport.} =
+    discard
+"""
 
 const gdns_template = """
 [gd_resource type="NativeScript" load_steps=2 format=2]
@@ -22,7 +37,7 @@ const tscn_template = """
 
 [ext_resource path="res://$3/$1.gdns" type="Script" id=1]
 
-[node name="$2" type="Node"]
+[node name="$2" type="$4"]
 script = ExtResource( 1 )
 """
 
@@ -56,14 +71,17 @@ proc genGdns(name:string) =
     f.close()
     echo &"generated {gdns}"
 
-proc genTscn(name:string) =
+proc genTscn(name:string, baseClassName:string = "Node") =
   let tscn = &"{tscnDir}/{name}.tscn"
   if not fileExists(tscn):
     var f = open(tscn, fmWrite)
-    f.write(tscn_template % [name, name.pascal, relativePath(gdnsDir, appDir)])
+    f.write(tscn_template % [name, name.pascal, relativePath(gdnsDir, appDir), baseClassName])
     f.close()
     echo &"generated {tscn}"
 
+proc genComp(name:string, baseClassName:string) =
+  genGdns(name)
+  genTscn(name, baseClassName)
 
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
@@ -199,6 +217,24 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
     echo &"rm {dllPath}"
     removeFile dllPath
 
+task genComp, "Generate a component template (nim, gdns, tscn files), pass in the component name and  base class name in snake case:":
+  var compName = args[0]
+  var compClassName = compName.pascal
+  var baseClassModuleName = args[1]
+  var baseClassName = baseClassModuleName.pascal
+  if baseClassName.endsWith("1d") or baseClassName.endsWith("2d") or baseClassName.endsWith("3d"):
+    baseClassName[^1] = 'D'
+
+  let nim = &"{compsDir}/{compName}.nim"
+  if not fileExists(nim):
+    var f = open(nim, fmWrite)
+    f.write(nim_template % [compName, compClassName, baseClassModuleName, baseClassName])
+    f.close()
+    echo &"generated {nim}"
+
+  genGdns(compName)
+  genTscn(compName, baseClassName)
+
 
 proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
   {.cast(gcsafe).}:
@@ -209,9 +245,6 @@ proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, 
     if not fileExists(nimFilePath):
       result &= &"Error compiling {nimFilePath} [Not Found]"
       return
-
-    genGdns(compName)
-    genTscn(compName)
 
     if buildSettings["noCheck"] or
       (not buildSettings["newOnly"]) or
