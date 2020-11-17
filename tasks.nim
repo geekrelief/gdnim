@@ -13,10 +13,10 @@ import hot
 gdobj $2 of $4:
 
   method enter_tree() =
-    register($1)
+    discard register($1)
 
   proc reload():seq[byte] {.gdExport.} =
-    discard
+    self.queue_free()
 """
 
 const gdns_template = """
