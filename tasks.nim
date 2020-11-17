@@ -71,18 +71,6 @@ proc genGdns(name:string) =
     f.close()
     echo &"generated {gdns}"
 
-proc genTscn(name:string, baseClassName:string = "Node") =
-  let tscn = &"{tscnDir}/{name}.tscn"
-  if not fileExists(tscn):
-    var f = open(tscn, fmWrite)
-    f.write(tscn_template % [name, name.pascal, relativePath(gdnsDir, appDir), baseClassName])
-    f.close()
-    echo &"generated {tscn}"
-
-proc genComp(name:string, baseClassName:string) =
-  genGdns(name)
-  genTscn(name, baseClassName)
-
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
 
@@ -217,7 +205,7 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
     echo &"rm {dllPath}"
     removeFile dllPath
 
-task genComp, "Generate a component template (nim, gdns, tscn files), pass in the component name and  base class name in snake case:":
+task gencomp, "generate a component template (nim, gdns, tscn files), pass in the component name and  base class name in snake case:":
   var compName = args[0]
   var compClassName = compName.pascal
   var baseClassModuleName = args[1]
@@ -233,7 +221,13 @@ task genComp, "Generate a component template (nim, gdns, tscn files), pass in th
     echo &"generated {nim}"
 
   genGdns(compName)
-  genTscn(compName, baseClassName)
+
+  let tscn = &"{tscnDir}/{compName}.tscn"
+  if not fileExists(tscn):
+    var f = open(tscn, fmWrite)
+    f.write(tscn_template % [compName, compClassName, relativePath(gdnsDir, appDir), baseClassName])
+    f.close()
+    echo &"generated {tscn}"
 
 
 proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
@@ -312,9 +306,9 @@ task cleanbuild, "Rebuild all":
   watcherTask()
   compTask()
 
-task c, "Recompile all components":
+task c, "recompile all components":
   compTask()
 
-task cm, "Recompile and move all components":
+task cm, "recompile and move all components":
   setFlag("move")
   compTask()
