@@ -32,6 +32,7 @@ resources for components and a Watcher node.
   - or [godot 3.2 with gdnative unload](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload)
   - [Tiny C Compiler](https://github.com/mirror/tinycc) (fast compiles, but does not support threads)
   - [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
+  - [compiler](https://nimble.directory/pkg/compiler)
   - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
   - [anycase](https://nimble.directory/pkg/anycase)
   - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
