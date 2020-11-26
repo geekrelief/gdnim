@@ -8,9 +8,11 @@ killer feature is automated, hot code reloading through the use of scenes as
 resources for components and a Watcher node.
 
 ## Quick Start ##
+ - Clone - [godot 3.2 custom](https://github.com/geekrelief/godot/tree/3.2_custom)
+     If this is looking stale, create an issue I'll update it with godot's latest commits
  - Configure the build.ini for your setup
  - Compile the build script: nim c build
- - Build the godot binaries: ./build gdengine update
+ - Build the godot binaries: ./build gdengine
  - Generate the godot-nim bindings: ./build genapi
  - Build watcher and components: ./build cleanbuild
 
@@ -28,7 +30,7 @@ resources for components and a Watcher node.
 
 ## Prerequites ##
   - VSCode
-  - [godot 3.2 custom](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload)
+  - [godot 3.2 custom](https://github.com/geekrelief/godot/tree/3.2_custom)
   - or [godot 3.2 with gdnative unload](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload)
   - [Tiny C Compiler](https://github.com/mirror/tinycc) (fast compiles, but does not support threads)
   - [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
@@ -56,6 +58,10 @@ Gdnim uses a customized build script and [a custom version of godot 3.2](https:/
 The project is developed and tested only on Windows.
 Modify the build.ini, build.nim and tasks.nim script for your needs.
 build.ini expects some paths to my godot 3.2 custom engine source and editor executables.
+
+If you have all my mods from build.ini's merge_branches in your git repo you can, run
+`./build gdengine update`.  Otherwise stick to using 3.2_custom, which I update periodically
+with commits from godot's 3.2 branch by rebasing.
 
 The app folder contains the stub godot project. You create "components" which are the classes that can reload by
 running the `./build gencomp your_module_name godot_base_class_name`.  A nim file will appear in

@@ -3,7 +3,6 @@ import godotapi / [node, label]
 import hot
 import strformat
 import tables
-import macros
 
 gdobj TestComp of Label:
   var tick:int
