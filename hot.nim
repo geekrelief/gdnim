@@ -65,95 +65,51 @@ macro load*(data:typed, args: varargs[typed]):untyped =
 
 # simple register, pass in the compName as a symbol, returns Option[MsgStream]
 macro register*(compName:untyped):untyped =
-  let watcher = genSym(nskVar, "w")
-  let saveDataVariant = genSym(nskVar, "v")
-  let saveData = genSym(nskVar, "data")
-  var blockStmt = nnkBlockStmt.newTree()
-  blockStmt.add newEmptyNode()
-  blockStmt.add newStmtList(
-    newVarStmt(watcher, newCall(newDotExpr(^"self", ^"get_node"), newLit("/root/Watcher"))),
-    newIfStmt((newDotExpr(watcher, ^"isNil"), newStmtList(nnkRaiseStmt.newTree(newCall(^"newException", ^"Defect", newLit("Watcher not found")))))),
-    newStmtList(
-      nnkVarSection.newTree(
-        nnkIdentDefs.newTree(saveDataVariant, newEmptyNode(),
-          newCall(
-            newDotExpr(watcher, ^"call"),
-            newLit("register_component"),
-            newDotExpr(newLit(compName.repr), ^"toVariant"),
-            newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(^"self", ^"get_path")))), ^"toVariant"),
-            newDotExpr(nnkPar.newTree(nnkPrefix.newTree(^"$", newCall(newDotExpr(newCall(newDotExpr(^"self", ^"get_parent")),^"get_path")))), ^"toVariant")
-          )
-        )
-      ),
-      nnkVarSection.newTree(newIdentDefs(saveData, nnkBracketExpr.newTree(^"seq", ^"byte"))),
-      nnkDiscardStmt.newTree(newCall(^"fromVariant", saveData, saveDataVariant)),
+  var compNameStr = newLit(compName.repr)
+  result = quote do:
+    var watcher = self.get_node("/root/Watcher")
+    if watcher.isNil:
+      raise newException(Defect, "Watcher not found")
 
-      nnkIfStmt.newTree(
-        nnkElifBranch.newTree(
-          nnkInfix.newTree(^"!=", newDotExpr(saveData, ^"len"), newLit(0)),
-          newCall(^"some", newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", saveData)))
-        ),
-        nnkElse.newTree(newCall(^"none", ^"MsgStream"))
-      )
+    var bv = watcher.call("register_component",
+      `compNameStr`.toVariant,
+      ($(self.get_path())).toVariant,
+      ($(self.get_parent().get_path())).toVariant
     )
-  )
-  result = blockStmt
+    var data:seq[byte]
+    discard fromVariant(data, bv)
+    if data.len != 0:
+      some(MsgStream.init(cast[string](data)))
+    else:
+      none(MsgStream)
 
-
-#register with the watcher and returns a MsgStream or exits proc
+#register with the watcher and returns an Option[MsgStream]
 # compName, saverProc, loaderProc are symbols, converted to strings
 macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loaderProc:untyped):untyped =
   # var path = $self.get_path()
-  #var stream = register_component(bullet, path, save_bullets, setup_bullets) # returns from caller proc if there's no data
-  #[
-    block:
-      var w = self.get_node("/root/Watcher")
-      if w.isNil:
-        raise newException(Defect, "Watcher not found")
+  #var stream = register_component(bullet, path, save_bullets, setup_bullets) # returns Option[MsgStream]
+  var compNameStr = newLit(compName.repr)
+  var saverProcStr = newLit(saverProc.repr)
+  var loaderProcStr = newLit(loaderProc.repr)
 
-      var bv = w.call("register_component",
-        compName.toVariant,
-        path, #savePath
-        path, #loadPath,
-        saverProc.toVariant,
-        loaderProc.toVariant
-      )
-      var data:seq[byte]
-      discard fromVariant(data, bv)
-      if data.len == 0: return
-      MsgStream.init(cast[string](data))
-  ]#
-  let watcher = genSym(nskVar, "w")
-  let saveDataVariant = genSym(nskVar, "v")
-  let saveData = genSym(nskVar, "data")
-  var blockStmt = nnkBlockStmt.newTree()
-  blockStmt.add newEmptyNode()
-  blockStmt.add newStmtList(
-    newVarStmt(watcher, newCall(newDotExpr(^"self", ^"get_node"), newLit("/root/Watcher"))),
-    newIfStmt((newDotExpr(watcher, ^"isNil"), newStmtList(nnkRaiseStmt.newTree(newCall(^"newException", ^"Defect", newLit("Watcher not found")))))),
-    newStmtList(
-      newVarStmt(saveDataVariant,
-        newCall(newDotExpr(watcher, ^"call"), newLit("register_component"),
-          newDotExpr(newLit(compName.repr), ^"toVariant"),
-          newDotExpr(reloaderPath, ^"toVariant"),
-          newDotExpr(reloaderPath, ^"toVariant"),
-          newDotExpr(newLit(saverProc.repr), ^"toVariant"),
-          newDotExpr(newLit(loaderProc.repr), ^"toVariant"),
-        )
-      ),
-      nnkVarSection.newTree(newIdentDefs(saveData, nnkBracketExpr.newTree(^"seq", ^"byte"))),
-      nnkDiscardStmt.newTree(newCall(^"fromVariant", saveData, saveDataVariant)),
+  result = quote do:
+    var watcher = self.get_node("/root/Watcher")
+    if watcher.isNil:
+      raise newException(Defect, "Watcher not found")
 
-      nnkIfStmt.newTree(
-        nnkElifBranch.newTree(
-          nnkInfix.newTree(^"!=", newDotExpr(saveData, ^"len"), newLit(0)),
-          newCall(^"some", newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", saveData)))
-        ),
-        nnkElse.newTree(newCall(^"none", ^"MsgStream"))
-      )
+    var bv = watcher.call("register_component",
+      `compNameStr`.toVariant,
+      `reloaderPath`.toVariant, #saver path
+      `reloaderPath`.toVariant, #loader path
+      `saverProcStr`.toVariant,
+      `loaderProcStr`.toVariant
     )
-  )
-  result = blockStmt
+    var data:seq[byte]
+    discard fromVariant(data, bv)
+    if data.len != 0:
+      some(MsgStream.init(cast[string](data)))
+    else:
+      none(MsgStream)
 
 const tscnDir = "_tscn"
 # find the resource at runtime, returns the first resource that matches compName
