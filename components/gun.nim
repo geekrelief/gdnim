@@ -10,7 +10,6 @@ gdobj Gun of Sprite:
 
   var bulletResPath:string
   var bulletRes:PackedScene
-  var button_fireSingle:Node
   var bulletSpawnPoint:Node2D
 
   var nextBulletId:int64
@@ -19,7 +18,6 @@ gdobj Gun of Sprite:
   method enter_tree() =
     self.bulletResPath = findCompTscn("bullet")
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
-    self.button_fireSingle = button_fireSingle
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D

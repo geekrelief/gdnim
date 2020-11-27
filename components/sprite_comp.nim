@@ -16,7 +16,6 @@ gdobj SpriteComp of Sprite:
     discard register(sprite_comp)
     self.position = self.startPos
 
-
   method ready() =
     var area2D = self.get_node("Area2D")
     discard area2D.connect("input_event", self, "on_area2d_input_event")
