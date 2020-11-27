@@ -9,6 +9,9 @@ extents = Vector2( 32, 32 )
 [node name="SpriteComp" type="Sprite"]
 texture = ExtResource( 2 )
 script = ExtResource( 1 )
+__meta__ = {
+"_edit_group_": true
+}
 
 [node name="Area2D" type="Area2D" parent="."]
 
