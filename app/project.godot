@@ -16,7 +16,7 @@ config/icon="res://icon.png"
 
 [autoload]
 
-Watcher="*res://_gdns/watcher.gdns"
+Watcher="*res://_tscn/watcher.tscn"
 
 [rendering]
 

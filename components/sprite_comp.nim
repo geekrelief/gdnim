@@ -6,8 +6,8 @@ import math
 
 gdobj SpriteComp of Sprite:
   var startPos:Vector2 = vec2(100.0, 100.0)
-  var radius:float = 110.0
-  var speed:float = 0.05
+  var radius:float = 50.0
+  var speed:float = 0.2
   var elapsedTime:float
 
   signal clicked(button_idx:int, shape_idx:int)

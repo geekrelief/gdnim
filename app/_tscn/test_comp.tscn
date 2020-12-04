@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://_gdns/test_comp.gdns" type="Script" id=1]
-[ext_resource path="res://04B_03__.TTF" type="DynamicFontData" id=2]
+[ext_resource path="res://resources/fonts/04B_03__.TTF" type="DynamicFontData" id=2]
 
 [sub_resource type="DynamicFont" id=1]
 size = 40
