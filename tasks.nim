@@ -208,7 +208,7 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
 task gencomp, "generate a component template (nim, gdns, tscn files), pass in the component name and  base class name in snake case:":
   var compName = args[0]
   var compClassName = compName.pascal
-  var baseClassModuleName = args[1]
+  var baseClassModuleName = args[1].tolower
   var baseClassName = baseClassModuleName.pascal
   if baseClassName.endsWith("1d") or baseClassName.endsWith("2d") or baseClassName.endsWith("3d"):
     baseClassName[^1] = 'D'
