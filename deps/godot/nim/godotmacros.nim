@@ -25,7 +25,7 @@ type
 
   SignalArgDecl = ref object
     name: string
-    vtype: VariantType
+    typ: NimNode
 
   SignalDecl = ref object
     name: string
@@ -189,14 +189,18 @@ proc parseVarSection(decl: NimNode): seq[VarDecl] =
       result.add(identDefsToVarDecls(decl[i]))
 
 proc parseSignal(sig: NimNode): SignalDecl =
+  let errorMsg = "Signal declaration must have this format: signal my_signal(param1: int, param2: string)"
+
+  if sig[0].strVal != "signal":
+    parseError(sig, errorMsg)
   if sig.kind != nnkCommand:
-    parseError(sig, "signal not command syntax")
+    parseError(sig, errorMsg)
   if not (sig[1].kind == nnkCall or sig[1].kind == nnkObjConstr):
-    parseError(sig, "signal must be call or object construction syntax")
+    parseError(sig, errorMsg)
 
   result = SignalDecl(
     name: $sig[1][0],
-    args: newSeq[SignalArgDecl](),
+    args: newSeq[SignalArgDecl]()
   )
 
   if sig[1].kind == nnkObjConstr:
@@ -204,42 +208,9 @@ proc parseSignal(sig: NimNode): SignalDecl =
       var nexpr = sig[1][i]
       case nexpr.kind:
       of nnkExprColonExpr:
-        var argType:string = nexpr[1].repr.tolower
-        var vtype = case argType:
-        of "bool": VariantType.Bool
-        of "uint8", "uint16", "uint32", "uint64", "uint": VariantType.Int # variant doesn't support unsigned int
-        of "int8","int16","int32", "int64","int": VariantType.Int
-        of "float32", "float64", "float": VariantType.Real
-        of "string": VariantType.String
-        of "vector2": VariantType.Vector2
-        of "rect2": VariantType.Rect2
-        of "vector3": VariantType.Vector3
-        of "transform2d": VariantType.Transform2D
-        of "plane": VariantType.Plane
-        of "quat": VariantType.Quat
-        of "aabb": VariantType.AABB
-        of "basis": VariantType.Basis
-        of "transform": VariantType.Transform
-        of "color": VariantType.Color
-        of "nodepath": VariantType.NodePath
-        of "rid": VariantType.RID
-        of "object": VariantType.Object
-        of "dictionary": VariantType.Dictionary
-        of "array": VariantType.Array
-        of "poolbytearray": VariantType.PoolByteArray
-        of "poolintarray": VariantType.PoolIntArray
-        of "poolrealarray": VariantType.PoolRealArray
-        of "poolstringarray": VariantType.PoolStringArray
-        of "poolvector2array": VariantType.PoolVector2Array
-        of "poolvector3array": VariantType.PoolVector3Array
-        of "poolcolorarray": VariantType.PoolColorArray
-        else:
-          parseError(nexpr, "signal unsupported argument type")
-          VariantType.Nil
-
-        result.args.add(SignalArgDecl(name: nexpr[0].repr, vtype: vtype))
+        result.args.add(SignalArgDecl(name: nexpr[0].repr, typ: nexpr[1]))
       else:
-        parseError(sig, "signals only allow colon expressions")
+        parseError(sig, errorMsg)
 
 proc parseType(ast: NimNode): ObjectDecl =
   let definition = ast[0]
@@ -677,20 +648,30 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
                           argTypes, genSym(nskProc, "methFunc"),
                           hasReturnValue)))
 
-  template createSignalArgument(argName, argType)=
-    GodotSignalArgument(name:argName.toGodotString(),
-                        typ:argType,
-                        defaultValue: newVariant().godotVariant[])
-
-  template createSignalArgsArray(sigArgsArrIdent:NimNode, sigArgs:NimNode) =
-    var sigArgsArrIdent = sigArgs
-
-  template registerGodotSignal(classNameLit, signalName) =
+  template registerGodotSignalNoArgs(classNameLit, signalName) =
     var godotSignal = GodotSignal(
       name: signalName.toGodotString())
     nativeScriptRegisterSignal(getNativeLibHandle(), classNameLit, godotSignal)
 
-  template registerGodotSignal(classNameLit, signalName, argCount, sigArgsArr) =
+  template initSignalArgumentParameters(argName, argTypeIdent, typeInfoIdent,
+                                        godotStringIdent, godotVariantIdent)=
+    var godotStringIdent = argName.toGodotString()
+    mixin godotTypeInfo
+    const typeInfoIdent = godotTypeInfo(argTypeIdent)
+    var godotVariantIdent:GodotVariant
+    initGodotVariant(godotVariantIdent)
+
+  template deinitSignalArgumentParameters(godotStringIdent, godotVariantIdent)=
+    godotStringIdent.deinit()
+    godotVariantIdent.deinit()
+
+  template createSignalArgument(typeInfoIdent, godotStringIdent, godotVariantIdent) =
+    GodotSignalArgument(name: godotStringIdent,
+                        typ:cast[cint](ord(typeInfoIdent.variantType)),
+                        defaultValue: godotVariantIdent)
+
+  template registerGodotSignal(classNameLit, signalName, argCount, sigArgs) =
+    var sigArgsArr = sigArgs
     var godotSignal = GodotSignal(
       name: signalName.toGodotString(),
       numArgs: argCount,
@@ -700,17 +681,24 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
   for sig in obj.signals:
     if sig.args.len == 0:
       result.add(getAst(
-        registerGodotSignal(classNameLit, sig.name)))
+        registerGodotSignalNoArgs(classNameLit, sig.name)))
     else:
+      var sigArgsParams:seq[(NimNode, NimNode, NimNode)]
+      for arg in sig.args:
+        var p = (genSym(nskConst, "typeInfo"), genSym(nskVar, "godotString"), genSym(nskVar, "godotVariant"))
+        sigArgsParams.add p
+        result.add(getAst(
+          initSignalArgumentParameters(arg.name, arg.typ, p[0], p[1], p[2])))
+
       var sigArgs = newNimNode(nnkBracket)
-      for i, arg in sig.args:
+      for p in sigArgsParams:
         sigArgs.add(getAst(
-          createSignalArgument(arg.name, ord(arg.vtype))))
-      var sigArgsArrIdent = genSym(nskVar, "sigArgs")
+          createSignalArgument(p[0], p[1], p[2])))
       result.add(getAst(
-        createSignalArgsArray(sigArgsArrIdent, sigArgs)))
-      result.add(getAst(
-        registerGodotSignal(classNameLit, sig.name, sig.args.len, sigArgsArrIdent)))
+        registerGodotSignal(classNameLit, sig.name, sig.args.len, sigArgs)))
+      for p in sigArgsParams:
+        result.add(getAst(
+          deinitSignalArgumentParameters(p[1], p[2])))
 
   if isRef:
     # add ref/unref for types inherited from Reference
