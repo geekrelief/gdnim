@@ -191,8 +191,6 @@ proc parseVarSection(decl: NimNode): seq[VarDecl] =
 proc parseSignal(sig: NimNode): SignalDecl =
   let errorMsg = "Signal declaration must have this format: signal my_signal(param1: int, param2: string)"
 
-  if sig[0].strVal != "signal":
-    parseError(sig, errorMsg)
   if sig.kind != nnkCommand:
     parseError(sig, errorMsg)
   if not (sig[1].kind == nnkCall or sig[1].kind == nnkObjConstr):
@@ -243,8 +241,9 @@ proc parseType(ast: NimNode): ObjectDecl =
         let meth = parseMethod(statement)
         result.methods.add(meth)
       of nnkCommand:
-        let sig = parseSignal(statement)
-        result.signals.add(sig)
+        if statement[0].strVal == "signal":
+          let sig = parseSignal(statement)
+          result.signals.add(sig)
       of nnkCommentStmt:
         discard
       else:
