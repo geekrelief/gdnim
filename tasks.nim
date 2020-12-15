@@ -74,6 +74,12 @@ proc genGdns(name:string) =
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
 
+task prereqs, "Install prerequisites":
+  execOrQuit("nimble install compiler")
+  execOrQuit("nimble install anycase")
+  execOrQuit("nimble install msgpack4nim")
+  execOrQuit("nimble install https://github.com/PMunch/nim-optionsutils")
+
 task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
   var godotSrcPath = getEnv("GODOT_SRC_PATH")
@@ -102,7 +108,7 @@ task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
   setCurrentDir(projDir)
 
-task gdengine, "build the godot engine, default with debugging and tools args:\tupdate: updates the branch with branches in gdengine_upstream task\tclean: clean build\texport export build without tools\trelease: relead build without debugging":
+task gdengine, "build the godot engine, default with debugging and tools args:\n\tupdate: updates the branch with branches in gdengine_upstream task\n\tclean: clean build\n\texport export build without tools\n\trelease: relead build without debugging":
   if "update" in args: gdengineUpdateTask()
 
   # run scons --help to see godot flags
@@ -140,7 +146,7 @@ task gdengine, "build the godot engine, default with debugging and tools args:\t
   discard execShellCmd &"scons -j{threads}  p={gd_platform} bits={gd_bits} {flags}"
   setCurrentDir(projDir)
 
-task gd, "launches terminal with godot project\n-e option to open editor\nlast argument is a scene to open\n":
+task gd, "launches terminal with godot project\n\toptional argument for scene to open":
   var gdbin = if "debug" in getSharedFlags(): gd_tools_debug_bin else: gd_tools_release_bin
 
   var curDir = getCurrentDir()
@@ -168,15 +174,17 @@ task genapi, "generate the godot api bindings":
   genApi(apidir, apidir / "api.json")
   removeFile(apidir / "api.json")
 
+proc buildWatcher():string =
+  {.cast(gcsafe).}:
+    var flags = getSharedFlags()
+    if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
+      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+    else:
+      result = "Watcher is unchanged"
 
 task watcher, "build the watcher dll":
   genGdns("watcher")
-  var flags = getSharedFlags()
-  if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
-    echo execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
-  else:
-    echo "Watcher is unchanged"
-
+  echo buildWatcher()
 
 # compiling with gcc, vcc spitting out warnings about incompatible pointer types with NimGodotObj, which was added for gc:arc
 # include to include libgcc_s_seh-1.dll, libwinpthread-1.dll in the app/_dlls folder for project to run
@@ -266,23 +274,17 @@ task comp, "build component and generate a gdns file\n\tno component name means 
   buildSettings["newOnly"] = not ("force" in sharedFlags)
   buildSettings["noCheck"] = "nocheck" in otherFlagsTable
 
-  var nospawn = "nospawn" in otherFlagsTable
-
   if not (compName == ""):
     compName = compName.snake
     echo buildComp(compName, sharedFlags, buildSettings)
   else:
     # compile all the comps
-    if nospawn:
-      for compFilename in walkFiles(&"{compsDir}/*.nim"):
-        echo buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings)
-    else:
-      var res = newSeq[FlowVar[string]]()
-      for compFilename in walkFiles(&"{compsDir}/*.nim"):
-        res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings))
-      sync()
-      for f in res:
-        echo ^f
+    var res = newSeq[FlowVar[string]]()
+    for compFilename in walkFiles(&"{compsDir}/*.nim"):
+      res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings))
+    sync()
+    for f in res:
+      echo ^f
 
 task flags, "display the flags used for compiling components":
   echo ">>> Task  compiler flags <<<"
@@ -292,23 +294,53 @@ task flags, "display the flags used for compiling components":
   for flag in otherFlagsTable.keys:
     echo &"\t{flag} {otherFlagsTable[flag]}"
 
-task help, "display list of tasks":
-  echo "Call build with a task:"
-  for i in 0..<tasks.len:
-    echo "  ", tasks[i].task_name, " : ", tasks[i].description
-
 task cleanbuild, "Rebuild all":
   cleandllTask()
   # created if vcc and debug flags are used
   removeDir(config.getSectionValue("VCC", "pdbdir"))
   setFlag("force")
   setFlag("move")
-  watcherTask()
-  compTask()
 
-task c, "recompile all components":
-  compTask()
+  var startTime = cpuTime()
+  # watcher task
+  genGdns("watcher")
 
-task cm, "recompile and move all components":
-  setFlag("move")
-  compTask()
+  var res = newSeq[FlowVar[string]]()
+
+  res.add(spawn buildWatcher())
+
+  var compileCount = 1
+
+  # comp task
+  var sharedFlags = getSharedFlags()
+  var buildSettings: Table[string, bool]
+  buildSettings["move"] = "move" in otherFlagsTable
+  buildSettings["newOnly"] = not ("force" in sharedFlags)
+  buildSettings["noCheck"] = "nocheck" in otherFlagsTable
+
+  for compFilename in walkFiles(&"{compsDir}/*.nim"):
+    inc compileCount
+    res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings))
+  sync()
+
+  var successes = 0
+  var failures:seq[string]
+  for f in res:
+    var output = ^f
+    if "[SuccessX]" in output:
+      inc successes
+    else:
+      failures.add output
+
+  if successes == compileCount:
+    echo "=== Build OK! === ", cpuTime() - startTime, " seconds"
+  else:
+    echo "=== >>> Build Failed >>> ==="
+    for f in failures:
+      echo f
+    echo "=== <<< Build Failed <<< ==="
+
+task help, "display list of tasks":
+  echo "Call build with a task:"
+  for i in 0..<tasks.len:
+    echo "  ", tasks[i].task_name, " : ", tasks[i].description
