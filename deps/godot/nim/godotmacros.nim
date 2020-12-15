@@ -656,7 +656,9 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
                                         godotStringIdent, godotVariantIdent)=
     var godotStringIdent = argName.toGodotString()
     mixin godotTypeInfo
-    const typeInfoIdent = godotTypeInfo(argTypeIdent)
+    const typeInfoIdent = when compiles(godotTypeInfo(argTypeIdent)):
+                            godotTypeInfo(argTypeIdent)
+                          else: GodotTypeInfo()
     var godotVariantIdent:GodotVariant
     initGodotVariant(godotVariantIdent)
 
@@ -666,7 +668,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
 
   template createSignalArgument(typeInfoIdent, godotStringIdent, godotVariantIdent) =
     GodotSignalArgument(name: godotStringIdent,
-                        typ:cast[cint](ord(typeInfoIdent.variantType)),
+                        typ: ord(typeInfoIdent.variantType),
                         defaultValue: godotVariantIdent)
 
   template registerGodotSignal(classNameLit, signalName, argCount, sigArgs) =
