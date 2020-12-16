@@ -158,7 +158,7 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
     scn = args[0] & ".tscn"
 
   if hostOS == "windows": discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
-  else: discard execShellCmd &"konsole -e {gdbin} -e --path {projDir} {scn}"
+  else: discard execShellCmd &"{gdbin} -e --path {projDir} {scn}"
 
 task cleanapi, "clean generated api":
   removeDir "logs"
@@ -178,9 +178,10 @@ task genapi, "generate the godot api bindings":
 
 proc buildWatcher():string =
   {.cast(gcsafe).}:
+    let dllKind = if hostOS == "windows": "dll" else: "so"
     var flags = getSharedFlags()
-    if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
-      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+    if ("force" in flags) or not fileExists(&"{dllDir}/watcher.{dllKind}") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.{dllKind}")):
+      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.{dllKind}", "watcher.nim")
     else:
       result = "Watcher is unchanged"
 

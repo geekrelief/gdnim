@@ -56,9 +56,9 @@ var taskCompilerFlagsTable = {
   "gc":"--gc:arc --d:useMalloc",
   #"gc":"--d:useRealtimeGc",
   "lib":"--app:lib --noMain",
-  "cc":"--cc:tcc" # does not work with threads
+  #"cc":"--cc:tcc" # does not work with threads
   # vcc clean compile output, needs gcc dlls, produces large dlls
-  #"cc":"--cc:gcc --threads:on --tlsEmulation:off"
+  "cc":"--cc:gcc --threads:on --tlsEmulation:off"
   # gcc smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
   #"cc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off"
 }.toTable

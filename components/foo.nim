@@ -4,6 +4,9 @@ import hot
 
 gdobj Foo of Node2D:
 
+  method ready*() =
+    print("Hello from Nim hot reload")
+
   method enter_tree() =
     discard register(foo)
 

@@ -15,7 +15,7 @@ gdobj Gun of Sprite:
   var nextBulletId:int64
   var bullets:Table[int64, Node]
 
-  method enter_tree() =
+  method ready*() =
     self.bulletResPath = findCompTscn("bullet")
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
     discard button_fireSingle.connect("pressed", self, "fire_single")
