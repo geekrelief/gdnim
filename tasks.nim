@@ -24,9 +24,9 @@ const gdns_template = """
 
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://$3/$1.dll"
-entry/Linux.64 = "res://$3/$1.so"
+entry/X11.64 = "res://$3/$1.so"
 dependency/Windows.64 = [  ]
-
+dependency/X11.64 = [  ]
 [resource]
 resource_name = "$2"
 class_name = "$2"
