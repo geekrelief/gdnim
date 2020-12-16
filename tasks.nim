@@ -24,6 +24,7 @@ const gdns_template = """
 
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://$3/$1.dll"
+entry/Linux.64 = "res://$3/$1.so"
 dependency/Windows.64 = [  ]
 
 [resource]
@@ -156,7 +157,8 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
   if args.len == 1:
     scn = args[0] & ".tscn"
 
-  discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
+  if hostOS == "windows": discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
+  else: discard execShellCmd &"konsole -e {gdbin} -e --path {projDir} {scn}"
 
 task cleanapi, "clean generated api":
   removeDir "logs"
@@ -240,8 +242,9 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
 
 proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
   {.cast(gcsafe).}:
-    let safeDllFilePath = &"{dllDir}/{compName}_safe.dll"
-    let hotDllFilePath = &"{dllDir}/{compName}.dll"
+    let dllKind = if hostOS == "windows": "dll" else: "so"
+    let safeDllFilePath = &"{dllDir}/{compName}_safe.{dllKind}"
+    let hotDllFilePath = &"{dllDir}/{compName}.{dllKind}"
     let nimFilePath = &"{compsDir}/{compName}.nim"
 
     if not fileExists(nimFilePath):

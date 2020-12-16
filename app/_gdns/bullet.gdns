@@ -2,7 +2,9 @@
 
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://_dlls/bullet.dll"
+entry/X11.64 = "res://_dlls/bullet.so"
 dependency/Windows.64 = [  ]
+dependency/X11.64 = [  ]
 
 [resource]
 resource_name = "Bullet"

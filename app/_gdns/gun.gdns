@@ -2,7 +2,9 @@
 
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://_dlls/gun.dll"
+entry/X11.64 = "res://_dlls/gun.so"
 dependency/Windows.64 = [  ]
+dependency/X11.64 = [  ]
 
 [resource]
 resource_name = "Gun"

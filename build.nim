@@ -144,4 +144,4 @@ if matches.len == 0: # no match assume it's a compName
 if matches.len == 1:
   matches[0].task_proc()
 
-finalTask()
+if hostOS == "windows": finalTask()
