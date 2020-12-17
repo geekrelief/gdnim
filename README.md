@@ -1,6 +1,3 @@
-**Warning:** This repo has been tailored for my system. If you happen to find this,
-feel free to customize it yourself.
-
 # Gdnim #
 gdnim bootstraps a [godot-nim](https://github.com/pragmagic/godot-nim) project,
 with a customized build of godot-nim that enables easier project managment. It's
@@ -12,21 +9,23 @@ resources for components and a Watcher node.
      If this is looking stale, create an issue I'll update it with godot's latest commits
  - Configure the build.ini for your setup
  - Compile the build script: nim c build
- - Build the godot binaries: ./build gdengine
- - Generate the godot-nim bindings: ./build genapi
- - Build watcher and components: ./build cleanbuild
+ - See available tasks: `./build help`
+ - Download Nim prerequisite libraries: `./build prereqs`
+ - Build the godot binaries: `./build gdengine`
+ - Generate the godot-nim bindings: `./build genapi`
+ - Build watcher and components: `./build cleanbuild`
 
- - Generate a new component specifying base class module: ./build gencomp my_comp node_2d
- - Modify components/my_comp.nim
- - Run editor: ./build gd
- - Run scene using component, make a modification to component: ./build
+ - Generate a new component specifying base class module: `./build gencomp my_comp node_2d`
+ - Modify `components/my_comp.nim`
+ - Launch godot editor: `./build gd` (if this fails, launch godot manually, or see the Setup section)
+ - Run scene using component, make a modification to component: `./build`
  - Hot reload should occur (check console or editor console for output)
  - **Note:** The hot module contains save and load macros to persist state between reloads.
 
 ### Main commands ###
- - Run Godot: ./build gd
- - Hot Reload your script (after modification): ./build
- - If you need to restart the app, build and move the dll with then run again: ./build -m
+ - Launch godot editor: `./build gd`
+ - Hot Reload your script (after modification): `./build`
+ - If you need to restart the app, build and move the dll with then run again: `./build -m`
 
 ## Prerequites ##
   - VSCode
@@ -34,28 +33,33 @@ resources for components and a Watcher node.
   - or [godot 3.2 with gdnative unload](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload)
   - [Tiny C Compiler](https://github.com/mirror/tinycc) (fast compiles, but does not support threads)
   - [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
-  - [compiler](https://nimble.directory/pkg/compiler)
-  - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
-  - [anycase](https://nimble.directory/pkg/anycase)
-  - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
+  - Nim Libraries (downloaded with `./build prereqs`)
+    - [compiler](https://nimble.directory/pkg/compiler)
+    - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
+    - [anycase](https://nimble.directory/pkg/anycase)
+    - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
   - vcc, gcc (optional, but required for threads)
 
 ## Project Structure ##
 Gdnim uses a customized build script and [a custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom) merged with [godot 3.2 with gdnative unload](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload) which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript which can be buggy and limited. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC/ARC).
 
 ### Files and Folders ###
- - `/deps/godot`: Custom version of godot-nim bindings. You can move this and update the location in `build.ini`
+ - `/app`: This is the godot project folder.
+    - `/app/_dlls`: Location for `./build` compiled, component libraries (.dll's, .so's). If you have other dlls you want to store here, modify tasks.nim. See `task cleandll`, or put your dlls somewhere else.
+    - `/app/_gdns`: Location for `./build gencomp` generated gdns files. These are checked and regenerated if missing.
+    - `/app/_tscn`: Location for `./build gencomp` generated tscn files. Customize these for your needs.
+    - `/app/scenes`: Location for your own scenes to keep separate from _tscn.
+ - `deps/godot`: Custom version of godot-nim bindings. You can move this and update the location in `build.ini`
  - `build.nim`: The build script, compiled with `nim c build`, includes the `tasks.nim`
  - `tasks.nim`: Build tasks are specified here for updating / compiling the godot engine, generating / compiling  components, running the godot editor, etc.
  - `watcher.nim`: The Watcher node that monitors changes to registered components. In a new godot project set watcher.gdns to autoload.
  - `hot.nim`: The module used by components to register with the Watcher node. Also has save / load macros for persisting data between reloads.
  - `build.ini`: Configuration file used to specify directories and settings.
- - `/components`: Where nim component files live. Components must have unique identifiers. Dlls are generated from these components.
+ - `components`: Where nim component files live. Components must have unique identifiers. Dlls are generated from these components.
 
 
 ## Setup ##
-
-The project is developed and tested only on Windows.
+The project is developed and tested only on Windows / Linux.
 Modify the build.ini, build.nim and tasks.nim script for your needs.
 build.ini expects some paths to my godot 3.2 custom engine source and editor executables.
 
@@ -65,12 +69,16 @@ with commits from godot's 3.2 branch by rebasing.
 
 The app folder contains the stub godot project. You create "components" which are the classes that can reload by
 running the `./build gencomp your_module_name godot_base_class_name`.  A nim file will appear in
-the components folder. Generated files are stored in app/_dlls, app/_gdns, app/_tscn.
-Run the godot editor. The watcher.gdns should autoload in the godot project.
+the components folder. Generated files are stored in `app/_dlls`, `app/_gdns`, `app/_tscn`.
+Run the godot editor. The `watcher.tscn` should autoload in the godot project.
 
-See the temp_comp example in the components folder.
+See the examples in the `components` folder.
 
-Use the build script to download the godot source, compile the engine, create godot-nim bindings api, compile the watcher and components, etc.
+See `./build help` for availabled tasks like downloading the godot source, compiling the engine, generating godot-nim bindings api, compiling the watcher and components, etc.
+
+`./build gd` Launches the godot editor.  On Windows it spawns a terminal using Terminal. On Linux there
+isn't a general way to support this for all distributions (as far as I know), so modify the task for your needs.
+
 
 ## Tips ##
  - If the godot app crashes, or your component gets into a weird state where it
