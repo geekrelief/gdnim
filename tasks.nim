@@ -24,7 +24,9 @@ const gdns_template = """
 
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://$3/$1.dll"
-dependency/Windows.64 = [  ]
+entry/X11.64 = "res://$3/$1.so"
+dependency/Windows.64 = []
+dependency/X11.64 = []
 
 [resource]
 resource_name = "$2"
@@ -62,6 +64,7 @@ let gd_bin = config.getSectionValue("Godot", "bin")
 let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
 let gd_tools_release_bin = config.getSectionValue("Godot", "tools_release_bin")
 
+let dllExt = if hostOS == "windows": "dll" else: "so"
 
 proc genGdns(name:string) =
   let gdns = &"{gdnsDir}/{name}.gdns"
@@ -156,7 +159,8 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
   if args.len == 1:
     scn = args[0] & ".tscn"
 
-  discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
+  if hostOS == "windows": discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
+  else: discard execShellCmd &"{gdbin} -e --path {projDir} {scn}"
 
 task cleanapi, "clean generated api":
   removeDir "logs"
@@ -177,8 +181,8 @@ task genapi, "generate the godot api bindings":
 proc buildWatcher():string =
   {.cast(gcsafe).}:
     var flags = getSharedFlags()
-    if ("force" in flags) or not fileExists(&"{dllDir}/watcher.dll") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.dll")):
-      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.dll", "watcher.nim")
+    if ("force" in flags) or not fileExists(&"{dllDir}/watcher.{dllExt}") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.{dllExt}")):
+      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.{dllExt}", "watcher.nim")
     else:
       result = "Watcher is unchanged"
 
@@ -240,8 +244,8 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
 
 proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
   {.cast(gcsafe).}:
-    let safeDllFilePath = &"{dllDir}/{compName}_safe.dll"
-    let hotDllFilePath = &"{dllDir}/{compName}.dll"
+    let safeDllFilePath = &"{dllDir}/{compName}_safe.{dllExt}"
+    let hotDllFilePath = &"{dllDir}/{compName}.{dllExt}"
     let nimFilePath = &"{compsDir}/{compName}.nim"
 
     if not fileExists(nimFilePath):

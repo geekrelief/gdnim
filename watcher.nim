@@ -15,10 +15,12 @@ During a reload phase, the components data can be save and restored upon reload.
 ]#
 const dllDir {.strdefine.}:string = "_dlls"
 
+const dllExt = when hostOS == "windows": "dll" else: "so"
+
 func safeDllPath(compName:string):string =
-  &"{dllDir}/{compName}_safe.dll"
+  &"{dllDir}/{compName}_safe.{dllExt}"
 func hotDllPath(compName:string):string =
-  &"{dllDir}/{compname}.dll"
+  &"{dllDir}/{compname}.{dllExt}"
 
 type
   ReloadMeta = object
