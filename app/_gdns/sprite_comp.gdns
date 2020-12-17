@@ -2,7 +2,9 @@
 
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://_dlls/sprite_comp.dll"
-dependency/Windows.64 = [  ]
+entry/X11.64 = "res://_dlls/sprite_comp.so"
+dependency/Windows.64 = []
+dependency/X11.64 = []
 
 [resource]
 resource_name = "SpriteComp"

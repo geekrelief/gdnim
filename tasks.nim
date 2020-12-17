@@ -244,6 +244,8 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
 
 proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
   {.cast(gcsafe).}:
+    genGdns(compName)
+
     let safeDllFilePath = &"{dllDir}/{compName}_safe.{dllExt}"
     let hotDllFilePath = &"{dllDir}/{compName}.{dllExt}"
     let nimFilePath = &"{compsDir}/{compName}.nim"
