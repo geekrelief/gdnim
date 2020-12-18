@@ -1,10 +1,25 @@
+<!-- TOC -->
+
+- [Gdnim](#gdnim)
+  - [Quick Start](#quick-start)
+    - [Main commands](#main-commands)
+  - [Prerequites](#prerequites)
+  - [Project Structure](#project-structure)
+    - [Files and Folders](#files-and-folders)
+  - [Setup](#setup)
+  - [Tips](#tips)
+  - [Implementation details](#implementation-details)
+    - [Nim notes](#nim-notes)
+    - [Compiler notes](#compiler-notes)
+
+<!-- /TOC -->
 # Gdnim #
-gdnim bootstraps a [godot-nim](https://github.com/pragmagic/godot-nim) project,
-with a customized build of godot-nim that enables easier project managment. It's
-killer feature is automated, hot code reloading through the use of scenes as
-resources for components and a Watcher node.
+
+gdnim bootstraps a [godot-nim](https://github.com/pragmagic/godot-nim) project, with a customized build of godot-nim that enables easier project managment. It's killer feature is automated, hot code reloading through the use of scenes as resources for components and a Watcher node.
+
 
 ## Quick Start ##
+
  - Clone - [godot 3.2 custom](https://github.com/geekrelief/godot/tree/3.2_custom)
      If this is looking stale, create an issue I'll update it with godot's latest commits
  - Configure the build.ini for your setup
@@ -22,12 +37,16 @@ resources for components and a Watcher node.
  - Hot reload should occur (check console or editor console for output)
  - **Note:** The hot module contains save and load macros to persist state between reloads.
 
+
 ### Main commands ###
+
  - Launch godot editor: `./build gd`
  - Hot Reload your script (after modification): `./build`
  - If you need to restart the app, build and move the dll with then run again: `./build -m`
 
+
 ## Prerequites ##
+
   - VSCode
   - [godot 3.2 custom](https://github.com/geekrelief/godot/tree/3.2_custom)
   - or [godot 3.2 with gdnative unload](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload)
@@ -40,15 +59,16 @@ resources for components and a Watcher node.
     - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
   - vcc, gcc (optional, but required for threads)
 
+
 ## Project Structure ##
 Gdnim uses a customized build script and [a custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom) merged with [godot 3.2 with gdnative unload](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload) which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript which can be buggy and limited. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC/ARC).
 
 ### Files and Folders ###
  - `/app`: This is the godot project folder.
     - `/app/_dlls`: Location for `./build` compiled, component libraries (.dll's, .so's). If you have other dlls you want to store here, modify tasks.nim. See `task cleandll`, or put your dlls somewhere else.
-    - `/app/_gdns`: Location for `./build gencomp` generated gdns files. These are checked and regenerated if missing.
+    - `/app/_gdns`: Location for `./build gencomp` generated NativeScript files. These are checked and regenerated for each component nim file. So they're safe to delete when you want to remove a component.
     - `/app/_tscn`: Location for `./build gencomp` generated tscn files. Customize these for your needs.
-    - `/app/scenes`: Location for your own scenes to keep separate from _tscn.
+    - `/app/scenes`: (Optional) Location for your own scenes to keep separate from _tscn.
  - `deps/godot`: Custom version of godot-nim bindings. You can move this and update the location in `build.ini`
  - `build.nim`: The build script, compiled with `nim c build`, includes the `tasks.nim`
  - `tasks.nim`: Build tasks are specified here for updating / compiling the godot engine, generating / compiling  components, running the godot editor, etc.
@@ -85,6 +105,7 @@ isn't a general way to support this for all distributions (as far as I know), so
 can't reload cleanly. Close the app and run ./build -m to move the safe dll to
 the hot dll path and rerun the app.
 
+
 ## Implementation details ##
 Watcher monitors the _dlls folder for updates and coordinates the reload process
 with the components. The components use the hot module save and load macros to
@@ -104,10 +125,12 @@ When a component is compiled it generates a library file (safe dll). If the godo
 When the project application is running, update and build the components.
 Watcher will check if safe dll is newer than hot dll and start a reload if so.
 
+
 ### Nim notes ###
 The godot-nim library in deps has been customized to use the new gc ARC and prep it for future versions of nim.
 Use the build script to generate the godotapi into the deps folder.
-Gdnim, and the godot-nim bindings are built against nim's devel branch.
+Gdnim, and the godot-nim bindings are built against nim 1.5.1 (devel branch).
+
 
 ### Compiler notes ###
 Gdnim also makes use of tcc, the [Tiny C Compiler](https://github.com/mirror/tinycc). It compiles much faster than gcc or vcc, but crashes when compiling with threads:on. Vcc and gcc both support threads. Clean builds with vcc and gcc are slow. Vcc can generate lots of warnings about incompatible types, while gcc requires some additional dlls to run. If you want to use gcc, see tasks.nim's final task where gcc dlls are checked.
