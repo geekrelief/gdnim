@@ -25,8 +25,8 @@ const gdns_template = """
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://$3/$1.dll"
 entry/X11.64 = "res://$3/$1.so"
-dependency/Windows.64 = []
-dependency/X11.64 = []
+dependency/Windows.64 = [  ]
+dependency/X11.64 = [  ]
 
 [resource]
 resource_name = "$2"
@@ -68,7 +68,8 @@ let dllExt = if hostOS == "windows": "dll" else: "so"
 
 proc genGdns(name:string) =
   let gdns = &"{gdnsDir}/{name}.gdns"
-  if not fileExists(gdns):
+  let comp = &"{compsDir}/{name}.nim"
+  if fileExists(comp) and not fileExists(gdns):
     var f = open(gdns, fmWrite)
     f.write(gdns_template % [name, name.pascal, relativePath(dllDir, appDir)])
     f.close()

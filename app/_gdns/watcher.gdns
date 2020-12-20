@@ -3,8 +3,8 @@
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://_dlls/watcher.dll"
 entry/X11.64 = "res://_dlls/watcher.so"
-dependency/Windows.64 = []
-dependency/X11.64 = []
+dependency/Windows.64 = [  ]
+dependency/X11.64 = [  ]
 
 [resource]
 resource_name = "Watcher"

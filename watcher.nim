@@ -1,10 +1,9 @@
 import godot
 import godotapi / [node, resource_loader, packed_scene, v_box_container, line_edit, scene_tree, theme]
-import os, strformat, times, streams
+import os, strformat, times
 from sequtils import filterIt
 import tables, sets
 import hot
-import math
 
 #[
 Watcher monitors the dll files for component changes.

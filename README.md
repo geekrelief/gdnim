@@ -15,12 +15,13 @@
 <!-- /TOC -->
 # Gdnim #
 
-gdnim bootstraps a [godot-nim](https://github.com/pragmagic/godot-nim) project, with a customized build of godot-nim that enables easier project managment. It's killer feature is automated, hot code reloading through the use of scenes as resources for components and a Watcher node.
+gdnim is a testbed for experimental features for [godot-nim] projects.  It relies on a [custom build][godot 3.2 custom] of the [godot engine] and [godot-nim] that enables hot reloading of dlls using a Watcher node and easier project managment.
 
+It's also a testbed for experimental features that might never make it into [godot-nim].
 
 ## Quick Start ##
 
- - Clone - [godot 3.2 custom](https://github.com/geekrelief/godot/tree/3.2_custom)
+ - Clone - [godot 3.2 custom]
      If this is looking stale, create an issue I'll update it with godot's latest commits
  - Configure the build.ini for your setup
  - Compile the build script: nim c build
@@ -48,8 +49,8 @@ gdnim bootstraps a [godot-nim](https://github.com/pragmagic/godot-nim) project, 
 ## Prerequites ##
 
   - VSCode
-  - [godot 3.2 custom](https://github.com/geekrelief/godot/tree/3.2_custom)
-  - or [godot 3.2 with gdnative unload](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload)
+  - [godot 3.2 custom]
+  - or [godot 3.2 with gdnative unload]
   - [Tiny C Compiler](https://github.com/mirror/tinycc) (fast compiles, but does not support threads)
   - [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
   - Nim Libraries (downloaded with `./build prereqs`)
@@ -61,7 +62,7 @@ gdnim bootstraps a [godot-nim](https://github.com/pragmagic/godot-nim) project, 
 
 
 ## Project Structure ##
-Gdnim uses a customized build script and [a custom version of godot 3.2](https://github.com/geekrelief/godot/tree/3.2_custom) merged with [godot 3.2 with gdnative unload](https://github.com/geekrelief/godot/tree/3.2_gdnative_unload) which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript which can be buggy and limited. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC/ARC).
+Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3.2 custom] merged with [godot 3.2 with gdnative unload] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript which can be buggy and limited. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC/ARC).
 
 ### Files and Folders ###
  - `/app`: This is the godot project folder.
@@ -134,3 +135,8 @@ Gdnim, and the godot-nim bindings are built against nim 1.5.1 (devel branch).
 
 ### Compiler notes ###
 Gdnim also makes use of tcc, the [Tiny C Compiler](https://github.com/mirror/tinycc). It compiles much faster than gcc or vcc, but crashes when compiling with threads:on. Vcc and gcc both support threads. Clean builds with vcc and gcc are slow. Vcc can generate lots of warnings about incompatible types, while gcc requires some additional dlls to run. If you want to use gcc, see tasks.nim's final task where gcc dlls are checked.
+
+[godot engine]:https://github.com/godotengine/godot
+[godot-nim]:https://github.com/pragmagic/godot-nim
+[godot 3.2 custom]:https://github.com/geekrelief/godot/tree/3.2_custom
+[godot 3.2 with gdnative unload]:https://github.com/geekrelief/godot/tree/3.2_gdnative_unload
