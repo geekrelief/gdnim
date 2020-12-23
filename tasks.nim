@@ -83,6 +83,7 @@ task prereqs, "Install prerequisites":
   execOrQuit("nimble install anycase")
   execOrQuit("nimble install msgpack4nim")
   execOrQuit("nimble install https://github.com/PMunch/nim-optionsutils")
+  execOrQuit("nimble install https://github.com/PMunch/macroutils")
 
 task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
@@ -107,8 +108,7 @@ task gdengine_update, "update the 3.2 custom branch with changes from upstream":
   for branch in gd_branches:
     execOrQuit(&"git merge {branch}")
 
-  execOrQuit(&"git push origin :{gd_build_branch}")
-  execOrQuit(&"git push origin {gd_build_branch}")
+  execOrQuit(&"git push --force origin {gd_build_branch}")
 
   setCurrentDir(projDir)
 
@@ -182,8 +182,9 @@ task genapi, "generate the godot api bindings":
 proc buildWatcher():string =
   {.cast(gcsafe).}:
     var flags = getSharedFlags()
-    if ("force" in flags) or not fileExists(&"{dllDir}/watcher.{dllExt}") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllDir}/watcher.{dllExt}")):
-      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllDir}/watcher.{dllExt}", "watcher.nim")
+    let dllPath = &"{dllDir}/watcher.{dllExt}"
+    if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllPath}")):
+      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllPath}", "watcher.nim")
     else:
       result = "Watcher is unchanged"
 
@@ -196,12 +197,12 @@ task watcher, "build the watcher dll":
 const gccDlls = @["libgcc_s_seh-1", "libwinpthread-1"]
 
 final:
-  if taskCompilerFlagsTable["cc"] == allCompilerFlagsTable["gcc"]:
-    echo ">>> gcc dlls check <<<"
-    for dll in gccDlls:
-      if not fileExists(&"{dllDir}/{dll}.dll"):
-        echo &"Missing {dllDir}/{dll}.dll, please copy from gcc/bin"
-
+  if hostOS == "windows":
+    if taskCompilerFlagsTable["cc"] == allCompilerFlagsTable["gcc"]:
+      echo ">>> gcc dlls check <<<"
+      for dll in gccDlls:
+        if not fileExists(&"{dllDir}/{dll}.dll"):
+          echo &"Missing {dllDir}/{dll}.dll, please copy from gcc/bin"
 
 task cleandll, "clean the dlls, arguments are component names, default all non-gcc dlls":
   var dllPaths:seq[string]

@@ -32,10 +32,11 @@ let allCompilerFlagsTable = {
   "release":"--d:danger",
   "force":"--forceBuild:on",
   "cc":"--cc:tcc", # doesn't work with threads:on
-  # compiles that fastest, clean compile output, less perfomant?
+  # compiles that fastest, clean compile output, does not work with threads:on
   "tcc":"--cc:tcc",
-  # clean compile output, needs gcc dlls, produces large dlls
+  # clean compile output, needs gcc dlls, produces large dlls by default, use strip
   "gcc":"--cc:gcc --threads:on --tlsEmulation:off",
+  "gcc_strip": "--passL:\"-s\"",
   # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
   "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
   "lib":"--app:lib --noMain",
@@ -56,10 +57,11 @@ var taskCompilerFlagsTable = {
   "gc":"--gc:arc --d:useMalloc",
   #"gc":"--d:useRealtimeGc",
   "lib":"--app:lib --noMain",
-  "cc":"--cc:tcc" # does not work with threads
-  # vcc clean compile output, needs gcc dlls, produces large dlls
+  # compiles that fastest, clean compile output, does not work with threads:on
+  "cc":"--cc:tcc"
+  # clean compile output, needs gcc dlls, produces large dlls by default, use strip
   #"cc":"--cc:gcc --threads:on --tlsEmulation:off"
-  # gcc smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
+  # vcc smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
   #"cc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off"
 }.toTable
 
@@ -91,6 +93,9 @@ proc setFlag(flag:string, val:string = "") =
         otherFlagsTable[flag] = val
 
 var config = loadConfig("build.ini")
+setFlag(config.getSectionValue("Compiler", "cc"))
+if config.getSectionValue("Compiler", "cc") == "gcc" and config.getSectionValue("GCC", "strip") == "on":
+  setFlag("gcc_strip")
 
 var taskName = ""
 var compName = ""
@@ -144,4 +149,4 @@ if matches.len == 0: # no match assume it's a compName
 if matches.len == 1:
   matches[0].task_proc()
 
-if hostOS == "windows": finalTask()
+finalTask()
