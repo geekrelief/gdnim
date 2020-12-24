@@ -51,7 +51,7 @@ It's also a testbed for experimental features that might never make it into [god
   - VSCode
   - [godot 3.2 custom]
   - or [godot 3.2 with gdnative unload]
-  - [nim](https://github.com/nim-lang/Nim) v1.5.1+ which has gc:arc and bug fixes.
+  - [nim](https://github.com/nim-lang/Nim) use stable or devel 3b963a81, the commit after breaks godot-nim. [bug report](https://github.com/pragmagic/godot-nim/issues/81)
   - Nim Libraries (downloaded with `./build prereqs`)
     - [compiler](https://nimble.directory/pkg/compiler)
     - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
