@@ -26,6 +26,7 @@ const gdns_template = """
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://$3/$1.dll"
 entry/X11.64 = "res://$3/$1.so"
+entry/OSX.64 = "res://$3/$1.dylib"
 dependency/Windows.64 = [  ]
 dependency/X11.64 = [  ]
 
