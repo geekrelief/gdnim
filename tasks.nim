@@ -4,6 +4,7 @@ import times
 import anycase
 import threadpool
 import strutils
+import osproc
 
 const nim_template = """
 import godot
@@ -79,11 +80,19 @@ proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
 
 task prereqs, "Install prerequisites":
-  execOrQuit("nimble install compiler")
-  execOrQuit("nimble install anycase")
-  execOrQuit("nimble install msgpack4nim")
-  execOrQuit("nimble install https://github.com/PMunch/nim-optionsutils")
-  execOrQuit("nimble install https://github.com/PMunch/macroutils")
+  let packages = @[
+    ("compiler", "compiler"),
+    ("anycase", "anycase"),
+    ("msgpack4nim", "msgpack4nim"),
+    ("optionsutils", "https://github.com/PMunch/nim-optionsutils"),
+    ("macroutils", "https://github.com/PMunch/macroutils")
+  ]
+  for (packageName, sourceName) in packages:
+    var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
+    if exitCode != 0:
+      execOrQuit(&"nimble install {sourceName}")
+    else:
+      echo &"{packageName} installed @ {output}"
 
 task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
