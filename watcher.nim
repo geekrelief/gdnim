@@ -13,8 +13,7 @@ Components need to register with the Watcher, so they can be reloaded.
 During a reload phase, the components data can be save and restored upon reload.
 ]#
 const dllDir {.strdefine.}:string = "_dlls"
-
-const dllExt = when hostOS == "windows": "dll" else: "so"
+const dllExt {.strdefine.}:string = "dll"
 
 func safeDllPath(compName:string):string =
   &"{dllDir}/{compName}_safe.{dllExt}"

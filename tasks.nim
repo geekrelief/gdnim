@@ -65,7 +65,11 @@ let gd_bin = config.getSectionValue("Godot", "bin")
 let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
 let gd_tools_release_bin = config.getSectionValue("Godot", "tools_release_bin")
 
-let dllExt = if hostOS == "windows": "dll" else: "so"
+let dllExt = case hostOS
+               of "windows": "dll"
+               of "linux": "so"
+               of "macosx": "dylib"
+               else: "unknown"
 
 proc genGdns(name:string) =
   let gdns = &"{gdnsDir}/{name}.gdns"
@@ -193,7 +197,7 @@ proc buildWatcher():string =
     var flags = getSharedFlags()
     let dllPath = &"{dllDir}/watcher.{dllExt}"
     if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllPath}")):
-      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir}", flags, &"{dllPath}", "watcher.nim")
+      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir} --define:dllExt:{dllExt}", flags, &"{dllPath}", "watcher.nim")
     else:
       result = "Watcher is unchanged"
 
