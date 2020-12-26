@@ -89,8 +89,7 @@ task prereqs, "Install prerequisites":
     ("compiler", "compiler"),
     ("anycase", "anycase"),
     ("msgpack4nim", "msgpack4nim"),
-    ("optionsutils", "https://github.com/PMunch/nim-optionsutils"),
-    ("macroutils", "https://github.com/PMunch/macroutils")
+    ("optionsutils", "https://github.com/PMunch/nim-optionsutils")
   ]
   for (packageName, sourceName) in packages:
     var (output, exitCode) = execCmdEx(&"nimble path {packageName}")

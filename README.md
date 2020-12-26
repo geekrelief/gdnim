@@ -4,7 +4,7 @@ gdnim is a testbed for experimental features for [godot-nim] projects.  It relie
 
 It's also a testbed for experimental features that might never make it into [godot-nim].
 
-<!-- TOC -->
+*NOTE*: This only working Windows and Linux platforms so far. There's been a little work done to get it working for Mac, but a PR will be gladly accepted.
 
 - [Gdnim](#gdnim)
   - [Quick Start](#quick-start)
@@ -17,8 +17,6 @@ It's also a testbed for experimental features that might never make it into [god
   - [Implementation details](#implementation-details)
     - [Nim notes](#nim-notes)
     - [Compiler notes](#compiler-notes)
-
-<!-- /TOC -->
 
 ## Quick Start ##
 
@@ -51,13 +49,13 @@ It's also a testbed for experimental features that might never make it into [god
   - VSCode
   - [godot 3.2 custom]
   - or [godot 3.2 with gdnative unload]
-  - [nim](https://github.com/nim-lang/Nim) use stable or devel 3b963a81, the commit after breaks godot-nim. [bug report](https://github.com/pragmagic/godot-nim/issues/81)
+  - [nim](https://github.com/nim-lang/Nim) use stable or devel 3b963a81,
+    - the commit after breaks godot-nim. [bug report](https://github.com/pragmagic/godot-nim/issues/81)
   - Nim Libraries (downloaded with `./build prereqs`)
     - [compiler](https://nimble.directory/pkg/compiler)
     - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
     - [anycase](https://nimble.directory/pkg/anycase)
     - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
-    - [PMunch macroutils](https://github.com/PMunch/macroutils)
   - tcc is the recommended compiler for development
     - gcc and vcc are also supported and recommend for release builds
     - (see [Compiler notes](#compiler-notes) below)
