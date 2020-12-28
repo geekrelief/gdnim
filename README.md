@@ -7,7 +7,9 @@ It's also a testbed for experimental features that might never make it into [god
 *NOTE*: This only working Windows and Linux platforms so far. There's been a little work done to get it working for Mac, but a PR will be gladly accepted.
 
 - [Gdnim](#gdnim)
-  - [Quick Start](#quick-start)
+  - [Why](#why?)
+  - [Quick Setup Guide](#quick-setup-guide)
+  - [Quick Dev Guide](#quick-dev-guide)
     - [Main commands](#main-commands)
   - [Prerequites](#prerequites)
   - [Project Structure](#project-structure)
@@ -18,25 +20,35 @@ It's also a testbed for experimental features that might never make it into [god
     - [Nim notes](#nim-notes)
     - [Compiler notes](#compiler-notes)
 
-## Quick Start ##
+## Why? ##
+
+The goal is to streamline and speed up the process of development for [godot-nim] by adding experimental features like:
+  - rapid iteration features: hot-reloading, (TODO) nimscript integration
+  - match gdscript features, e.g.: signal declarations and async signal handling
+  - experimental support for Nim (devel branch), e.g.: gc:ARC support, IC
+  - experimental support for Godot 4.0, e.g.: GDNative 4.0
+  - reducing tedium: auto-generation of artifacts like nim, gdns, tscn files; proc and macros to reduce boilerplate
+
+Hopefully, some of this will make it back into godot-nim.
+## Quick Setup Guide ##
 
  - Clone - [godot 3.2 custom]
      If this is looking stale, create an issue I'll update it with godot's latest commits
- - Compile the build script: nim c build
- - Configure the build.ini for your setup
+ - Compile the build script: `nim c build`
+ - Configure the `build.ini` with the location of the [custom repo][godot 3.2 custom], etc.
  - See available tasks: `./build help`
  - Download Nim prerequisite libraries: `./build prereqs`
  - Build the godot binaries: `./build gdengine`
  - Generate the godot-nim bindings: `./build genapi`
  - Build watcher and components: `./build cleanbuild`
 
- - Generate a new component specifying base class module: `./build gencomp my_comp node_2d`
+## Quick Dev Guide ##
+ - Generate a new component specifying base class module, for example: `./build gencomp my_comp node_2d`
  - Modify `components/my_comp.nim`
- - Launch godot editor: `./build gd` (if this fails, launch godot manually, or see the Setup section)
+ - Launch godot editor: `./build gd` (if this fails, launch godot manually, or see the [Setup](#setup) section)
  - Run scene using component, make a modification to component: `./build`
  - Hot reload should occur (check console or editor console for output)
  - **Note:** The hot module contains save and load macros to persist state between reloads.
-
 
 ### Main commands ###
 
@@ -80,9 +92,9 @@ Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3
 
 
 ## Setup ##
-The project is developed and tested only on Windows / Linux.
+The project is primarily, developed and tested on Windows / Linux. (Mac support PR welcome)
 Modify the build.ini, build.nim and tasks.nim script for your needs.
-build.ini expects some paths to my godot 3.2 custom engine source and editor executables.
+build.ini expects some paths to my [godot 3.2 custom engine source][godot 3.2 custom] and editor executables.
 
 If you have all my mods from build.ini's merge_branches in your git repo you can, run
 `./build gdengine update`.  Otherwise stick to using 3.2_custom, which I update periodically
@@ -95,31 +107,32 @@ Run the godot editor. The `watcher.tscn` should autoload in the godot project.
 
 See the examples in the `components` folder.
 
-See `./build help` for availabled tasks like downloading the godot source, compiling the engine, generating godot-nim bindings api, compiling the watcher and components, etc.
+See `./build help` for available tasks like downloading the godot source, compiling the engine, generating godot-nim bindings api, compiling the watcher and components, etc.
 
 `./build gd` Launches the godot editor.  On Windows it spawns a terminal using Terminal. On Linux there
-isn't a general way to support this for all distributions (as far as I know), so modify the task for your needs.
+isn't a general way to support launching the editor from a terminal for all distributions
+(as far as I know), so modify the `task gd` for your system.
 
 
 ## Tips ##
  - If the godot app crashes, or your component gets into a weird state where it
-can't reload cleanly. Close the app and run ./build -m to move the safe dll to
+can't reload cleanly. Close the app and run `./build -m` to move the safe dll to
 the hot dll path and rerun the app.
 
 
 ## Implementation details ##
-Watcher monitors the _dlls folder for updates and coordinates the reload process
+Watcher monitors the `app/_dlls` folder for updates and coordinates the reload process
 with the components. The components use the hot module save and load macros to
 persist data with Watcher.
 
 To set up a component for reloading, the component needs to:
- - call hot.register which registers the component name with the Watcher node. Typically, done on or after `enter_tree()` so the component can find the Watcher.
- - hot.register has two versions. A simple register that is called with the component name, where the node expects to manage its own reload process, and a one where you can specify another node responsible for saving and reloading the component.
+ - call `hot.register` which registers the component name with the Watcher node. Typically, done when or after `enter_tree()` runs, so the component can find the Watcher. If you run `./build gencomp`, the template does this automatically.
+ - `hot.register` has two versions. A simple register that is called with the component name, where the node expects to manage its own reload process, and a one where you can specify another node responsible for saving and reloading the component.
  - to persist data between reloads Watcher needs to call a saver proc and loader proc on nodes.
- - by default the saver proc is named `reload`, that returns seq[byte], with a {.gdExport.} pragma so Watcher can find it
+ - by default the saver proc is named `reload`, that returns `seq[byte]`, with a `{.gdExport.}` pragma so Watcher can find it
  - the saver proc uses the hot.save macro to specify member fields to save e.g. `save(self.data)`. Valid data types are anything msgpack4nim accepts.
- - to reload the data, after registering you can call the hot.load macro like `register(comp)?.load(self.data)`. Watcher will return previously persisted data after a component is registered so the node can complete initialization.
- - for situations where you want to be able to reload a component but the responsiblity for persisting its data falls on some other component use the other register method. You might want to instance multiple copies of a component and group their data together for persistence. Watcher has a table for all persisted data indexed by the component name.
+ - to reload the data, after registering you can call the `hot.load` macro like `register(comp)?.load(self.data)`. Watcher will return previously persisted data after a component is registered so the node can complete initialization.
+ - for situations where you want to be able to reload a component but the responsiblity for persisting its data falls on some other component pass the saver/loader node and saver/loader proc to `register`.  See the `components/gun.nim` example. You might want to instance multiple copies of a component and group their data together for persistence. Watcher has a table for all persisted data indexed by the component name.
 
 When a component is compiled it generates a library file (safe dll). If the godot editor is not in focus with the project opened the safe dll can be copied to the hot dll path. Otherwise, you'll get a warning that the dll can't be moved and reload will fail.
 
@@ -128,17 +141,17 @@ Watcher will check if safe dll is newer than hot dll and start a reload if so.
 
 
 ### Nim notes ###
-The godot-nim library in deps has been customized to use the new gc ARC and prep it for future versions of nim.
+The godot-nim library in deps has been customized to use the new gc:ARC and prep it for future versions of nim.
 Use the build script to generate the godotapi into the deps folder.
-Gdnim, and the godot-nim bindings are built against nim 1.5.1 (devel branch).
+Gdnim, and the godot-nim bindings are built against the nim devel branch.
 
 
 ### Compiler notes ###
 
 TCC [Tiny C Compiler](https://github.com/mirror/tinycc)
-TCC is the recommend compiler for development because if its fast compile times, but crashes when compiling with threads:on. If compiling on windows, read deps/tcc/README.md.
+TCC is the recommend compiler for development because if its fast compile times, but crashes when compiling with threads:on. If compiling on windows, read deps/tcc/README.md to make tcc work with the asynchdispatch module.
 
-GCC is the recommended compiler for release builds. On windows you can find latest builds for MinGW64 here: http://winlibs.com/
+GCC is the recommended compiler for release builds. On windows you can find latest builds for MinGW64 here: http://winlibs.com/ or install gcc using [scoop](https://scoop.sh/). Gcc will be in your user's ~/scoop/apps/gcc directory.
 gcc requires some additional dlls in the `_dlls` folder to run. If you want to use gcc, see tasks.nim's final task where gcc dlls are checked.
 
 VCC is also supported by not regularly tested since it generates lots of warnings about incompatible types.
@@ -146,5 +159,6 @@ VCC is also supported by not regularly tested since it generates lots of warning
 
 [godot engine]:https://github.com/godotengine/godot
 [godot-nim]:https://github.com/pragmagic/godot-nim
+[godot-nim-stub]:https://github.com/pragmagic/godot-nim-stub
 [godot 3.2 custom]:https://github.com/geekrelief/godot/tree/3.2_custom
 [godot 3.2 with gdnative unload]:https://github.com/geekrelief/godot/tree/3.2_gdnative_unload
