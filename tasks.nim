@@ -142,7 +142,7 @@ task gdengine, "build the godot engine, default with debugging and tools args:\n
   else:
     info &= "tools, "
     if "debug" in args :
-      flags = "target=debug debug_symbols=full vsproj=yes"
+      flags = "target=debug debug_symbols=yes vsproj=yes"
       info &= "debug"
     else:
       flags = "target=release_debug"
