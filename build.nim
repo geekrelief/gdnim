@@ -41,8 +41,8 @@ let allCompilerFlagsTable = {
   "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
   "lib":"--app:lib --noMain",
   "debug":"--debugger:native --stackTrace:on",
-  "arc":"--gc:arc --d:useMalloc",
-  "orc":"--gc:orc --d:useMalloc", #crash, avoid for now
+  "arc":"--gc:arc --d:useMalloc", # using arc with async will cause memory leaks, async generates cycles arc cannot collect
+  "orc":"--gc:orc", #crashes with --d:useMalloc, will collect async cycles
   "realtime":"--d:useRealtimeGC",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
   "parallel":"--parallelBuild:0"
@@ -54,7 +54,7 @@ var taskCompilerFlagsTable = {
   "parallel":"--parallelBuild:0",
   "release":"--d:danger",
   #"debug":"--debugger:native --stackTrace:on",
-  "gc":"--gc:arc --d:useMalloc",
+  "gc":"--gc:orc",
   #"gc":"--d:useRealtimeGc",
   "lib":"--app:lib --noMain",
   # compiles that fastest, clean compile output, does not work with threads:on
