@@ -25,7 +25,7 @@ It's also a testbed for experimental features that might never make it into [god
 The goal is to streamline and speed up the process of development for [godot-nim] by adding experimental features like:
   - rapid iteration features: hot-reloading, (TODO) nimscript integration
   - match gdscript features, e.g.: signal declarations and async signal handling
-  - experimental support for Nim (devel branch), e.g.: gc:ARC support, IC
+  - experimental support for Nim (devel branch), e.g.: gc:ORC support, IC
   - experimental support for Godot 4.0, e.g.: GDNative 4.0
   - reducing tedium: auto-generation of artifacts like nim, gdns, tscn files; proc and macros to reduce boilerplate
 
@@ -73,7 +73,7 @@ Hopefully, some of this will make it back into godot-nim.
     - (see [Compiler notes](#compiler-notes) below)
 
 ## Project Structure ##
-Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3.2 custom] merged with [godot 3.2 with gdnative unload] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript which can be buggy and limited. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC/ARC).
+Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3.2 custom] merged with [godot 3.2 with gdnative unload] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript which can be buggy and limited. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
 
 ### Files and Folders ###
  - `/app`: This is the godot project folder.
@@ -141,7 +141,7 @@ Watcher will check if safe dll is newer than hot dll and start a reload if so.
 
 
 ### Nim notes ###
-The godot-nim library in deps has been customized to use the new gc:ARC and prep it for future versions of nim.
+The godot-nim library in deps has been customized to use the new gc:ORC and prep it for future versions of nim.
 Use the build script to generate the godotapi into the deps folder.
 Gdnim, and the godot-nim bindings are built against the nim devel branch.
 
