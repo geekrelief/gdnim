@@ -141,7 +141,7 @@ Watcher will check if safe dll is newer than hot dll and start a reload if so.
 
 
 ### Nim notes ###
-The godot-nim library in deps has been customized to use the new gc:ORC and prep it for future versions of nim.
+The godot-nim library in deps has been customized to use the new gc:ORC and prep it for future versions of nim. This is why ORC is suitable for games: https://nim-lang.org/blog/2020/12/08/introducing-orc.html
 Use the build script to generate the godotapi into the deps folder.
 Gdnim, and the godot-nim bindings are built against the nim devel branch.
 
