@@ -10,7 +10,6 @@ It's also a testbed for experimental features that might never make it into [god
   - [Why](#why?)
   - [Quick Setup Guide](#quick-setup-guide)
   - [Quick Dev Guide](#quick-dev-guide)
-    - [Main commands](#main-commands)
   - [Prerequites](#prerequites)
   - [Project Structure](#project-structure)
     - [Files and Folders](#files-and-folders)
@@ -26,8 +25,8 @@ The goal is to streamline and speed up the process of development for [godot-nim
   - rapid iteration features: hot-reloading, (TODO) nimscript integration
   - match gdscript features, e.g.: signal declarations and async signal handling
   - experimental support for Nim (devel branch), e.g.: gc:ORC support, IC
-  - experimental support for Godot 4.0, e.g.: GDNative 4.0
-  - reducing tedium: auto-generation of artifacts like nim, gdns, tscn files; proc and macros to reduce boilerplate
+  - experimental support for Godot 4.0, e.g.: GDNative 4.0 (when it's stable)
+  - reducing tedium: auto-recompilation on save, auto-generation of artifacts like nim, gdns, tscn files; proc and macros to reduce boilerplate
 
 Hopefully, some of this will make it back into godot-nim.
 ## Quick Setup Guide ##
@@ -45,17 +44,11 @@ Hopefully, some of this will make it back into godot-nim.
 ## Quick Dev Guide ##
  - Generate a new component specifying base class module, for example: `./build gencomp my_comp node_2d`
  - Modify `components/my_comp.nim`
- - Launch godot editor: `./build gd` (if this fails, launch godot manually, or see the [Setup](#setup) section)
- - Run scene using component, make a modification to component: `./build`
- - Hot reload should occur (check console or editor console for output)
+ - Launch godot editor, and play your scene: `./build gd` (if this fails, launch godot manually, or see the [Setup](#setup) section)
+ - Start the component file watcher for recompilation `./build cwatch`
+ - Make a modification to component, the component watcher will rebuild the component.
+ - Hot reload should occur if there were no compiler errors.
  - **Note:** The hot module contains save and load macros to persist state between reloads.
-
-### Main commands ###
-
- - Launch godot editor: `./build gd`
- - Hot Reload your script (after modification): `./build`
- - If you need to restart the app, build and move the dll with then run again: `./build -m`
-
 
 ## Prerequites ##
   - VSCode

@@ -1,10 +1,7 @@
 import godotapigen
 from sequtils import toSeq, filter, mapIt
-import times
-import anycase
-import threadpool
-import strutils
-import osproc
+import times, anycase, threadpool,strutils, osproc
+import asyncdispatch, terminal
 
 const nim_template = """
 import godot
@@ -65,6 +62,8 @@ let gd_bits = config.getSectionValue("Godot", "bits")
 let gd_bin = config.getSectionValue("Godot", "bin")
 let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
 let gd_tools_release_bin = config.getSectionValue("Godot", "tools_release_bin")
+var cwatch_interval = parseInt(config.getSectionValue("Build", "cwatch_interval"))
+if cwatch_interval == 0: cwatch_interval = 300
 
 let dllExt = case hostOS
                of "windows": "dll"
@@ -256,6 +255,13 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
     f.close()
     echo &"generated {tscn}"
 
+proc prepBuildCompSettings(): tuple[sharedFlags:string, buildSettings:Table[string, bool]] =
+  result.sharedFlags = getSharedFlags()
+  var buildSettings: Table[string, bool]
+  buildSettings["move"] = "move" in otherFlagsTable
+  buildSettings["newOnly"] = not ("force" in result.sharedFlags)
+  buildSettings["noCheck"] = "nocheck" in otherFlagsTable
+  result.buildSettings = buildSettings
 
 proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
   {.cast(gcsafe).}:
@@ -289,11 +295,7 @@ proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, 
 # the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
 # folder to see if _safe.dll is rebuilt.
 task comp, "build component and generate a gdns file\n\tno component name means all components are rebuilt\n\tmove safe to hot with 'move' or 'm' flag (e.g.) build -m target\n\t--force or --f force rebuilds\n\t--nocheck or --nc skips compile without dll check but not force rebuilt":
-  var sharedFlags = getSharedFlags()
-  var buildSettings: Table[string, bool]
-  buildSettings["move"] = "move" in otherFlagsTable
-  buildSettings["newOnly"] = not ("force" in sharedFlags)
-  buildSettings["noCheck"] = "nocheck" in otherFlagsTable
+  var (sharedFlags, buildSettings) = prepBuildCompSettings()
 
   if not (compName == ""):
     compName = compName.snake
@@ -301,8 +303,8 @@ task comp, "build component and generate a gdns file\n\tno component name means 
   else:
     # compile all the comps
     var res = newSeq[FlowVar[string]]()
-    for compFilename in walkFiles(&"{compsDir}/*.nim"):
-      res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings))
+    for compPath in walkFiles(&"{compsDir}/*.nim"):
+      res.add(spawn buildComp(splitFile(compPath)[1].snake, sharedFlags, buildSettings))
     sync()
     for f in res:
       echo ^f
@@ -333,15 +335,10 @@ task cleanbuild, "Rebuild all":
   var compileCount = 1
 
   # comp task
-  var sharedFlags = getSharedFlags()
-  var buildSettings: Table[string, bool]
-  buildSettings["move"] = "move" in otherFlagsTable
-  buildSettings["newOnly"] = not ("force" in sharedFlags)
-  buildSettings["noCheck"] = "nocheck" in otherFlagsTable
-
-  for compFilename in walkFiles(&"{compsDir}/*.nim"):
+  var (sharedFlags, buildSettings) = prepBuildCompSettings()
+  for compPath in walkFiles(&"{compsDir}/*.nim"):
     inc compileCount
-    res.add(spawn buildComp(splitFile(compFilename)[1].snake, sharedFlags, buildSettings))
+    res.add(spawn buildComp(splitFile(compPath)[1].snake, sharedFlags, buildSettings))
   sync()
 
   var successes = 0
@@ -360,6 +357,23 @@ task cleanbuild, "Rebuild all":
     for f in failures:
       echo f
     echo "=== <<< Build Failed <<< ==="
+
+task cwatch, "Monitors the components folder for changes to recompile.":
+  var lastTimes = newTable[string, Time]()
+  for compPath in walkFiles(&"{compsDir}/*.nim"):
+    lastTimes[compPath] = getLastModificationTime(compPath)
+
+  var (sharedFlags, buildSettings) = prepBuildCompSettings()
+
+  while true:
+    for compPath in walkFiles(&"{compsDir}/*.nim"):
+      var curLastTime = getLastModificationTime(compPath)
+      if curLastTime > lastTimes[compPath]:
+        lastTimes[compPath] = curLastTime
+        var compFilename = splitFile(compPath)[1].snake
+        echo &"-- Recompiling {compFilename} --"
+        echo buildComp(compFilename, sharedFlags, buildSettings)
+    sleep cwatch_interval
 
 task help, "display list of tasks":
   echo "Call build with a task:"
