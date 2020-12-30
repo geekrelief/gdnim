@@ -262,8 +262,6 @@ proc parseOnSignalCall(onSignalId:NimNode, onSignalPostfix:string, onSigStmt:Nim
         callbackDef[3].add newIdentDefs(callbackArg, fT)
         callbackDef[6][0].add callbackArg
 
-        echo callbackDef.repr()
-
         futureDef = quote do:
           var `futureId`:`futureType`
       else:
