@@ -10,11 +10,11 @@ gdobj Bullet of Sprite:
   # gun will spawn
   var id:int64
   var velocity = vec2()
-  var maxlifeTime:float64 = 10.0
+  var maxlifeTime:float64 = 30.0
   var startTime:MonoTime
   var isDead:bool
   var startPosition:Vector2
-  var radius:float = 30.0
+  var radius:float = 100.0
 
   signal dead(id:int)
 

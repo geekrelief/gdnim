@@ -70,6 +70,7 @@ gdobj Gun of Sprite:
     result = cast[seq[byte]](ms.data)
 
   proc createBullet(v:Vector2, p:Vector2) =
+    if self.bulletRes == nil: return
     var id = self.nextBulletId
     inc self.nextBulletId
     var b = self.bulletRes.instance()
@@ -88,10 +89,8 @@ gdobj Gun of Sprite:
     for i in 0..10:
       self.createBullet(vec2(120.0 + i.toFloat * 6.0,0.0), self.bulletSpawnPoint.global_position)
 
-  #[
   method process(delta:float64) =
     self.fireTime += delta
     if self.fireTime > self.fireInterval:
       self.createBullet(vec2(320.0, 0.0), self.bulletSpawnPoint.global_position)
       self.fireTime = 0
-  ]#
