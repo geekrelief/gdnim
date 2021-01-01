@@ -14,6 +14,8 @@ gdobj Gun of Sprite:
 
   var nextBulletId:int64
   var bullets:Table[int64, Node]
+  var fireTime:float64
+  var fireInterval:float64 = 0.02
 
   method enter_tree() =
     self.bulletResPath = findCompTscn("bullet")
@@ -83,4 +85,13 @@ gdobj Gun of Sprite:
       self.bullets.del(id)
 
   proc fireSingle() {.gdExport.} =
-    self.createBullet(vec2(1.2,0.0), self.bulletSpawnPoint.global_position)
+    for i in 0..10:
+      self.createBullet(vec2(120.0 + i.toFloat * 6.0,0.0), self.bulletSpawnPoint.global_position)
+
+  #[
+  method process(delta:float64) =
+    self.fireTime += delta
+    if self.fireTime > self.fireInterval:
+      self.createBullet(vec2(320.0, 0.0), self.bulletSpawnPoint.global_position)
+      self.fireTime = 0
+  ]#

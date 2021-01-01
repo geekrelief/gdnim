@@ -110,7 +110,9 @@ isn't a general way to support launching the editor from a terminal for all dist
 ## Tips ##
  - If the godot app crashes, or your component gets into a weird state where it
 can't reload cleanly. Close the app and run `./build -m` to move the safe dll to
-the hot dll path and rerun the app.
+the hot dll path and rerun the app. If the app is crashing when trying to reload,
+try force rebuilding the component `./build -f comp_name` or deleting the dll
+and rebuilding.
 
 
 ## Implementation details ##

@@ -41,8 +41,9 @@ let allCompilerFlagsTable = {
   "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
   "lib":"--app:lib --noMain",
   "debug":"--debugger:native --stackTrace:on",
-  "arc":"--gc:arc --d:useMalloc", # using arc with async will cause memory leaks, async generates cycles arc cannot collect
+  "arc":"--gc:arc", # using arc with async will cause memory leaks, async generates cycles arc cannot collect
   "orc":"--gc:orc", #crashes with --d:useMalloc, will collect async cycles
+  "useMalloc":"--d:useMalloc", #crashes with --d:useMalloc, will collect async cycles
   "realtime":"--d:useRealtimeGC",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
   "parallel":"--parallelBuild:0"
@@ -54,8 +55,10 @@ var taskCompilerFlagsTable = {
   "parallel":"--parallelBuild:0",
   "release":"--d:danger",
   #"debug":"--debugger:native --stackTrace:on",
-  "gc":"--gc:orc",
+  #"gc":"--gc:orc",
+  "gc":"--gc:arc",
   #"gc":"--d:useRealtimeGc",
+  "useMalloc":"--d:useMalloc",
   "lib":"--app:lib --noMain",
   # compiles that fastest, clean compile output, does not work with threads:on
   "cc":"--cc:tcc"
@@ -94,8 +97,15 @@ proc setFlag(flag:string, val:string = "") =
 
 var config = loadConfig("build.ini")
 setFlag(config.getSectionValue("Compiler", "cc"))
-if config.getSectionValue("Compiler", "cc") == "gcc" and config.getSectionValue("GCC", "strip") == "on":
-  setFlag("gcc_strip")
+if config.getSectionValue("Compiler", "cc") == "gcc":
+  setFlag("gcc_strip", config.getSectionValue("GCC", "strip"))
+
+setFlag("debug", config.getSectionValue("Compiler", "debug"))
+setFlag(config.getSectionValue("Compiler", "gc"))
+case config.getSectionValue("Compiler", "gc"):
+  of "arc", "orc":
+    setFlag("useMalloc", config.getSectionValue("Compiler", "useMalloc"))
+  else: discard
 
 var taskName = ""
 var compName = ""

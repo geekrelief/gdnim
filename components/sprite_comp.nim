@@ -5,9 +5,9 @@ import strformat
 import math, asyncdispatch
 
 gdobj SpriteComp of Sprite:
-  var startPos:Vector2 = vec2(100.0, 100.0)
-  var radius:float = 50.0
-  var speed:float = 0.2
+  var startPos:Vector2 = vec2(600.0, 600.0)
+  var radius:float = 350.0
+  var speed:float = 0.01
   var elapsedTime:float
   var timer:Timer
 
