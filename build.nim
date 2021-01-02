@@ -1,5 +1,5 @@
 from sequtils import filterIt
-import os, osproc, tables, parseopt, strutils, strformat, parsecfg
+import os, osproc, tables, parseopt, strutils, strformat, parsecfg, terminal
 
 # Dependencies
 #requires "godot >= 0.8.1"
@@ -29,61 +29,68 @@ template final(body:untyped):untyped =
     body
 
 let allCompilerFlagsTable = {
-  "release":"--d:danger",
   "force":"--forceBuild:on",
-  "cc":"--cc:tcc", # doesn't work with threads:on
-  # compiles that fastest, clean compile output, does not work with threads:on
-  "tcc":"--cc:tcc",
-  # clean compile output, needs gcc dlls, produces large dlls by default, use strip
-  "gcc":"--cc:gcc --threads:on --tlsEmulation:off",
-  "gcc_strip": "--passL:\"-s\"",
-  # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
-  "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
   "lib":"--app:lib --noMain",
-  "debug":"--debugger:native --stackTrace:on",
-  "arc":"--gc:arc", # using arc with async will cause memory leaks, async generates cycles arc cannot collect
-  "orc":"--gc:orc", #crashes with --d:useMalloc, will collect async cycles
-  "useMalloc":"--d:useMalloc", #crashes with --d:useMalloc, will collect async cycles
-  "realtime":"--d:useRealtimeGC",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
-  "parallel":"--parallelBuild:0"
+  "parallel":"--parallelBuild:0",
+  # cc
+    "cc":"--cc:tcc", # doesn't work with threads:on
+    # compiles that fastest, clean compile output, does not work with threads:on
+    "tcc":"--cc:tcc",
+    # clean compile output, needs gcc dlls, produces large dlls by default, use strip
+    "gcc":"--cc:gcc --threads:on --tlsEmulation:off",
+    "gcc_strip": "--d:strip", # same as "--passL:\"-s\"", # removes debug symbols
+    # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
+    "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
+  # gc
+    "arc":"--gc:arc", # using arc with async will cause memory leaks, async generates cycles arc cannot collect
+    "orc":"--gc:orc", #crashes with --d:useMalloc, will collect async cycles
+    "realtime":"--d:useRealtimeGC",
+  "useMalloc":"--d:useMalloc", # use C memory primitives
+  # build_kind
+    "release":"--d:danger",
+    "debug":"--debugger:native --stackTrace:on",
+    "diagnostic":"--d:release --debugger:native", #for with dumpincludes
 }.toTable
 
 #stable tcc config, vcc crashes with arc or orc
 var taskCompilerFlagsTable = {
+  "lib":"--app:lib --noMain",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
   "parallel":"--parallelBuild:0",
-  "release":"--d:danger",
-  #"debug":"--debugger:native --stackTrace:on",
-  #"gc":"--gc:orc",
-  "gc":"--gc:arc",
-  #"gc":"--d:useRealtimeGc",
-  "useMalloc":"--d:useMalloc",
-  "lib":"--app:lib --noMain",
-  # compiles that fastest, clean compile output, does not work with threads:on
-  "cc":"--cc:tcc"
-  # clean compile output, needs gcc dlls, produces large dlls by default, use strip
-  #"cc":"--cc:gcc --threads:on --tlsEmulation:off"
-  # vcc smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
-  #"cc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off"
+  "cc":"--cc:gcc",
+  "gc":"--gc:orc",
+  "build_kind":"--d:danger"
 }.toTable
 
 var otherFlagsTable:Table[string, string]
 
+proc configError(errMsg:string, prescription:string) =
+  stderr.setForegroundColor(fgRed, true)
+  stderr.styledWrite("build.ini error: ", fgRed, errMsg)
+  stderr.styledWrite("\n  Expected: ", fgWhite, prescription)
+  quit()
+
 proc setFlag(flag:string, val:string = "") =
   case flag:
-    of "release":
-      taskCompilerFlagsTable.del("debug")
-      taskCompilerFlagsTable["release"] = allCompilerFlagsTable["release"]
-    of "debug":
-      taskCompilerFlagsTable.del("release")
-      taskCompilerFlagsTable["debug"] = allCompilerFlagsTable["debug"]
-    of "gcc", "vcc", "tcc":
-      taskCompilerFlagsTable.del("cc")
-      taskCompilerFlagsTable["cc"] = allCompilerFlagsTable[flag]
-    of "arc", "orc", "realtime":
-      taskCompilerFlagsTable.del("gc")
-      taskCompilerFlagsTable["gc"] = allCompilerFlagsTable[flag]
+    of "build_kind":
+      if val in ["debug", "release", "diagnostic"]:
+        taskCompilerFlagsTable.del("build_kind")
+        taskCompilerFlagsTable["build_kind"] = allCompilerFlagsTable[val]
+      else:
+        configError(&"build_kind = \"{val}\"", "debug, release, or diagnostic")
+    of "cc":
+      if val in ["gcc", "vcc", "tcc"]:
+        taskCompilerFlagsTable.del("cc")
+        taskCompilerFlagsTable["cc"] = allCompilerFlagsTable[val]
+      else:
+        configError(&"cc = \"{val}\"", "gcc, vcc, or tcc")
+    of "gc":
+      if val in ["arc", "orc", "realtime"]:
+        taskCompilerFlagsTable.del("gc")
+        taskCompilerFlagsTable["gc"] = allCompilerFlagsTable[val]
+      else:
+        configError(&"gc = \"{val}\"", "orc, arc, or realtime")
     of "nocheck", "nc":
       otherFlagsTable["nocheck"] = "on"
     else:
@@ -96,12 +103,13 @@ proc setFlag(flag:string, val:string = "") =
         otherFlagsTable[flag] = val
 
 var config = loadConfig("build.ini")
-setFlag(config.getSectionValue("Compiler", "cc"))
+setFlag("build_kind", config.getSectionValue("Compiler", "build_kind"))
+
+setFlag("cc", config.getSectionValue("Compiler", "cc"))
 if config.getSectionValue("Compiler", "cc") == "gcc":
   setFlag("gcc_strip", config.getSectionValue("GCC", "strip"))
 
-setFlag("debug", config.getSectionValue("Compiler", "debug"))
-setFlag(config.getSectionValue("Compiler", "gc"))
+setFlag("gc", config.getSectionValue("Compiler", "gc"))
 case config.getSectionValue("Compiler", "gc"):
   of "arc", "orc":
     setFlag("useMalloc", config.getSectionValue("Compiler", "useMalloc"))

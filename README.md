@@ -4,7 +4,7 @@ gdnim is a testbed for experimental features for [godot-nim] projects.  It relie
 
 It's also a testbed for experimental features that might never make it into [godot-nim].
 
-*NOTE*: This only working Windows and Linux platforms so far. There's been a little work done to get it working for Mac, but a PR will be gladly accepted.
+*NOTE*: This only works on Windows and Linux platforms so far. There's been a little work done to get it working for Mac, but a PR will be gladly accepted.
 
 - [Gdnim](#gdnim)
   - [Why](#why?)
@@ -61,9 +61,9 @@ Hopefully, some of this will make it back into godot-nim.
     - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
     - [anycase](https://nimble.directory/pkg/anycase)
     - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
-  - tcc is the recommended compiler for development
-    - gcc and vcc are also supported and recommend for release builds
-    - (see [Compiler notes](#compiler-notes) below)
+  - gcc is the recommended compiler for most cases
+    - gcc, vcc, and tcc are supported
+    - (see [Compiler notes](#compiler-notes) below for details on differences)
 
 ## Project Structure ##
 Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3.2 custom] merged with [godot 3.2 with gdnative unload] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript which can be buggy and limited. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
@@ -77,10 +77,10 @@ Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3
  - `deps/godot`: Custom version of godot-nim bindings. You can move this and update the location in `build.ini`
  - `deps/tcc`: tcc stuff
  - `build.nim`: The build script, compiled with `nim c build`, includes the `tasks.nim`
- - `tasks.nim`: Build tasks are specified here for updating / compiling the godot engine, generating / compiling  components, running the godot editor, etc.
+ - `tasks.nim`: Build tasks are specified here for updating / compiling the godot engine, generating / compiling  components, running the godot editor, etc. After modifying rebuild with `nim c build`.
  - `watcher.nim`: The Watcher node that monitors changes to registered components. In a new godot project set watcher.gdns to autoload.
  - `hot.nim`: The module used by components to register with the Watcher node. Also has save / load macros for persisting data between reloads.
- - `build.ini`: Configuration file used to specify directories and settings.
+ - `build.ini`: Configuration file used to specify directories and settings. This is read at runtime.
  - `components`: Where nim component files live. Components must have unique identifiers. Dlls are generated from these components.
 
 
@@ -108,11 +108,9 @@ isn't a general way to support launching the editor from a terminal for all dist
 
 
 ## Tips ##
- - If the godot app crashes, or your component gets into a weird state where it
-can't reload cleanly. Close the app and run `./build -m` to move the safe dll to
-the hot dll path and rerun the app. If the app is crashing when trying to reload,
-try force rebuilding the component `./build -f comp_name` or deleting the dll
-and rebuilding.
+ - If the godot app crashes, or your component gets into a weird state where it can't reload cleanly. Close the app and run `./build -m` to move the safe dll to the hot dll path and rerun the app.
+ - If the app is crashing when trying to reload, try force rebuilding the component `./build -f comp_name` or deleting the dll and rebuilding.
+- If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
 
 
 ## Implementation details ##
@@ -143,13 +141,17 @@ Gdnim, and the godot-nim bindings are built against the nim devel branch.
 
 ### Compiler notes ###
 
-TCC [Tiny C Compiler](https://github.com/mirror/tinycc)
-TCC is the recommend compiler for development because if its fast compile times, but crashes when compiling with threads:on. If compiling on windows, read deps/tcc/README.md to make tcc work with the asynchdispatch module.
+ * GCC is the recommended compiler for most use cases. It supports all the features in gdnim, and is the middle of pack in terms of compilation speed.
+   - Install gcc with scoop [scoop](https://scoop.sh/). Gcc will be in your user's ~/scoop/apps/gcc directory.
+   - Or use the latest builds for MinGW64 here: http://winlibs.com/.
 
-GCC is the recommended compiler for release builds. On windows you can find latest builds for MinGW64 here: http://winlibs.com/ or install gcc using [scoop](https://scoop.sh/). Gcc will be in your user's ~/scoop/apps/gcc directory.
-gcc requires some additional dlls in the `_dlls` folder to run. If you want to use gcc, see tasks.nim's final task where gcc dlls are checked.
+    gcc requires some additional dlls in the `_dlls` folder to run. Using gcc on Windows, tasks.nim's final task checks for a couple dll's to support threading.
 
-VCC is also supported by not regularly tested since it generates lots of warnings about incompatible types.
+ * VCC is only available on Windows.  It produces the smallest dlls, but has the longest compile times. Vcc + Visual Studio is useful for crash debugging purposes.
+
+ * TCC [Tiny C Compiler](https://github.com/mirror/tinycc)
+TCC has the fastest compile times, but crashes when compiling with threads:on. If compiling on windows, read `deps/tcc/README.md` to make tcc work with the `asynchdispatch` module. Tcc is not as well supported as the other compilers, and may not support all features of gdnim.
+
 
 
 [godot engine]:https://github.com/godotengine/godot
