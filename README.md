@@ -45,7 +45,9 @@ Hopefully, some of this will make it back into godot-nim.
 ## Quick Dev Guide ##
  - To **make a new nim component** run: `./build gencomp my_comp node_2d`. The nim file is created for you in `components` See [Setup](#setup) for details.
  - Modify `components/my_comp.nim`
- - Launch godot editor, and play your scene: `./build gd` (if this fails, launch godot manually, or see the [Setup](#setup) section)
+ - Build the component: `./build -m` (`-m` moves the dll to the hot dll path)
+ - Launch godot editor with: `./build gd` (if this fails, launch godot manually, or see the [Setup](#setup) section)
+ - Open and play the generated component scene file: `_tscn/my_comp.tscn`
  - Start the component file watcher for recompilation `./build cwatch`
  - Make a modification to component, the component watcher will rebuild the component.
  - Hot reload should occur if there were no compiler errors.
