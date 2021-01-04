@@ -83,6 +83,15 @@ proc genGdns(name:string) =
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
 
+proc checkPrereq(packageName, sourceName:string, verbose:bool = true) =
+  var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
+  if exitCode != 0:
+    echo "{packageName} is not installed. Installing."
+    execOrQuit(&"nimble install {sourceName}")
+  else:
+    if verbose:
+      echo &"{packageName} installed @ {output}"
+
 task prereqs, "Install prerequisites":
   let packages = @[
     ("compiler", "compiler"),
@@ -91,11 +100,7 @@ task prereqs, "Install prerequisites":
     ("optionsutils", "https://github.com/PMunch/nim-optionsutils")
   ]
   for (packageName, sourceName) in packages:
-    var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
-    if exitCode != 0:
-      execOrQuit(&"nimble install {sourceName}")
-    else:
-      echo &"{packageName} installed @ {output}"
+    checkPrereq(packageName, sourceName)
 
 task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
@@ -374,6 +379,13 @@ task cwatch, "Monitors the components folder for changes to recompile.":
         echo &"-- Recompiling {compFilename} --"
         echo buildComp(compFilename, sharedFlags, buildSettings)
     sleep cwatch_interval
+
+task diagnostic, "Displays code that contributes to your dll size. Pass in the comp name as an argument: ./build diagnostic comp_name":
+  checkPrereq("dumpincludes", "https://github.com/treeform/dumpincludes", false)
+  if config.getSectionValue("Compiler", "build_kind") != "diagnostic":
+   echo "Dlls must be compiled with Compiler.build_kind == \"diagnostic\""
+   quit()
+  execOrQuit(&"dumpincludes -f:{dllDir}/{args[0]}.{dllExt}")
 
 task help, "display list of tasks":
   echo "Call build with a task:"

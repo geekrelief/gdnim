@@ -14,6 +14,7 @@ It's also a testbed for experimental features that might never make it into [god
   - [Project Structure](#project-structure)
     - [Files and Folders](#files-and-folders)
   - [Setup](#setup)
+  - [Tasks](#tasks)
   - [Tips](#tips)
   - [Implementation details](#implementation-details)
     - [Nim notes](#nim-notes)
@@ -106,6 +107,12 @@ See `./build help` for available tasks like downloading the godot source, compil
 isn't a general way to support launching the editor from a terminal for all distributions
 (as far as I know), so modify the `task gd` for your system.
 
+## Tasks ##
+  The build system consists of `build.nim`, `tasks.nim`, `build.nim.cfg` and `build.ini`.  `build.nim` includes `tasks.nim` and reads `build.ini` at runtime.  To compile the build system run: `nim c build`.
+
+  Tasks are defined in `tasks.nim`.  You can customize it for your needs, just make sure to recompile. Changes to `build.ini` are picked up when `./build` executes. Find out what tasks are available by inspecting that file or running `./build help`
+
+  By default running `./build` will build any components that have changed.  If you supply an argument with no task name: `./build my_comp` the argument is assumed to be a component.
 
 ## Tips ##
  - If the godot app crashes, or your component gets into a weird state where it can't reload cleanly. Close the app and run `./build -m` to move the safe dll to the hot dll path and rerun the app.

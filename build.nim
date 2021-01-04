@@ -50,7 +50,7 @@ let allCompilerFlagsTable = {
   # build_kind
     "release":"--d:danger",
     "debug":"--debugger:native --stackTrace:on",
-    "diagnostic":"--d:release --debugger:native", #for with dumpincludes
+    "diagnostic":"--d:danger --debugger:native", #for dumpincludes
 }.toTable
 
 #stable tcc config, vcc crashes with arc or orc
@@ -106,7 +106,8 @@ var config = loadConfig("build.ini")
 setFlag("build_kind", config.getSectionValue("Compiler", "build_kind"))
 
 setFlag("cc", config.getSectionValue("Compiler", "cc"))
-if config.getSectionValue("Compiler", "cc") == "gcc":
+if config.getSectionValue("Compiler", "cc") == "gcc" and
+  config.getSectionValue("Compiler", "build_kind") != "diagnostic":
   setFlag("gcc_strip", config.getSectionValue("GCC", "strip"))
 
 setFlag("gc", config.getSectionValue("Compiler", "gc"))
