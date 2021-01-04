@@ -43,7 +43,7 @@ Hopefully, some of this will make it back into godot-nim.
  - Build watcher and components: `./build cleanbuild`
 
 ## Quick Dev Guide ##
- - Generate a new component specifying base class module, for example: `./build gencomp my_comp node_2d`
+ - To **make a new nim component** run: `./build gencomp my_comp node_2d`. The nim file is created for you in `components` See [Setup](#setup) for details.
  - Modify `components/my_comp.nim`
  - Launch godot editor, and play your scene: `./build gd` (if this fails, launch godot manually, or see the [Setup](#setup) section)
  - Start the component file watcher for recompilation `./build cwatch`
