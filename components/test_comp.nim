@@ -8,7 +8,7 @@ gdobj TestComp of Label:
   var tick:int
   var elapsedSeconds:float
   var tickIntervalSeconds:float = 0.1
-  var anInt:int = 222
+  var anInt:int = 123
   var aString1:string = "update"
 
   signal test_sig(a_bool:bool, a_int8:int8, a_string:string)
@@ -25,7 +25,7 @@ gdobj TestComp of Label:
   proc on_test_sig(a_bool:bool, a_int8:int8, a_string:string) {.gdExport.} =
     print &"got test_sig {a_bool = } {a_int8 = } {a_string = }"
 
-  proc reload():seq[byte] {.gdExport.} =
+  proc hot_unload():seq[byte] {.gdExport.} =
     self.queue_free()
     save(self.tick, self.aString1)
 
@@ -37,4 +37,4 @@ gdobj TestComp of Label:
       self.printData()
 
   proc printData() =
-    self.text = &"TestComp newtext {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"
+    self.text = &"TestComp {self.tickIntervalSeconds}: {self.tick}, {self.anInt}, {self.aString1}"

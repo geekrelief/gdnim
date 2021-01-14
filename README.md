@@ -78,23 +78,20 @@ Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3
     - `/app/_tscn`: Location for `./build gencomp` generated tscn files. Customize these for your needs.
     - `/app/scenes`: (Optional) Location for your own scenes to keep separate from _tscn.
  - `deps/godot`: Custom version of godot-nim bindings. You can move this and update the location in `build.ini`
- - `deps/tcc`: tcc stuff
+ - `deps/tcc`: tcc header required on Windows for asyncdispatch
  - `build.nim`: The build script, compiled with `nim c build`, includes the `tasks.nim`
  - `tasks.nim`: Build tasks are specified here for updating / compiling the godot engine, generating / compiling  components, running the godot editor, etc. After modifying rebuild with `nim c build`.
  - `watcher.nim`: The Watcher node that monitors changes to registered components. In a new godot project set watcher.gdns to autoload.
- - `hot.nim`: The module used by components to register with the Watcher node. Also has save / load macros for persisting data between reloads.
+ - `hot.nim`: The module used by components to register with the Watcher node. Also has save / load macros for persisting data between reloads. Relies on components having `hot_unload` callback to free references to components.
  - `build.ini`: Configuration file used to specify directories and settings. This is read at runtime.
  - `components`: Where nim component files live. Components must have unique identifiers. Dlls are generated from these components.
 
 
 ## Setup ##
-The project is primarily, developed and tested on Windows / Linux. (Mac support PR welcome)
-Modify the build.ini, build.nim and tasks.nim script for your needs.
-build.ini expects some paths to my [godot 3.2 custom engine source][godot 3.2 custom] and editor executables.
+The project is primarily, developed and tested on Windows / Linux. (Mac support PR welcome).
+Modify the `build.ini`, `build.nim` and `tasks.nim` script for your needs. `build.ini` expects some paths to my [godot 3.2 custom engine source][godot 3.2 custom] and editor executables.
 
-If you have all my mods from build.ini's merge_branches in your git repo you can, run
-`./build gdengine update`.  Otherwise stick to using 3.2_custom, which I update periodically
-with commits from godot's 3.2 branch by rebasing.
+If you have all my mods from `build.ini`'s merge_branches in your git repo you can, run `./build gdengine update`.  Otherwise stick to using 3.2_custom, which I update periodically with commits from godot's 3.2 branch by rebasing.
 
 The app folder contains the stub godot project. You create "components" which are the classes that can reload by
 running the `./build gencomp your_module_name godot_base_class_name`.  A nim file will appear in
@@ -128,18 +125,19 @@ with the components. The components use the hot module save and load macros to
 persist data with Watcher.
 
 To set up a component for reloading, the component needs to:
- - call `hot.register` which registers the component name with the Watcher node. Typically, done when or after `enter_tree()` runs, so the component can find the Watcher. If you run `./build gencomp`, the template does this automatically.
+ - call `hot.register` which registers the component name with the Watcher node. Typically, done when or after `enter_tree()` runs, so the component can find the Watcher. If you run `./build gencomp`, the template generated nim file will include register for you.
  - `hot.register` has two versions. A simple register that is called with the component name, where the node expects to manage its own reload process, and a one where you can specify another node responsible for saving and reloading the component.
  - to persist data between reloads Watcher needs to call a saver proc and loader proc on nodes.
- - by default the saver proc is named `reload`, that returns `seq[byte]`, with a `{.gdExport.}` pragma so Watcher can find it
+ - by default the saver proc is a callback in your component class named `hot_unload`, that returns `seq[byte]`, with a `{.gdExport.}` pragma so Watcher can find it.
  - the saver proc uses the hot.save macro to specify member fields to save e.g. `save(self.data)`. Valid data types are anything msgpack4nim accepts.
+ - the loader proc is only specified if the more complex register method is used.
  - to reload the data, after registering you can call the `hot.load` macro like `register(comp)?.load(self.data)`. Watcher will return previously persisted data after a component is registered so the node can complete initialization.
- - for situations where you want to be able to reload a component but the responsiblity for persisting its data falls on some other component pass the saver/loader node and saver/loader proc to `register`.  See the `components/gun.nim` example. You might want to instance multiple copies of a component and group their data together for persistence. Watcher has a table for all persisted data indexed by the component name.
+ - for situations where you want to be able to reload a component but the responsiblity for persisting its data falls on some other component pass the saver/loader node and saver/loader proc to `register`.  See the `hot.nim`. You might want to instance multiple copies of a component and group their data together for persistence. Watcher has a table for all persisted data indexed by the component name.
+ - Components can be independently hot reloaded as long as they don't share an ancestor/descendant relationship in the scene hierarchy. If a component A has another component B as a descendant, you'll need to persist B's data when A is unloaded.
 
 When a component is compiled it generates a library file (safe dll). If the godot editor is not in focus with the project opened the safe dll can be copied to the hot dll path. Otherwise, you'll get a warning that the dll can't be moved and reload will fail.
 
-When the project application is running, update and build the components.
-Watcher will check if safe dll is newer than hot dll and start a reload if so.
+When the project application is running, update and build the components. Watcher will check if safe dll is newer than hot dll and start a reload if so.
 
 
 ### Nim notes ###
@@ -160,7 +158,6 @@ Gdnim, and the godot-nim bindings are built against the nim devel branch.
 
  * TCC [Tiny C Compiler](https://github.com/mirror/tinycc)
 TCC has the fastest compile times, but crashes when compiling with threads:on. If compiling on windows, read `deps/tcc/README.md` to make tcc work with the `asynchdispatch` module. Tcc is not as well supported as the other compilers, and may not support all features of gdnim.
-
 
 
 [godot engine]:https://github.com/godotengine/godot

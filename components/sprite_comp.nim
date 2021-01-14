@@ -5,9 +5,9 @@ import strformat
 import math, asyncdispatch
 
 gdobj SpriteComp of Sprite:
-  var startPos:Vector2 = vec2(600.0, 600.0)
-  var radius:float = 350.0
-  var speed:float = 0.01
+  var startPos:Vector2
+  var radius:float = 50.0
+  var speed:float = 0.11
   var elapsedTime:float
   var timer:Timer
 
@@ -16,8 +16,8 @@ gdobj SpriteComp of Sprite:
   signal bsclick(button_idx:int, shape_idx:int)
 
   method enter_tree() =
-    discard register(sprite_comp)
-    self.position = self.startPos
+    self.startPos = self.position
+    register(sprite_comp)?.load(self.startPos)
     self.timer = gdnew[Timer]()
     self.timer.one_shot = true
     self.add_child(self.timer)
@@ -34,8 +34,9 @@ gdobj SpriteComp of Sprite:
     )
     asyncCheck self.fireTimer()
 
-  proc reload():seq[byte] {.gdExport.} =
+  proc hot_unload():seq[byte] {.gdExport.} =
     self.queue_free()
+    save(self.startPos)
 
   proc on_area2d_input_event(viewport:Node, event:InputEvent, shape_idx:int) {.gdExport.} =
     ifis(event, InputEventMouseButton):

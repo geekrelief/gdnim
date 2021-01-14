@@ -9,6 +9,10 @@
 [node name="TestComp" parent="." instance=ExtResource( 1 )]
 
 [node name="SpriteComp" parent="." instance=ExtResource( 2 )]
+position = Vector2( 373, 183 )
+
+[node name="SpriteComp2" parent="." instance=ExtResource( 2 )]
+position = Vector2( 736, 236 )
 
 [node name="Gun" parent="." instance=ExtResource( 3 )]
 position = Vector2( 126, 189 )

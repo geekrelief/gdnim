@@ -71,7 +71,7 @@ macro register*(compName:untyped):untyped =
     if watcher.isNil:
       raise newException(Defect, "Watcher not found")
 
-    var bv = watcher.call("register_component",
+    var bv = watcher.call("register_instance",
       `compNameStr`.toVariant,
       ($(self.get_path())).toVariant,
       ($(self.get_parent().get_path())).toVariant
@@ -87,7 +87,7 @@ macro register*(compName:untyped):untyped =
 # compName, saverProc, loaderProc are symbols, converted to strings
 macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loaderProc:untyped):untyped =
   # var path = $self.get_path()
-  #var stream = register_component(bullet, path, save_bullets, setup_bullets) # returns Option[MsgStream]
+  #var stream = register_instance(bullet, path, save_bullets, setup_bullets) # returns Option[MsgStream]
   var compNameStr = newLit(compName.repr)
   var saverProcStr = newLit(saverProc.repr)
   var loaderProcStr = newLit(loaderProc.repr)
@@ -97,7 +97,7 @@ macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loader
     if watcher.isNil:
       raise newException(Defect, "Watcher not found")
 
-    var bv = watcher.call("register_component",
+    var bv = watcher.call("register_instance",
       `compNameStr`.toVariant,
       `reloaderPath`.toVariant, #saver path
       `reloaderPath`.toVariant, #loader path
@@ -110,6 +110,30 @@ macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loader
       some(MsgStream.init(cast[string](data)))
     else:
       none(MsgStream)
+
+
+# if component A instances component B,
+# A must register B as a dependency if it holds a reference to B
+# component A must have a proc:
+#   proc hot_dep_unload*(compName:string, isUnloading:bool) {.gdExport.}
+macro register_dependencies*(compName:untyped, dependencies:varargs[untyped]):untyped =
+  var compNameStr = newLit(compName.repr)
+
+  var bracketNode = newNimNode(nnkBracket)
+  var depNode = prefix(bracketNode, "@")
+  for dep in dependencies:
+    bracketNode.add newLit(dep.repr)
+
+  result = quote do:
+    var watcher = self.get_node("/root/Watcher")
+    if watcher.isNil:
+      raise newException(Defect, "Watcher not found")
+
+    discard watcher.call("register_dependencies",
+      `compNameStr`.toVariant,
+      `depNode`.toVariant,
+    )
+
 
 const tscnDir = "_tscn"
 # find the resource at runtime, returns the first resource that matches compName

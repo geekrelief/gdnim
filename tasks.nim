@@ -1,7 +1,6 @@
 import godotapigen
 from sequtils import toSeq, filter, mapIt
 import times, anycase, threadpool,strutils, osproc
-import asyncdispatch, terminal
 
 const nim_template = """
 import godot
@@ -13,7 +12,7 @@ gdobj $2 of $4:
   method enter_tree() =
     discard register($1)
 
-  proc reload():seq[byte] {.gdExport.} =
+  proc hot_unload():seq[byte] {.gdExport.} =
     self.queue_free()
 """
 
