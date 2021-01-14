@@ -51,16 +51,19 @@ let allCompilerFlagsTable = {
     "release":"--d:danger",
     "debug":"--debugger:native --stackTrace:on",
     "diagnostic":"--d:danger --debugger:native", #for dumpincludes
+  # hot
+    "reload":"--d:does_reload"
 }.toTable
 
-#stable tcc config, vcc crashes with arc or orc
+#stable gcc config
 var taskCompilerFlagsTable = {
   "lib":"--app:lib --noMain",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
   "parallel":"--parallelBuild:0",
   "cc":"--cc:gcc",
   "gc":"--gc:orc",
-  "build_kind":"--d:danger"
+  "build_kind":"--d:danger",
+  "reload":"--d:does_reload"
 }.toTable
 
 var otherFlagsTable:Table[string, string]
@@ -71,7 +74,7 @@ proc configError(errMsg:string, prescription:string) =
   stderr.styledWrite("\n  Expected: ", fgWhite, prescription)
   quit()
 
-proc setFlag(flag:string, val:string = "") =
+proc setFlag(flag:string, val:string = "on") =
   case flag:
     of "build_kind":
       if val in ["debug", "release", "diagnostic"]:
@@ -95,7 +98,7 @@ proc setFlag(flag:string, val:string = "") =
       otherFlagsTable["nocheck"] = "on"
     else:
       if allCompilerFlagsTable.haskey(flag) or taskCompilerFlagsTable.haskey(flag):
-        if val == "on" or val == "":
+        if val == "on":
           taskCompilerFlagsTable[flag] = allCompilerFlagsTable[flag]
         else:
           taskCompilerFlagsTable.del(flag)
@@ -103,6 +106,8 @@ proc setFlag(flag:string, val:string = "") =
         otherFlagsTable[flag] = val
 
 var config = loadConfig("build.ini")
+
+setFlag("reload", config.getSectionValue("Hot", "reload"))
 setFlag("build_kind", config.getSectionValue("Compiler", "build_kind"))
 
 setFlag("cc", config.getSectionValue("Compiler", "cc"))

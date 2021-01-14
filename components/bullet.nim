@@ -13,7 +13,7 @@ gdobj Bullet of Sprite:
   var maxlifeTime:float64 = 20.0
   var startTime:MonoTime
   var startPosition:Vector2
-  var radius:float = 23.0
+  var radius:float = 15.0
 
   signal dead(id:int)
 

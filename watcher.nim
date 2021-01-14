@@ -15,7 +15,7 @@ During a reload phase, the components data can be save and restored upon reload.
 const dllDir {.strdefine.}:string = "_dlls"
 const dllExt {.strdefine.}:string = "dll"
 
-const META_TRUE_PATH = "hot_meta_true_path" #track instances original name
+const META_INSTANCE_ID = "hot_meta_instance_id" #track instances
 const UNLOAD_PROCNAME = "hot_unload"
 const DEPENDENCY_RELOAD_PROCNAME = "hot_depreload"
 const ADD_CHILD = "add_child"
@@ -33,9 +33,11 @@ gdobj WatcherUnregisterHelper of Reference:
     self.callback()
 
 type
+  InstanceID = distinct int64
+
   InstanceData = ref object
     compName:string
-    truePath:string
+    id:InstanceID
     saverPath:string
     loaderPath:string
     data:seq[byte]
@@ -50,205 +52,228 @@ type
     elapsedTime:float
     gdLine:LineEdit
 
+proc inc(x:var InstanceID, y = 1) {.borrow.}
+proc `==`(x, y: InstanceID):bool {.borrow.}
+proc `$`(x:InstanceID):string {.borrow.}
+
 func lerp(a, b, t:float32):float32 =
   (b - a ) * t + a
 
+when defined(does_reload):
+  gdobj Watcher of Control:
 
-gdobj Watcher of Control:
+    var enableWatch {.gdExport.}:bool = true
+    var watchIntervalSeconds {.gdExport.}:float = 0.3
+    var reloadIntervalSeconds {.gdExport.}:float = 0.3
+    var watchElapsedSeconds:float
+    var reloadElapsedSeconds:float
 
-  var enableWatch {.gdExport.}:bool = true
-  var watchIntervalSeconds {.gdExport.}:float = 0.3
-  var reloadIntervalSeconds {.gdExport.}:float = 0.3
-  var watchElapsedSeconds:float
-  var reloadElapsedSeconds:float
+    var compMetaTable:Table[string, ComponentMeta]
+    var NextInstanceID:InstanceID = InstanceID(0)
+    var instancesByCompNameTable:Table[string, seq[InstanceData]]
+    var instanceByIDTable:Table[InstanceID, InstanceData]
+    var dependencies:Table[string, HashSet[string]] # if A instances B, then dependencies["A"].contains "B"
+    var rdependencies:Table[string, HashSet[string]] # and rdependencies["B"].contains "A"
+    var reloadingComps:seq[string]
 
-  var compMetaTable:Table[string, ComponentMeta]
-  var instancesByCompNameTable:Table[string, seq[InstanceData]]
-  var instanceByPathTable:Table[string, InstanceData]
-  var dependencies:Table[string, HashSet[string]] # if A instances B, then dependencies["A"].contains "B"
-  var rdependencies:Table[string, HashSet[string]] # and rdependencies["B"].contains "A"
-  var reloadingComps:seq[string]
+    var enableNotifications {.gdExport.}:bool = true
+    var notification_duration {.gdExport.}:float  = 10.0
+    var notification_time_to_fade {.gdExport.}:float = 2.0
 
-  var enableNotifications {.gdExport.}:bool = true
-  var notification_duration {.gdExport.}:float  = 10.0
-  var notification_time_to_fade {.gdExport.}:float = 2.0
+    var notifications:seq[ReloadNotification]
 
-  var notifications:seq[ReloadNotification]
+    var lineEditPacked:PackedScene
+    var vbox:VBoxContainer
 
-  var lineEditPacked:PackedScene
-  var vbox:VBoxContainer
-
-  proc getSaveOrder(compName:string):seq[string] =
-    if not self.dependencies.hasKey(compName):
-      result.add compName
-      return
-    for c in self.dependencies[compName]:
-      result.add self.getSaveOrder(c)
-    result.add compName
-
-  method init() =
-    self.lineEditPacked = resource_loader.load("res://_tscn/watcher_lineedit.tscn") as PackedScene
-
-  method enter_tree() =
-    self.vbox = self.get_node("VBoxContainer") as VBoxContainer
-
-  method exit_tree() =
-    self.lineEditPacked = nil
-    self.vbox = nil
-
-  method process(delta: float64) =
-    if not self.enableWatch: return
-
-    # fade out notifications
-    for i in countDown(self.notifications.len-1, 0):
-      var n = self.notifications[i]
-      n.elapsedTime += delta
-      if n.elapsedTime > self.notification_time_to_fade:
-        var alpha = lerp(1.0, 0.0, (n.elapsedTime - self.notification_time_to_fade)/(self.notification_duration - self.notification_time_to_fade))
-        n.gdLine.modulate = initColor(1.0, 1.0, 1.0, alpha)
-
-      if n.elapsedTime > self.notification_duration:
-        n.gdLine.queue_free()
-        n.gdLine = nil
-        self.notifications.del i
-
-    # reload comp dlls and reinstantiate instances
-    if self.reloadingComps.len > 0:
-      if self.reloadElapsedSeconds < self.reloadIntervalSeconds:
-        self.reloadElapsedSeconds += delta
+    proc getSaveOrder(compName:string):seq[string] =
+      if not self.dependencies.hasKey(compName):
+        result.add compName
         return
-      self.reloadElapsedSeconds = 0.0
+      for c in self.dependencies[compName]:
+        result.add self.getSaveOrder(c)
+      result.add compName
 
-      var finReloadingComps:seq[string]
+    method init() =
+      self.lineEditPacked = resource_loader.load("res://_tscn/watcher_lineedit.tscn") as PackedScene
 
-      for compName in self.reloadingComps:
-        var cmeta = self.compMetaTable[compName]
-        if not resource_loader.has_cached(cmeta.resourcePath):
-          try:
-            moveFile(compName.safeDllPath, compName.hotDllPath)
-          except:
-            printError &"!!! Could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
+    method enter_tree() =
+      self.vbox = self.get_node("VBoxContainer") as VBoxContainer
 
-          #reload the scene instances
-          var pscene = resource_loader.load(cmeta.resourcePath) as PackedScene
-          var instancesData = self.instancesByCompNameTable[compName]
-          for instData in instancesData:
-            try:
-              var loaderNode = self.get_node(instData.loaderPath)
-              var instNode = pscene.instance()
-              instNode.set_meta(META_TRUE_PATH, instData.truePath.toVariant())
-              loaderNode.call_deferred(ADD_CHILD, instNode.toVariant())
-            except:
-              printError &"!!! Could not reinstance \"{instData.saverPath }\" @ \"{instData.loaderPath}\""
+    method exit_tree() =
+      self.lineEditPacked = nil
+      self.vbox = nil
 
-          if self.rdependencies.hasKey(compName):
-            for rdcompName in self.rdependencies[compName]:
-              for rinstData in self.instancesByCompNameTable[rdcompName]:
-                var rnode = self.get_node(rinstData.saverPath)
-                rnode.call_deferred(DEPENDENCY_RELOAD_PROCNAME, compName.toVariant, false.toVariant)
+    method process(delta: float64) =
+      if not self.enableWatch: return
 
-          finReloadingComps.add(compName)
-        else:
-          printError &"Watcher: {compName} still cached"
+      # fade out notifications
+      for i in countDown(self.notifications.len-1, 0):
+        var n = self.notifications[i]
+        n.elapsedTime += delta
+        if n.elapsedTime > self.notification_time_to_fade:
+          var alpha = lerp(1.0, 0.0, (n.elapsedTime - self.notification_time_to_fade)/(self.notification_duration - self.notification_time_to_fade))
+          n.gdLine.modulate = initColor(1.0, 1.0, 1.0, alpha)
 
-      self.reloadingComps.keepItIf(not (it in finReloadingComps))
-      return
+        if n.elapsedTime > self.notification_duration:
+          n.gdLine.queue_free()
+          n.gdLine = nil
+          self.notifications.del i
 
-    #check for new dlls
-    self.watchElapsedSeconds += delta
-    if self.watchElapsedSeconds > self.watchIntervalSeconds:
-      self.watchElapsedSeconds = 0.0
+      # reload comp dlls and reinstantiate instances
+      if self.reloadingComps.len > 0:
+        if self.reloadElapsedSeconds < self.reloadIntervalSeconds:
+          self.reloadElapsedSeconds += delta
+          return
+        self.reloadElapsedSeconds = 0.0
 
-      for compName in self.compMetaTable.keys:
-        if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and
-          getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
+        var finReloadingComps:seq[string]
 
-          printWarning &"Watcher reloading: {compName}"
-          self.notify &"Watcher reloading: {compName}"
-          self.reloadingComps.add(compName)
-
+        for compName in self.reloadingComps:
           var cmeta = self.compMetaTable[compName]
-          var instancesData = self.instancesByCompNameTable[compName]
-          for instData in instancesData:
+          if not resource_loader.has_cached(cmeta.resourcePath):
             try:
-              var node = self.get_node(instData.saverPath)
-              var saveData:seq[byte]
-              discard saveData.fromVariant(node.call(cmeta.saverProc))
-              instData.data = move(saveData)
-            except CallError as e:
-              printError &"Watcher reloading: {compName}, Error '{e.err.error}'. From {compName}.{cmeta.saverProc} @ {instData.saverPath}"
-              raise
-          if self.rdependencies.hasKey(compName):
-            for rdep in self.rdependencies[compName]:
-              for instData in self.instancesByCompNameTable[rdep]:
+              moveFile(compName.safeDllPath, compName.hotDllPath)
+            except:
+              printError &"!!! Could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
+
+            #reload the scene instances
+            var pscene = resource_loader.load(cmeta.resourcePath) as PackedScene
+            var instancesData = self.instancesByCompNameTable[compName]
+            for instData in instancesData:
+              try:
+                var loaderNode = self.get_node(instData.loaderPath)
+                var instNode = pscene.instance()
+                instNode.set_meta(META_INSTANCE_ID, int64(instData.id).toVariant())
+                loaderNode.call_deferred(ADD_CHILD, instNode.toVariant())
+              except:
+                printError &"!!! Could not reinstance \"{instData.saverPath }\" @ \"{instData.loaderPath}\""
+
+            if self.rdependencies.hasKey(compName):
+              for rdcompName in self.rdependencies[compName]:
+                for rinstData in self.instancesByCompNameTable[rdcompName]:
+                  var rnode = self.get_node(rinstData.saverPath)
+                  rnode.call_deferred(DEPENDENCY_RELOAD_PROCNAME, compName.toVariant, false.toVariant)
+
+            finReloadingComps.add(compName)
+          else:
+            printError &"Watcher: {compName} still cached"
+
+        self.reloadingComps.keepItIf(not (it in finReloadingComps))
+        return
+
+      #check for new dlls
+      self.watchElapsedSeconds += delta
+      if self.watchElapsedSeconds > self.watchIntervalSeconds:
+        self.watchElapsedSeconds = 0.0
+
+        for compName in self.compMetaTable.keys:
+          if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and
+            getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
+
+            printWarning &"Watcher reloading: {compName}"
+            self.notify &"Watcher reloading: {compName}"
+            self.reloadingComps.add(compName)
+
+            var cmeta = self.compMetaTable[compName]
+            var instancesData = self.instancesByCompNameTable[compName]
+            for instData in instancesData:
+              try:
+                #printWarning &"saving {instData.saverPath}"
                 var node = self.get_node(instData.saverPath)
-                discard node.call(DEPENDENCY_RELOAD_PROCNAME, compName.toVariant, true.toVariant)
+                var saveData:seq[byte]
+                discard saveData.fromVariant(node.call(cmeta.saverProc))
+                instData.data = move(saveData)
+              except CallError as e:
+                printError &"Watcher reloading: {compName}, Error '{e.err.error}'. From {compName}.{cmeta.saverProc} @ {instData.saverPath}"
+                raise
+            if self.rdependencies.hasKey(compName):
+              for rdep in self.rdependencies[compName]:
+                for rinstData in self.instancesByCompNameTable[rdep]:
+                  var node = self.get_node(rinstData.saverPath)
+                  discard node.call(DEPENDENCY_RELOAD_PROCNAME, compName.toVariant, true.toVariant)
 
-  # registers the instance and its component for Watcher monitoring
-  proc register_instance(compName:string, saverPath:string, loaderPath:string, saverProc=UNLOAD_PROCNAME, loaderProc=ADD_CHILD):seq[byte] {.gdExport.} =
-    if not fileExists(compName.hotDllPath):
-      printError &"Watcher failed to register {compName}. No dll with this name."
-      return
-    try:
-      if not self.compMetaTable.hasKey(compName):
-        printWarning &"Watcher registering {compName} @ {saverPath}"
-        self.notify &"Watcher registering {compName} @ {saverPath}"
-        self.compMetaTable[compName] = ComponentMeta(resourcePath: findCompTscn(compName), saverProc: saverProc, loaderProc: loaderProc)
-        self.instancesByCompNameTable[compName] = @[]
+    # registers the instance and its component for Watcher monitoring
+    proc register_instance(compName:string, saverPath:string, loaderPath:string, saverProc=UNLOAD_PROCNAME, loaderProc=ADD_CHILD):seq[byte] {.gdExport.} =
+      if not fileExists(compName.hotDllPath):
+        printError &"Watcher failed to register {compName}. No dll with this name."
+        return
+      try:
+        if not self.compMetaTable.hasKey(compName):
+          printWarning &"Watcher registering {compName}"
+          self.notify &"Watcher registering {compName}"
+          self.compMetaTable[compName] = ComponentMeta(resourcePath: findCompTscn(compName), saverProc: saverProc, loaderProc: loaderProc)
+          self.instancesByCompNameTable[compName] = @[]
 
-      var instNode = self.get_node(saverPath)
-      var instData:InstanceData
-      var unregisterPath = saverPath
-      if not instNode.has_meta(META_TRUE_PATH):
-        # first instance
-        instNode.set_meta(META_TRUE_PATH, saverPath.toVariant)
-        instData = new(InstanceData)
-        instData.compName = compName
-        instData.truePath = saverPath
-        instData.saverPath = saverPath
-        instData.loaderPath = loaderPath
+        var instNode = self.get_node(saverPath)
+        var instData:InstanceData
+        var instID:InstanceID
+        if not instNode.has_meta(META_INSTANCE_ID):
+          # first instance
+          instData = new(InstanceData)
+          inc self.NextInstanceID
+          instID = self.NextInstanceID
+          instData.id = instID
+          instNode.set_meta(META_INSTANCE_ID, int64(instID).toVariant)
+          instData.compName = compName
+          instData.saverPath = saverPath
+          instData.loaderPath = loaderPath
 
-        self.instanceByPathTable[saverPath] = instData
-        self.instancesByCompNameTable[compName].add instData
-      else:
-        # reloaded
-        var instTruePath = instNode.get_meta(META_TRUE_PATH).asString()
-        unregisterPath = instTruePath
-        instData = self.instanceByPathTable[instTruePath]
-        instData.saverPath = saverPath
-        result = instData.data
-        instData.data.setLen(0)
+          self.instanceByIDTable[instID] = instData
+          self.instancesByCompNameTable[compName].add instData
+        else:
+          # reloaded
+          instID = InstanceID(instNode.get_meta(META_INSTANCE_ID).asInt())
+          #printWarning &"reloaded {instID} @ {saverPath}"
+          instData = self.instanceByIDTable[instID]
+          instData.saverPath = saverPath
+          result = instData.data
+          instData.data.setLen(0)
 
-      proc callback() =
-        self.unregisterInstance(unregisterPath)
-      instData.helper = gdnew[WatcherUnregisterHelper]()
-      instData.helper.callback = callback
-      discard instNode.connect("tree_exiting", instData.helper, "on_exit")
+        proc callback() =
+          self.unregisterInstance(instID)
+        instData.helper = gdnew[WatcherUnregisterHelper]()
+        instData.helper.callback = callback
+        discard instNode.connect("tree_exiting", instData.helper, "on_exit")
 
-    except IOError as e:
-      printError e.msg
+      except IOError as e:
+        printError e.msg
 
-  # register direct dependencies of comp
-  proc register_dependencies(compName:string, dependencies:seq[string]) {.gdExport.} =
-    if not self.dependencies.hasKey(compName):
-      self.dependencies[compName] = initHashSet[string]()
-    for d in dependencies:
-      self.dependencies[compName].incl(d)
-      if not self.rdependencies.hasKey(d):
-        self.rdependencies[d] = initHashSet[string]()
-      self.rdependencies[d].incl(compName)
+    # register direct dependencies of comp
+    proc register_dependencies(compName:string, dependencies:seq[string]) {.gdExport.} =
+      if not self.dependencies.hasKey(compName):
+        self.dependencies[compName] = initHashSet[string]()
+      for d in dependencies:
+        self.dependencies[compName].incl(d)
+        if not self.rdependencies.hasKey(d):
+          self.rdependencies[d] = initHashSet[string]()
+        self.rdependencies[d].incl(compName)
 
-  # unregister comp instances that are not reloading
-  proc unregisterInstance(path:string) =
-    var instData = self.instanceByPathTable[path]
-    if not (instData.compName in self.reloadingComps):
-      self.instanceByPathTable.del(path)
-      let index = self.instancesByCompNameTable[instData.compName].find(instData)
-      self.instancesByCompNameTable[instData.compName].del(index)
+    # unregister comp instances that are not reloading
+    proc unregisterInstance(instID:InstanceID) =
+      var instData = self.instanceByIDTable[instID]
+      var node = self.get_node(instData.saverPath)
+      node.disconnect("tree_exiting", instData.helper, "on_exit")
+      instData.helper.callback = nil
+      instData.helper = nil
+      if not (instData.compName in self.reloadingComps):
+        #printWarning &"unregister {instData.id = } @ {instData.saverPath = }"
+        self.instanceByIDTable.del(instID)
+        let index = self.instancesByCompNameTable[instData.compName].find(instData)
+        self.instancesByCompNameTable[instData.compName].del(index)
 
-  proc notify(msg:string) =
-    var n = ReloadNotification(gdLine: self.lineEditPacked.instance() as LineEdit)
-    self.notifications.add(n)
-    n.gdLine.text = msg
-    if self.vbox != nil:
-      self.vbox.call_deferred(ADD_CHILD, n.gdLine.toVariant)
+    proc notify(msg:string) =
+      var n = ReloadNotification(gdLine: self.lineEditPacked.instance() as LineEdit)
+      self.notifications.add(n)
+      n.gdLine.text = msg
+      if self.vbox != nil:
+        self.vbox.call_deferred(ADD_CHILD, n.gdLine.toVariant)
+
+else:
+  gdobj Watcher of Control:
+    var enableWatch {.gdExport.}:bool = true
+    var watchIntervalSeconds {.gdExport.}:float = 0.3
+    var reloadIntervalSeconds {.gdExport.}:float = 0.3
+
+    var enableNotifications {.gdExport.}:bool = true
+    var notification_duration {.gdExport.}:float  = 10.0
+    var notification_time_to_fade {.gdExport.}:float = 2.0

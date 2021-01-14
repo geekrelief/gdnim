@@ -3,6 +3,7 @@ from strutils import contains
 import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils
 
+const does_reload* {.booldefine.}: bool = true
 
 proc `^`*(s:string):NimNode {.inline.} =
   ident(s)
@@ -17,70 +18,80 @@ macro save*(args: varargs[typed]):untyped =
     b.pack(self.s)
     cast[seq[byte]](b.data)
   ]#
-  var stmts = newStmtList()
-  var buffer = genSym(nskVar, "buffer")
-  stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init")))
-  for arg in args:
-    var prop:NimNode
-    case arg.kind:
-    of nnkCall: prop = ^($arg[0])
-    else: prop = ^($arg[1])
-    stmts.add newCall(newDotExpr(buffer, ^"pack"),
-      newDotExpr(^"self", prop)
-    )
-  stmts.add nnkCast.newTree(nnkBracketExpr.newTree(^"seq", ^"byte"), newDotExpr(buffer, ^"data"))
+  when defined(does_reload):
+    var stmts = newStmtList()
+    var buffer = genSym(nskVar, "buffer")
+    stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init")))
+    for arg in args:
+      var prop:NimNode
+      case arg.kind:
+      of nnkCall: prop = ^($arg[0])
+      else: prop = ^($arg[1])
+      stmts.add newCall(newDotExpr(buffer, ^"pack"),
+        newDotExpr(^"self", prop)
+      )
+    stmts.add nnkCast.newTree(nnkBracketExpr.newTree(^"seq", ^"byte"), newDotExpr(buffer, ^"data"))
 
-  result = stmts
+    result = stmts
+  else:
+    discard
 
 #load takes a MsgStream or seq[byte] for loading#
 macro load*(data:typed, args: varargs[typed]):untyped =
   # load(buffer, self.i)
-  var stmts = newStmtList()
-  var buffer = data
-  if getTypeInst(data).repr == "seq[byte]":
-    buffer = genSym(nskVar, "buffer")
-    stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", data)))
+  when defined(does_reload):
+    var stmts = newStmtList()
+    var buffer = data
+    if getTypeInst(data).repr == "seq[byte]":
+      buffer = genSym(nskVar, "buffer")
+      stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", data)))
 
-  var unpackStmts = newStmtList()
-  stmts.add unpackStmts
-  for aprop in args:
-    var prop:NimNode
-    var propType:NimNode
-    case aprop.kind
-    of nnkCall:
-      prop = ^($aprop[0])
-      propType = ^($getTypeInst(aprop))
-    else:
-      prop = ^($aprop[1])
-      propType = ^($getTypeInst(aprop[1]))
+    var unpackStmts = newStmtList()
+    stmts.add unpackStmts
+    for aprop in args:
+      var prop:NimNode
+      var propType:NimNode
+      case aprop.kind
+      of nnkCall:
+        prop = ^($aprop[0])
+        propType = ^($getTypeInst(aprop))
+      else:
+        prop = ^($aprop[1])
+        propType = ^($getTypeInst(aprop[1]))
 
-    unpackStmts.add(
-      nnkVarSection.newTree( nnkIdentDefs.newTree(prop, propType, newEmptyNode())),
-      newCall(newDotExpr(buffer, ^"unpack"), prop),
-      newAssignment(newDotExpr(^"self", prop), prop)
-    )
+      unpackStmts.add(
+        nnkVarSection.newTree( nnkIdentDefs.newTree(prop, propType, newEmptyNode())),
+        newCall(newDotExpr(buffer, ^"unpack"), prop),
+        newAssignment(newDotExpr(^"self", prop), prop)
+      )
 
-  #echo stmts.repr
-  result = stmts
+    #echo stmts.repr
+    result = stmts
+  else:
+    discard
 
 # simple register, pass in the compName as a symbol, returns Option[MsgStream]
 macro register*(compName:untyped):untyped =
-  var compNameStr = newLit(compName.repr)
-  result = quote do:
-    var watcher = self.get_node("/root/Watcher")
-    if watcher.isNil:
-      raise newException(Defect, "Watcher not found")
+  when defined(does_reload):
+    var compNameStr = newLit(compName.repr)
+    result = quote do:
+      var watcher = self.get_node("/root/Watcher")
+      if watcher.isNil:
+        raise newException(Defect, "Watcher not found")
 
-    var bv = watcher.call("register_instance",
-      `compNameStr`.toVariant,
-      ($(self.get_path())).toVariant,
-      ($(self.get_parent().get_path())).toVariant
-    )
-    var data:seq[byte]
-    discard fromVariant(data, bv)
-    if data.len != 0:
-      some(MsgStream.init(cast[string](data)))
-    else:
+      var bv = watcher.call("register_instance",
+        `compNameStr`.toVariant,
+        ($(self.get_path())).toVariant,
+        ($(self.get_parent().get_path())).toVariant
+      )
+      var data:seq[byte]
+      discard fromVariant(data, bv)
+      if data.len != 0:
+        some(MsgStream.init(cast[string](data)))
+      else:
+        none(MsgStream)
+  else:
+    result = quote do:
       none(MsgStream)
 
 #register with the watcher and returns an Option[MsgStream]
@@ -88,27 +99,31 @@ macro register*(compName:untyped):untyped =
 macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loaderProc:untyped):untyped =
   # var path = $self.get_path()
   #var stream = register_instance(bullet, path, save_bullets, setup_bullets) # returns Option[MsgStream]
-  var compNameStr = newLit(compName.repr)
-  var saverProcStr = newLit(saverProc.repr)
-  var loaderProcStr = newLit(loaderProc.repr)
+  when defined(does_reload):
+    var compNameStr = newLit(compName.repr)
+    var saverProcStr = newLit(saverProc.repr)
+    var loaderProcStr = newLit(loaderProc.repr)
 
-  result = quote do:
-    var watcher = self.get_node("/root/Watcher")
-    if watcher.isNil:
-      raise newException(Defect, "Watcher not found")
+    result = quote do:
+      var watcher = self.get_node("/root/Watcher")
+      if watcher.isNil:
+        raise newException(Defect, "Watcher not found")
 
-    var bv = watcher.call("register_instance",
-      `compNameStr`.toVariant,
-      `reloaderPath`.toVariant, #saver path
-      `reloaderPath`.toVariant, #loader path
-      `saverProcStr`.toVariant,
-      `loaderProcStr`.toVariant
-    )
-    var data:seq[byte]
-    discard fromVariant(data, bv)
-    if data.len != 0:
-      some(MsgStream.init(cast[string](data)))
-    else:
+      var bv = watcher.call("register_instance",
+        `compNameStr`.toVariant,
+        `reloaderPath`.toVariant, #saver path
+        `reloaderPath`.toVariant, #loader path
+        `saverProcStr`.toVariant,
+        `loaderProcStr`.toVariant
+      )
+      var data:seq[byte]
+      discard fromVariant(data, bv)
+      if data.len != 0:
+        some(MsgStream.init(cast[string](data)))
+      else:
+        none(MsgStream)
+  else:
+    result = quote do:
       none(MsgStream)
 
 
@@ -117,22 +132,25 @@ macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loader
 # component A must have a proc:
 #   proc hot_dep_unload*(compName:string, isUnloading:bool) {.gdExport.}
 macro register_dependencies*(compName:untyped, dependencies:varargs[untyped]):untyped =
-  var compNameStr = newLit(compName.repr)
+  when defined(does_reload):
+    var compNameStr = newLit(compName.repr)
 
-  var bracketNode = newNimNode(nnkBracket)
-  var depNode = prefix(bracketNode, "@")
-  for dep in dependencies:
-    bracketNode.add newLit(dep.repr)
+    var bracketNode = newNimNode(nnkBracket)
+    var depNode = prefix(bracketNode, "@")
+    for dep in dependencies:
+      bracketNode.add newLit(dep.repr)
 
-  result = quote do:
-    var watcher = self.get_node("/root/Watcher")
-    if watcher.isNil:
-      raise newException(Defect, "Watcher not found")
+    result = quote do:
+      var watcher = self.get_node("/root/Watcher")
+      if watcher.isNil:
+        raise newException(Defect, "Watcher not found")
 
-    discard watcher.call("register_dependencies",
-      `compNameStr`.toVariant,
-      `depNode`.toVariant,
-    )
+      discard watcher.call("register_dependencies",
+        `compNameStr`.toVariant,
+        `depNode`.toVariant,
+      )
+  else:
+    discard
 
 
 const tscnDir = "_tscn"

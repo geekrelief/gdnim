@@ -21,10 +21,11 @@ const gdns_template = """
 
 [sub_resource type="GDNativeLibrary" id=1]
 entry/Windows.64 = "res://$3/$1.dll"
-entry/X11.64 = "res://$3/$1.so"
-entry/OSX.64 = "res://$3/$1.dylib"
 dependency/Windows.64 = [  ]
+entry/X11.64 = "res://$3/$1.so"
 dependency/X11.64 = [  ]
+entry/OSX.64 = "res://$3/$1.dylib"
+dependency/OSX.64 = [  ]
 
 [resource]
 resource_name = "$2"
@@ -61,6 +62,7 @@ let gd_bits = config.getSectionValue("Godot", "bits")
 let gd_bin = config.getSectionValue("Godot", "bin")
 let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
 let gd_tools_release_bin = config.getSectionValue("Godot", "tools_release_bin")
+
 var cwatch_interval = parseInt(config.getSectionValue("Build", "cwatch_interval"))
 if cwatch_interval == 0: cwatch_interval = 300
 
