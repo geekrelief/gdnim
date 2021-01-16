@@ -252,9 +252,6 @@ when defined(does_reload):
     proc unregisterInstance(instID:InstanceID) =
       var instData = self.instanceByIDTable[instID]
       var node = self.get_node(instData.saverPath)
-      node.disconnect("tree_exiting", instData.helper, "on_exit")
-      instData.helper.callback = nil
-      instData.helper = nil
       if not (instData.compName in self.reloadingComps):
         #printWarning &"unregister {instData.id = } @ {instData.saverPath = }"
         self.instanceByIDTable.del(instID)

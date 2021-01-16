@@ -12,7 +12,7 @@ gdobj Gun of Sprite:
 
   var nextBulletId:int64
   var fireTime:float64
-  var fireInterval:float64 = 1.0
+  var fireInterval:float64 = 0.3
 
   method enter_tree() =
     register(gun)?.load(self.nextBulletId, self.position)
@@ -59,5 +59,5 @@ gdobj Gun of Sprite:
   method process(delta:float64) =
     self.fireTime += delta
     if self.fireTime > self.fireInterval:
-      self.createBullet(vec2(50.0, 0.0), self.bulletSpawnPoint.global_position)
+      self.createBullet(vec2(70.0, 0.0), self.bulletSpawnPoint.global_position)
       self.fireTime = 0

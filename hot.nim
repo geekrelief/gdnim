@@ -8,6 +8,9 @@ const does_reload* {.booldefine.}: bool = true
 proc `^`*(s:string):NimNode {.inline.} =
   ident(s)
 
+type
+  HotReloadDefect = object of Defect
+
 # packs arguments pass as a seq[byte]
 # save(self.i, self.f, self.s)
 macro save*(args: varargs[typed]):untyped =
@@ -36,9 +39,8 @@ macro save*(args: varargs[typed]):untyped =
   else:
     discard
 
-#load takes a MsgStream or seq[byte] for loading#
-macro load*(data:typed, args: varargs[typed]):untyped =
-  # load(buffer, self.i)
+# loads args from buffer where args are tuples of properties and whether they should be assigned
+macro loadHelper(data:typed, args:varargs[typed]):untyped =
   when defined(does_reload):
     var stmts = newStmtList()
     var buffer = data
@@ -48,25 +50,60 @@ macro load*(data:typed, args: varargs[typed]):untyped =
 
     var unpackStmts = newStmtList()
     stmts.add unpackStmts
-    for aprop in args:
-      var prop:NimNode
-      var propType:NimNode
-      case aprop.kind
-      of nnkCall:
-        prop = ^($aprop[0])
-        propType = ^($getTypeInst(aprop))
-      else:
-        prop = ^($aprop[1])
-        propType = ^($getTypeInst(aprop[1]))
+    for arg in args:
+      var prop = arg[0]
+      var isAssigned = arg[1]
+      var unpackVar:NimNode = genSym(nskVar)
+      var propType:NimNode = getTypeInst(prop)
 
-      unpackStmts.add(
-        nnkVarSection.newTree( nnkIdentDefs.newTree(prop, propType, newEmptyNode())),
-        newCall(newDotExpr(buffer, ^"unpack"), prop),
-        newAssignment(newDotExpr(^"self", prop), prop)
-      )
+      unpackStmts.add quote do:
+        var `unpackVar`:`propType`
+        `buffer`.unpack(`unpackVar`)
+
+      unpackStmts.add case prop.kind
+      of nnkCall: # for method properties `prop=`(self, T)
+        var propName = prop[0]
+        quote do:
+          if `isAssigned`:
+            self.`propName` = `unpackVar`
+      of nnkDotExpr: # for data properties self.prop
+        var propName = prop[1]
+        quote do:
+          if `isAssigned`:
+            self.`propName` = `unpackVar`
+      of nnkSym: # for variables
+        var propName = prop
+        quote do:
+          if `isAssigned`:
+            `propName` = `unpackVar`
+      else:
+        raise newException(HotReloadDefect, &"Unsupporterd {prop.repr}")
 
     #echo stmts.repr
     result = stmts
+  else:
+    discard
+
+#load takes a MsgStream or seq[byte] for loading
+# symbol with '!' in front are loaded from the buffer, but not asssigned
+# load converts the args from untyped to typed and pass it to loadHelper
+macro load*(data:typed, args: varargs[untyped]):untyped =
+  # load(buffer, self.speed, !self.direction)
+  when defined(does_reload):
+    var targs:NimNode = newNimNode(nnkArgList)
+    for arg in args:
+      var t = newNimNode(nnkTupleConstr)
+      if arg.kind == nnkPrefix and arg[0].repr == "!":
+        t.add(arg[1])
+        t.add(newLit(false))
+      else:
+        t.add(arg)
+        t.add(newLit(true))
+
+      targs.add t
+
+    result = quote do:
+      loadHelper(`data`, `targs`)
   else:
     discard
 

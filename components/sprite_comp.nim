@@ -8,7 +8,7 @@ type FireAsyncState = enum A, B, C, D, E, F, G, H, I
 
 gdobj SpriteComp of Sprite:
   var startPos:Vector2
-  var radius:float = 60.0
+  var radius:float = 30.0
   var speed:float = 0.11
   var elapsedTime:float
   var timer:Timer
@@ -20,7 +20,8 @@ gdobj SpriteComp of Sprite:
 
   method enter_tree() =
     self.startPos = self.position
-    register(sprite_comp)?.load(self.startPos, self.fireState, self.rotation_degrees)
+    # ! in front of a symbol reads the symbol's type from the buffer but doesn't assign
+    register(sprite_comp)?.load(self.startPos, !self.fireState, !self.rotation_degrees)
     self.timer = gdnew[Timer]()
     self.timer.one_shot = true
     self.add_child(self.timer)
