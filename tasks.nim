@@ -182,6 +182,8 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
 
 task genapi, "generate the godot api bindings":
   execOrQuit(&"nim c -r {depsDir}/genapi.nim")
+  var ext = if hostOS == "windows": ".exe" else : ""
+  removeFile(&"{depsDir}/genapi{ext}")
 
 proc buildWatcher():string =
   {.cast(gcsafe).}:
