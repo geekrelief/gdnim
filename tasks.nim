@@ -1,4 +1,3 @@
-import godotapigen
 from sequtils import toSeq, filter, mapIt
 import times, anycase, threadpool,strutils, osproc
 
@@ -59,7 +58,7 @@ let gd_build_branch = config.getSectionValue("Godot", "build_branch")
 let gd_branches = config.getSectionValue("Godot", "merge_branches").split(",")
 let gd_platform = config.getSectionValue("Godot", "platform")
 let gd_bits = config.getSectionValue("Godot", "bits")
-let gd_bin = config.getSectionValue("Godot", "bin")
+#let gd_bin = config.getSectionValue("Godot", "bin")
 let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
 let gd_tools_release_bin = config.getSectionValue("Godot", "tools_release_bin")
 
@@ -87,7 +86,7 @@ proc execOrQuit(command:string) =
 proc checkPrereq(packageName, sourceName:string, verbose:bool = true) =
   var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
   if exitCode != 0:
-    echo "{packageName} is not installed. Installing."
+    echo &"{packageName} is not installed. Installing."
     execOrQuit(&"nimble install {sourceName}")
   else:
     if verbose:
@@ -181,21 +180,8 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
   if hostOS == "windows": discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
   else: discard execShellCmd &"{gdbin} -e --path {projDir} {scn}"
 
-task cleanapi, "clean generated api":
-  removeDir "logs"
-  removeDir(depsDir / "godotapi")
-
 task genapi, "generate the godot api bindings":
-  cleanapiTask()
-
-  let apidir = depsDir / "godotapi"
-  createDir apidir
-  let cmd = &"{gd_bin} --gdnative-generate-json-api {apidir}/api.json"
-  if (execShellCmd cmd) != 0:
-    echo &"Could not generate api with '{cmd}'"
-    quit -1
-  genApi(apidir, apidir / "api.json")
-  removeFile(apidir / "api.json")
+  execOrQuit(&"nim c -r {depsDir}/genapi.nim")
 
 proc buildWatcher():string =
   {.cast(gcsafe).}:
