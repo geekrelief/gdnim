@@ -58,7 +58,7 @@ let allCompilerFlagsTable = {
 #stable gcc config
 var taskCompilerFlagsTable = {
   "lib":"--app:lib --noMain",
-  "mute":"--warning[LockLevel]:off --hint[Processing]:off",
+  "mute":"--warning[LockLevel]:off --hint[Processing]:off --hint[ConvFromXtoItselfNotNeeded]:off",
   "parallel":"--parallelBuild:0",
   "cc":"--cc:gcc",
   "gc":"--gc:orc",

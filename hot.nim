@@ -11,6 +11,11 @@ proc `^`*(s:string):NimNode {.inline.} =
 type
   HotReloadDefect = object of Defect
 
+  WatcherNoticeCode* = enum
+    UNLOADING,
+    RELOADED,
+    REGISTER_COMP
+
 # packs arguments pass as a seq[byte]
 # save(self.i, self.f, self.s)
 macro save*(args: varargs[typed]):untyped =

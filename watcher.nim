@@ -59,8 +59,11 @@ proc `$`(x:InstanceID):string {.borrow.}
 func lerp(a, b, t:float32):float32 =
   (b - a ) * t + a
 
+
 when defined(does_reload):
   gdobj Watcher of Control:
+
+    signal notice(code:int, msg:string)
 
     var enableWatch {.gdExport.}:bool = true
     var watchIntervalSeconds {.gdExport.}:float = 0.3
@@ -162,6 +165,7 @@ when defined(does_reload):
         self.reloadingComps.keepItIf(not (it in finReloadingComps))
 
         self.get_tree().paused = false
+        self.notify(RELOADED, &"Watcher reload complete")
         return
 
       #check for new dlls
@@ -173,9 +177,7 @@ when defined(does_reload):
           if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and
             getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
             self.get_tree().paused = true
-
-            printWarning &"Watcher reloading: {compName}"
-            self.notify &"Watcher reloading: {compName}"
+            self.notify(UNLOADING, &"Watcher unloading: {compName}")
             self.reloadingComps.add(compName)
 
             var cmeta = self.compMetaTable[compName]
@@ -203,8 +205,7 @@ when defined(does_reload):
         return
       try:
         if not self.compMetaTable.hasKey(compName):
-          printWarning &"Watcher registering {compName}"
-          self.notify &"Watcher registering {compName}"
+          self.notify(REGISTER_COMP, &"Watcher registering {compName}")
           self.compMetaTable[compName] = ComponentMeta(resourcePath: findCompTscn(compName), saverProc: saverProc, loaderProc: loaderProc)
           self.instancesByCompNameTable[compName] = @[]
 
@@ -255,19 +256,21 @@ when defined(does_reload):
     # unregister comp instances that are not reloading
     proc unregisterInstance(instID:InstanceID) =
       var instData = self.instanceByIDTable[instID]
-      var node = self.get_node(instData.saverPath)
       if not (instData.compName in self.reloadingComps):
         #printWarning &"unregister {instData.id = } @ {instData.saverPath = }"
         self.instanceByIDTable.del(instID)
         let index = self.instancesByCompNameTable[instData.compName].find(instData)
         self.instancesByCompNameTable[instData.compName].del(index)
 
-    proc notify(msg:string) =
+    proc notify(code:WatcherNoticeCode, msg:string) =
+      printWarning &"{msg}"
+
       var n = ReloadNotification(gdLine: self.lineEditPacked.instance() as LineEdit)
       self.notifications.add(n)
       n.gdLine.text = msg
       if self.vbox != nil:
         self.vbox.call_deferred(ADD_CHILD, n.gdLine.toVariant)
+      self.emit_signal("notice", int(code).toVariant, msg.toVariant)
 
 else:
   gdobj Watcher of Control:
