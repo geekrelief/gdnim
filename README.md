@@ -10,7 +10,7 @@ It's also a testbed for experimental features that might never make it into [god
   - [Why](#why?)
   - [Quick Setup Guide](#quick-setup-guide)
   - [Quick Dev Guide](#quick-dev-guide)
-  - [Prerequites](#prerequites)
+  - [Prerequisites](#prerequisites)
   - [Project Structure](#project-structure)
     - [Files and Folders](#files-and-folders)
   - [Setup](#setup)
@@ -53,7 +53,7 @@ Hopefully, some of this will make it back into godot-nim.
  - Hot reload should occur if there were no compiler errors.
  - **Note:** The hot module contains save and load macros to persist state between reloads.
 
-## Prerequites ##
+## Prerequisites ##
   - VSCode
   - [godot 3.2 custom]
   - or [godot 3.2 with gdnative unload]
