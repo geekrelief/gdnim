@@ -95,6 +95,7 @@ when defined(does_reload):
 
     method init() =
       self.lineEditPacked = resource_loader.load("res://_tscn/watcher_lineedit.tscn") as PackedScene
+      self.pause_mode = PAUSE_MODE_PROCESS
 
     method enter_tree() =
       self.vbox = self.get_node("VBoxContainer") as VBoxContainer
@@ -159,6 +160,8 @@ when defined(does_reload):
             printError &"Watcher: {compName} still cached"
 
         self.reloadingComps.keepItIf(not (it in finReloadingComps))
+
+        self.get_tree().paused = false
         return
 
       #check for new dlls
@@ -169,6 +172,7 @@ when defined(does_reload):
         for compName in self.compMetaTable.keys:
           if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and
             getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
+            self.get_tree().paused = true
 
             printWarning &"Watcher reloading: {compName}"
             self.notify &"Watcher reloading: {compName}"
