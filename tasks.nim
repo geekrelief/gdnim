@@ -181,7 +181,7 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
   else: discard execShellCmd &"{gdbin} -e --path {projDir} {scn}"
 
 task genapi, "generate the godot api bindings":
-  execOrQuit(&"nim c -r {depsDir}/genapi.nim")
+  execOrQuit(&"nim c -r --path:{depsDir}/{depsGodotDir} {depsDir}/genapi.nim")
   var ext = if hostOS == "windows": ".exe" else : ""
   removeFile(&"{depsDir}/genapi{ext}")
 
