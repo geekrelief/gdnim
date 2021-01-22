@@ -23,6 +23,63 @@ proc `$`*(self: Rect2): string {.inline, noinit.} =
 proc hash*(self: Rect2): Hash {.inline, noinit.} =
   !$(self.position.hash() !& self.size.hash())
 
+proc x*(self: Rect2): float32 {.inline.} =
+  self.position.x
+
+proc `x=`*(self: var Rect2, x:float32) {.inline.} =
+  self.position.x = x
+
+proc y*(self:Rect2): float32 {.inline.} =
+  self.position.y
+
+proc `y=`*(self: var Rect2, y:float32) {.inline.} =
+  self.position.y = y
+
+proc height*(self: Rect2): float32 {.inline.} =
+  self.size.y
+
+proc `height=`*(self: var Rect2, height: float32) {.inline.} =
+  self.size.y = height
+
+proc width*(self: Rect2): float32 {.inline.} =
+  self.size.x
+
+proc `width=`*(self: var Rect2, width: float32) {.inline.} =
+  self.size.x = width
+
+proc left*(self: Rect2): float32 {.inline.} =
+  self.x
+
+proc `left=`*(self: var Rect2, left:float32) {.inline.} =
+  self.x = left
+
+proc right*(self: Rect2): float32 {.inline.} =
+  self.left + self.width
+
+proc `right=`*(self: var Rect2, right: float32) {.inline.} =
+  self.width = right - self.left
+
+proc top*(self: Rect2): float32 {.inline.} =
+  self.y
+
+proc `top=`*(self: var Rect2, top: float32) {.inline.} =
+  self.y = top
+
+proc bottom*(self: Rect2): float32 {.inline.} =
+  self.top + self.height
+
+proc `bottom=`*(self: var Rect2, bottom: float32) {.inline.} =
+  self.height = bottom - self.top
+
+proc topLeft*(self: Rect2): Vector2 {.inline, noinit.} =
+  vec2(self.top, self.left)
+
+proc bottomRight*(self: Rect2): Vector2 {.inline, noinit.} =
+  vec2(self.right, self.bottom)
+
+proc endd*(self: Rect2): Vector2 {.inline, noinit.} =
+  self.bottomRight
+
 proc area*(self: Rect2): float32 {.inline, noinit.} =
   self.size.x * self.size.y
 
@@ -120,6 +177,20 @@ proc growIndividual*(self: Rect2, left, top: float32,
   result.position.y -= top
   result.size.x += left + right
   result.size.y += top + bottom
+
+proc growMargin*(self: Rect2, margin: int64, by: float32): Rect2 {.inline, noinit.} =
+  result = self
+  case margin:
+  of 0'i64: #MARGIN_LEFT
+    result.left = result.left - by
+  of 1'i64: #MARGIN_TOP
+    result.top = result.top - by
+  of 2'i64: #MARGIN_RIGHT
+    result.right = result.right + by
+  of 3'i64: #MARGIN_BOTTOM:
+    result.bottom = result.bottom + by
+  else: discard
+
 
 proc expandTo*(self: var Rect2, to: Vector2) {.inline.} =
   var startPoint = self.position
