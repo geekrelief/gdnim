@@ -1,6 +1,5 @@
-import godot
-import godotapi / [node, label]
-import hot
+import godot, godotapi / [node, label]
+import gdnim
 import strformat
 import tables
 
@@ -19,8 +18,8 @@ gdobj TestComp of Label:
 
   method ready() =
     discard self.connect("test_sig", self, "on_test_sig")
-    self.emitSignal("test_sig", true.toVariant, 123.toVariant, "hello".toVariant)
-    self.emitSignal("test_sig", false.toVariant, (-128).toVariant, "world".toVariant)
+    self.emit("test_sig", true, 123, "hello")
+    self.emit("test_sig", false, (-128), "world")
 
   proc on_test_sig(a_bool:bool, a_int8:int8, a_string:string) {.gdExport.} =
     print &"got test_sig {a_bool = } {a_int8 = } {a_string = }"

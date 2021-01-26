@@ -1,6 +1,5 @@
-import godot
-import godotapi/[sprite, scene_tree, packed_scene, resource_loader, node_2d]
-import hot
+import godot, godotapi/[sprite, scene_tree, packed_scene, resource_loader, node_2d]
+import gdnim
 import tables
 import strformat
 import sequtils

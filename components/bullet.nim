@@ -1,7 +1,6 @@
-import godot
-import godotapi / [sprite, global_constants]
+import godot, godotapi / [sprite, global_constants]
+import gdnim
 import math
-import hot
 import times
 import std/monotimes
 import strformat

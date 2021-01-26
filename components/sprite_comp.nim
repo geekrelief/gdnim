@@ -1,8 +1,7 @@
-import godot
-import godotapi / [sprite, input_event_mouse_button, scene_tree, timer]
-import hot
+import godot, godotapi / [sprite, input_event_mouse_button, scene_tree, timer]
+import gdnim
 import strformat
-import math, asyncdispatch
+import math
 
 type FireAsyncState = enum A, B, C, D, E, F, G, H, I
 
@@ -31,11 +30,7 @@ gdobj SpriteComp of Sprite:
     discard area2D.connect("input_event", self, "on_area2d_input_event")
     discard self.connect("bsclick", self, "on_bsclick")
 
-    registerFrameCallback(
-      proc() =
-        if hasPendingOperations():
-          poll(0)
-    )
+    startPolling()
     asyncCheck self.fireTimer()
 
   proc hot_unload():seq[byte] {.gdExport.} =
@@ -45,9 +40,9 @@ gdobj SpriteComp of Sprite:
   proc on_area2d_input_event(viewport:Node, event:InputEvent, shape_idx:int) {.gdExport.} =
     ifis(event, InputEventMouseButton):
       if it.pressed:
-        self.emit_signal("click")
-        self.emit_signal("bclick", it.button_index.toVariant)
-        self.emit_signal("bsclick", it.button_index.toVariant, shape_idx.toVariant)
+        self.emit("click")
+        self.emit("bclick", it.button_index)
+        self.emit("bsclick", it.button_index, shape_idx)
         self.get_tree().set_input_as_handled()
 
   proc on_bsclick(button_idx:int, shape_idx:int) {.gdExport.} =

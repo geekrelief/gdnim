@@ -45,6 +45,7 @@ let appDir = config.getSectionValue("Dir", "app")
 let compsDir = config.getSectionValue("Dir", "comps")
 let depsDir = config.getSectionValue("Dir", "deps")
 let depsGodotDir = config.getSectionValue("Dir", "deps_godot")
+let gdpathFlags = &"--path:gdnim --path:{depsDir} --path:{depsDir}/{depsGodotDir} "
 
 # generated files
 let baseDllDir = config.getSectionValue("App", "dll")
@@ -181,7 +182,7 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
   else: discard execShellCmd &"{gdbin} -e --path {projDir} {scn}"
 
 task genapi, "generate the godot api bindings":
-  execOrQuit(&"nim c -r --path:{depsDir}/{depsGodotDir} {depsDir}/genapi.nim")
+  execOrQuit(&"nim c -r {gdpathFlags} {depsDir}/genapi.nim")
   var ext = if hostOS == "windows": ".exe" else : ""
   removeFile(&"{depsDir}/genapi{ext}")
 
@@ -189,8 +190,9 @@ proc buildWatcher():string =
   {.cast(gcsafe).}:
     var flags = getSharedFlags()
     let dllPath = &"{dllDir}/watcher.{dllExt}"
-    if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime("watcher.nim") > getLastModificationTime(&"{dllPath}")):
-      result = execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --define:dllDir:{baseDllDir} --define:dllExt:{dllExt}", flags, &"{dllPath}", "watcher.nim")
+    let watcherPath = "gdnim/watcher.nim"
+    if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime(watcherPath) > getLastModificationTime(&"{dllPath}")):
+      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllExt:{dllExt}", flags, &"{dllPath}", watcherPath)
     else:
       result = "Watcher is unchanged"
 
@@ -277,7 +279,7 @@ proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, 
         (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
       )):
       result &= &">>> Build {compName} <<<"
-      result &= execnim(&"--path:{depsDir} --path:{depsDir}/{depsGodotDir} --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
+      result &= execnim(&"{gdpathFlags} --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
 
     if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
       (not fileExists(hotDllFilePath) or buildSettings["move"]):
