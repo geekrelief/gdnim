@@ -3,7 +3,6 @@ import gdnim
 import math
 import times
 import std/monotimes
-import strformat
 
 gdobj Bullet of Sprite:
   # gun will spawn

@@ -84,25 +84,6 @@ proc genGdns(name:string) =
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
 
-proc checkPrereq(packageName, sourceName:string, verbose:bool = true) =
-  var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
-  if exitCode != 0:
-    echo &"{packageName} is not installed. Installing."
-    execOrQuit(&"nimble install {sourceName}")
-  else:
-    if verbose:
-      echo &"{packageName} installed @ {output}"
-
-task prereqs, "Install prerequisites":
-  let packages = @[
-    ("compiler", "compiler"),
-    ("anycase", "anycase"),
-    ("msgpack4nim", "msgpack4nim"),
-    ("optionsutils", "https://github.com/PMunch/nim-optionsutils")
-  ]
-  for (packageName, sourceName) in packages:
-    checkPrereq(packageName, sourceName)
-
 task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
   var godotSrcPath = getEnv("GODOT_SRC_PATH")
@@ -181,10 +162,31 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
   if hostOS == "windows": discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
   else: discard execShellCmd &"{gdbin} -e --path {projDir} {scn}"
 
+proc checkPrereq(packageName, sourceName:string, verbose:bool = true) =
+  var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
+  if exitCode != 0:
+    echo &"{packageName} is not installed. Installing."
+    execOrQuit(&"nimble install {sourceName}")
+  else:
+    if verbose:
+      echo &"{packageName} installed @ {output}"
+
 task genapi, "generate the godot api bindings":
   execOrQuit(&"nim c -r {gdpathFlags} {depsDir}/genapi.nim")
   var ext = if hostOS == "windows": ".exe" else : ""
   removeFile(&"{depsDir}/genapi{ext}")
+
+task prereqs, "Install prerequisites":
+  let packages = @[
+    ("compiler", "compiler"),
+    ("anycase", "anycase"),
+    ("msgpack4nim", "msgpack4nim"),
+    ("optionsutils", "https://github.com/PMunch/nim-optionsutils")
+  ]
+  for (packageName, sourceName) in packages:
+    checkPrereq(packageName, sourceName)
+
+  genapiTask()
 
 proc buildWatcher():string =
   {.cast(gcsafe).}:

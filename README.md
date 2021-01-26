@@ -1,8 +1,6 @@
 # Gdnim #
 
-gdnim is a testbed for experimental features for [godot-nim] projects.  It relies on a [custom build][godot 3.2 custom] of the [godot engine] and [godot-nim] that enables hot reloading of dlls using a Watcher node and easier project managment.
-
-It's also a testbed for experimental features that might never make it into [godot-nim].
+gdnim is a testbed for experimental features for [godot-nim] projects that implements hot reloading of dlls as well as features for ease of development.
 
 *NOTE*: This only works on Windows and Linux platforms so far. There's been a little work done to get it working for Mac, but a PR will be gladly accepted.
 
@@ -10,8 +8,8 @@ It's also a testbed for experimental features that might never make it into [god
   - [Why](#why?)
   - [Quick Setup Guide](#quick-setup-guide)
   - [Quick Dev Guide](#quick-dev-guide)
-  - [Tips](#tips)
   - [Prerequisites](#prerequisites)
+  - [Tips](#tips)
   - [Project Structure](#project-structure)
     - [Files and Folders](#files-and-folders)
   - [Setup](#setup)
@@ -29,38 +27,27 @@ The goal is to streamline and speed up the process of development for [godot-nim
   - experimental support for Godot 4.0, e.g.: GDNative 4.0 (when it's stable)
   - reducing tedium: auto-recompilation on save, auto-generation of artifacts like nim, gdns, tscn files; proc and macros to reduce boilerplate
 
-Hopefully, some of this will make it back into godot-nim.
 ## Quick Setup Guide ##
 
- - Clone - [godot 3.2 custom]
-     If this is looking stale, create an issue I'll update it with godot's latest commits
  - Compile the build script: `nim c build`
- - Configure the `build.ini` with the location of the [custom repo][godot 3.2 custom], etc.
+ - Configure the `build.ini` with the location of godot bin files. If you have your own build of godot you can configure the repo source directory and use `./build gdengine`
  - See available tasks: `./build help`
- - Download Nim prerequisite libraries: `./build prereqs`
- - Build the godot binaries: `./build gdengine`
- - Generate the godot-nim bindings: `./build genapi`
+ - Download Nim prerequisite libraries and generate the godot-nim bindings: `./build prereqs`
  - Build watcher and components: `./build cleanbuild`
 
 ## Quick Dev Guide ##
  - To **make a new nim component** run: `./build gencomp my_comp node_2d`. The nim file is created for you in `components` See [Setup](#setup) for details.
- - Modify `components/my_comp.nim`
+ - Edit as needed `components/my_comp.nim`
  - Build the component: `./build -m` (`-m` moves the dll to the hot dll path)
  - Launch godot editor with: `./build gd` (if this fails, launch godot manually, or see the [Setup](#setup) section)
- - Open and play the generated component scene file: `_tscn/my_comp.tscn`
+ - Open, edit (as needed) and play the generated component scene file: `_tscn/my_comp.tscn`
  - Start the component file watcher for recompilation `./build cwatch`
  - Make a modification to component, the component watcher will rebuild the component.
  - Hot reload should occur if there were no compiler errors.
  - **Note:** The hot module contains save and load macros to persist state between reloads.
 
-## Tips ##
- - If the godot app crashes, or your component gets into a weird state where it can't reload cleanly. Close the app and run `./build -m` to move the safe dll to the hot dll path and rerun the app.
- - If the app is crashing when trying to reload, try force rebuilding the component `./build -f comp_name` or deleting the dll and rebuilding.
-- If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
-
 ## Prerequisites ##
-  - [godot 3.2 custom]
-  - or [godot 3.2 with gdnative unload]
+  - [godot engine 3.2.4+]: commit [311ca0c6 or newer](https://github.com/godotengine/godot/commit/311ca0c6f23784dfa831d8f058a335f698dcc5ea) has my patch merged for dll unloading or my custom repo [godot 3.2 custom]
   - [nim](https://github.com/nim-lang/Nim) use stable or devel 3b963a81,
     - the commit after breaks godot-nim. [bug report](https://github.com/pragmagic/godot-nim/issues/81)
   - Nim Libraries (downloaded with `./build prereqs`)
@@ -72,8 +59,14 @@ Hopefully, some of this will make it back into godot-nim.
     - gcc, vcc, and tcc are supported
     - (see [Compiler notes](#compiler-notes) below for details on differences)
 
+## Tips ##
+ - If the godot app crashes, or your component gets into a weird state where it can't reload cleanly. Close the app and run `./build -m` to move the safe dll to the hot dll path and rerun the app.
+ - If the app is crashing when trying to reload, try force rebuilding the component `./build -f comp_name` or deleting the dll and rebuilding.
+- If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
+- Hot reloading makes use of components as sub-scenes. So the nativescript is attached to a node that isn't the root of a scene, when it gets reloaded, none of its children will be created. See `/app/scenes/main.tscn` and how it references the the other nodes from `/app/_tscn`.
+
 ## Project Structure ##
-Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3.2 custom] merged with [godot 3.2 with gdnative unload] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript which can be buggy and limited. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
+Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
 
 ### Files and Folders ###
  - `/app`: This is the godot project folder.
@@ -95,13 +88,13 @@ Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3
 
 ## Setup ##
 The project is primarily, developed and tested on Windows / Linux. (Mac support PR welcome).
-Modify the `build.ini`, `build.nim` and `tasks.nim` script for your needs. `build.ini` expects some paths to my [godot 3.2 custom engine source][godot 3.2 custom] and editor executables.
+Modify the `build.ini`, `build.nim` and `tasks.nim` script for your needs. `build.ini` expects some paths the godot engine repo and editor executables.
 
-If you have all my mods from `build.ini`'s merge_branches in your git repo you can, run `./build gdengine update`.  Otherwise stick to using 3.2_custom, which I update periodically with commits from godot's 3.2 branch by rebasing.
+If you have all my mods from `build.ini`'s merge_branches in your git repo you can, run `./build gdengine update`.  Otherwise stick to using [godot engine 3.2.4+] and empty the merge_branches, and you can use `./build gdengine` to build the engine.
 
-The app folder contains the stub godot project. You create "components" which are the classes that can reload by
+The `app` folder contains the stub godot project. You create "components" which are the classes that can reload by
 running the `./build gencomp your_module_name godot_base_class_name`.  A nim file will appear in
-the components folder. Generated files are stored in `app/_dlls`, `app/_gdns`, `app/_tscn`.
+the `components` folder. Generated files are stored in `app/_dlls`, `app/_gdns`, `app/_tscn`.
 Run the godot editor. The `watcher.tscn` should autoload in the godot project.
 
 See the examples in the `components` folder.
@@ -162,8 +155,7 @@ Avoid the `useMalloc` option with ORC. It'll eventually cause a crash.
 TCC has the fastest compile times, but crashes when compiling with threads:on. If compiling on windows, read `deps/tcc/README.md` to make tcc work with the `asynchdispatch` module. Tcc is not as well supported as the other compilers, and may not support all features of gdnim.
 
 
-[godot engine]:https://github.com/godotengine/godot
+[godot engine 3.2.4+]:https://github.com/godotengine/godot
 [godot-nim]:https://github.com/pragmagic/godot-nim
 [godot-nim-stub]:https://github.com/pragmagic/godot-nim-stub
 [godot 3.2 custom]:https://github.com/geekrelief/godot/tree/3.2_custom
-[godot 3.2 with gdnative unload]:https://github.com/geekrelief/godot/tree/3.2_gdnative_unload
