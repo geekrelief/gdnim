@@ -4,7 +4,7 @@ import times, anycase, threadpool,strutils, osproc
 const nim_template = """
 import godot
 import godotapi / [$3]
-import hot
+import gdnim
 
 gdobj $2 of $4:
 

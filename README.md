@@ -10,12 +10,12 @@ It's also a testbed for experimental features that might never make it into [god
   - [Why](#why?)
   - [Quick Setup Guide](#quick-setup-guide)
   - [Quick Dev Guide](#quick-dev-guide)
+  - [Tips](#tips)
   - [Prerequisites](#prerequisites)
   - [Project Structure](#project-structure)
     - [Files and Folders](#files-and-folders)
   - [Setup](#setup)
   - [Tasks](#tasks)
-  - [Tips](#tips)
   - [Implementation details](#implementation-details)
     - [Nim notes](#nim-notes)
     - [Compiler notes](#compiler-notes)
@@ -23,7 +23,7 @@ It's also a testbed for experimental features that might never make it into [god
 ## Why? ##
 
 The goal is to streamline and speed up the process of development for [godot-nim] by adding experimental features like:
-  - rapid iteration features: hot-reloading, (TODO) nimscript integration
+  - hot-reloading
   - match gdscript features, e.g.: signal declarations and async signal handling
   - experimental support for Nim (devel branch), e.g.: gc:ORC support, IC
   - experimental support for Godot 4.0, e.g.: GDNative 4.0 (when it's stable)
@@ -53,8 +53,12 @@ Hopefully, some of this will make it back into godot-nim.
  - Hot reload should occur if there were no compiler errors.
  - **Note:** The hot module contains save and load macros to persist state between reloads.
 
+## Tips ##
+ - If the godot app crashes, or your component gets into a weird state where it can't reload cleanly. Close the app and run `./build -m` to move the safe dll to the hot dll path and rerun the app.
+ - If the app is crashing when trying to reload, try force rebuilding the component `./build -f comp_name` or deleting the dll and rebuilding.
+- If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
+
 ## Prerequisites ##
-  - VSCode
   - [godot 3.2 custom]
   - or [godot 3.2 with gdnative unload]
   - [nim](https://github.com/nim-lang/Nim) use stable or devel 3b963a81,
@@ -81,8 +85,10 @@ Gdnim uses a customized build script and [a custom version of godot 3.2][godot 3
  - `deps/tcc`: tcc header required on Windows for asyncdispatch
  - `build.nim`: The build script, compiled with `nim c build`, includes the `tasks.nim`
  - `tasks.nim`: Build tasks are specified here for updating / compiling the godot engine, generating / compiling  components, running the godot editor, etc. After modifying rebuild with `nim c build`.
- - `watcher.nim`: The Watcher node that monitors changes to registered components. In a new godot project set watcher.gdns to autoload.
- - `hot.nim`: The module used by components to `register` with the Watcher node. Also has `save` / `load` macros for persisting data between reloads. When Watcher detects an updated dll, it calls the components' `hot_unload` callback to free references to components. Inside `proc hot_unload` the references to dll need to be freed. The `save` macro is used to serialize data with Watcher.  On `register`, Watcher will return the data as an `Option[MsgStream]`.  The `load` macro is used to deserialize the data. To deserialize the data, but ignore it a `!` can be prefixed to a symbol. For example:  If `save(self.speed, self.velocity)` was called in `hot_unload`, then `register(my_comp)?.load(self.speed, !self.velocity)`, will deserialize the types of `self.speed` and `self.velocity`, but `self.velocity` will not be assigned. This is used to reset values while preserving the serialization order between compiles/reloads.
+ - `gdnim/watcher.nim`: The Watcher node that monitors changes to registered components. In a new godot project set watcher.gdns to autoload.
+ - `gdnim/hot.nim`: The module used by components to `register` with the Watcher node. Also has `save` / `load` macros for persisting data between reloads. When Watcher detects an updated dll, it calls the components' `hot_unload` callback to free references to components. Inside `proc hot_unload` the references to dll need to be freed. The `save` macro is used to serialize data with Watcher.  On `register`, Watcher will return the data as an `Option[MsgStream]`.  The `load` macro is used to deserialize the data. To deserialize the data, but ignore it a `!` can be prefixed to a symbol. For example:  If `save(self.speed, self.velocity)` was called in `hot_unload`, then `register(my_comp)?.load(self.speed, !self.velocity)`, will deserialize the types of `self.speed` and `self.velocity`, but `self.velocity` will not be assigned. This is used to reset values while preserving the serialization order between compiles/reloads.
+ - `gdnim/utils.nim`: This module contains helper procs and macros.
+ - `gdnim/gdnim.nim`: Loads and exports the gdnim `hot` and `utils` module.
  - `build.ini`: Configuration file used to specify directories and settings. This is read at runtime.
  - `components`: Where nim component files live. Components must have unique identifiers. Dlls are generated from these components.
 
@@ -113,12 +119,6 @@ isn't a general way to support launching the editor from a terminal for all dist
 
   By default running `./build` will build any components that have changed.  If you supply an argument with no task name: `./build my_comp` the argument is assumed to be a component.
 
-## Tips ##
- - If the godot app crashes, or your component gets into a weird state where it can't reload cleanly. Close the app and run `./build -m` to move the safe dll to the hot dll path and rerun the app.
- - If the app is crashing when trying to reload, try force rebuilding the component `./build -f comp_name` or deleting the dll and rebuilding.
-- If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
-
-
 ## Implementation details ##
 Watcher monitors the `app/_dlls` folder for updates and coordinates the reload process
 with the components. The components use the hot module save and load macros to
@@ -143,7 +143,9 @@ When the project application is running, update and build the components. Watche
 ### Nim notes ###
 The godot-nim library in deps has been customized to use the new gc:ORC and prep it for future versions of nim. This is why ORC is suitable for games: https://nim-lang.org/blog/2020/12/08/introducing-orc.html
 Use the build script to generate the godotapi into the deps folder.
-Gdnim, and the godot-nim bindings are built against the nim devel branch.
+Gdnim, and the godot-nim bindings are tested against the nim devel branch 3b963a81.
+
+Avoid the `useMalloc` option with ORC. It'll eventually cause a crash.
 
 
 ### Compiler notes ###
