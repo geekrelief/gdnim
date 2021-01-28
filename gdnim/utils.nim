@@ -1,6 +1,5 @@
-import godot, godotapi/objects, asyncdispatch
+import godot, godotapi/objects, asyncdispatch, macros
 export asyncdispatch
-import macros
 
 # helper to convert types and execute body, if object can be cast to type
 # example: ifis(event, InputEventKey): print it.scancode

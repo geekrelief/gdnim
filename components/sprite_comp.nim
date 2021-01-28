@@ -1,7 +1,5 @@
-import godot, godotapi / [sprite, input_event_mouse_button, scene_tree, timer]
-import gdnim
-import strformat
-import math
+import gdnim, godotapi / [sprite, input_event_mouse_button, scene_tree, timer]
+import strformat, math
 
 type FireAsyncState = enum A, B, C, D, E, F, G, H, I
 

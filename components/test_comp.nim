@@ -1,7 +1,5 @@
-import godot, godotapi / [node, label]
-import gdnim
-import strformat
-import tables
+import gdnim, godotapi / [node, label]
+import strformat, tables
 
 gdobj TestComp of Label:
   var tick:int

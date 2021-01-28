@@ -2,17 +2,16 @@ from sequtils import toSeq, filter, mapIt
 import times, anycase, threadpool,strutils, osproc
 
 const nim_template = """
-import godot
-import godotapi / [$3]
-import gdnim
+import gdnim, godotapi / [$3]
 
 gdobj $2 of $4:
 
-  method enter_tree() =
-    discard register($1)
-
   proc hot_unload():seq[byte] {.gdExport.} =
     self.queue_free()
+    #save()
+
+  method enter_tree() =
+    discard register($1)#?.load()
 """
 
 const gdns_template = """
@@ -80,6 +79,8 @@ proc genGdns(name:string) =
     f.write(gdns_template % [name, name.pascal, relativePath(dllDir, appDir)])
     f.close()
     echo &"generated {gdns}"
+  else:
+    echo "{gdns} already exists"
 
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
@@ -243,6 +244,8 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
     f.write(nim_template % [compName, compClassName, baseClassModuleName, baseClassName])
     f.close()
     echo &"generated {nim}"
+  else:
+    echo "{nim} already exists"
 
   genGdns(compName)
 
@@ -252,6 +255,8 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
     f.write(tscn_template % [compName, compClassName, relativePath(gdnsDir, appDir), baseClassName])
     f.close()
     echo &"generated {tscn}"
+  else:
+    echo "{tscn} already exists"
 
 proc prepBuildCompSettings(): tuple[sharedFlags:string, buildSettings:Table[string, bool]] =
   result.sharedFlags = getSharedFlags()

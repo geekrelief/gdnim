@@ -1,8 +1,5 @@
-import godot, godotapi/[sprite, scene_tree, packed_scene, resource_loader, node_2d]
-import gdnim
-import tables
-import strformat
-import sequtils
+import gdnim, godotapi/[sprite, scene_tree, packed_scene, resource_loader, node_2d]
+import tables, strformat, sequtils
 
 gdobj Gun of Sprite:
 

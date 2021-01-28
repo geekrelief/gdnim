@@ -1,8 +1,5 @@
-import godot, godotapi / [sprite, global_constants]
-import gdnim
-import math
-import times
-import std/monotimes
+import gdnim, godotapi / [sprite, global_constants]
+import math, times, std/monotimes
 
 gdobj Bullet of Sprite:
   # gun will spawn
