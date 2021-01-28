@@ -18,8 +18,8 @@ gdobj TestComp of Label:
 
   method ready() =
     discard self.connect("test_sig", self, "on_test_sig")
-    self.emit("test_sig", true, 123, "hello")
-    self.emit("test_sig", false, (-128), "world")
+    toV self.emit_signal("test_sig", [true, 123, "hello"])
+    toV self.emit_signal("test_sig", [false, (-128), "world"])
 
   proc on_test_sig(a_bool:bool, a_int8:int8, a_string:string) {.gdExport.} =
     print &"got test_sig {a_bool = } {a_int8 = } {a_string = }"

@@ -37,13 +37,16 @@ gdobj SpriteComp of Sprite:
     self.queue_free()
     save(self.startPos, self.fireState, self.rotation_degrees)
 
+
   proc on_area2d_input_event(viewport:Node, event:InputEvent, shape_idx:int) {.gdExport.} =
     ifis(event, InputEventMouseButton):
       if it.pressed:
-        self.emit("click")
-        self.emit("bclick", it.button_index)
-        self.emit("bsclick", it.button_index, shape_idx)
+        self.emit_signal("click")
+
+        toV self.emit_signal("bclick", [it.button_index])
+        toV self.emit_signal("bsclick", [it.button_index, shape_idx])
         self.get_tree().set_input_as_handled()
+
 
   proc on_bsclick(button_idx:int, shape_idx:int) {.gdExport.} =
     print &"bsclick {button_idx = } {shape_idx = }"

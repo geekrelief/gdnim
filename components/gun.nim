@@ -45,7 +45,7 @@ gdobj Gun of Sprite:
     var id = self.nextBulletId
     inc self.nextBulletId
     var b = self.bulletRes.instance()
-    discard b.call("set_data", id.toVariant, v.toVariant, p.toVariant)
+    discard toV b.call("set_data", [id, v, p])
     self.get_tree().root.add_child(b)
 
   proc fire_single() {.gdExport.} =

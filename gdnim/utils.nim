@@ -1,5 +1,6 @@
 import godot, godotapi/objects, asyncdispatch
 export asyncdispatch
+import macros
 
 # helper to convert types and execute body, if object can be cast to type
 # example: ifis(event, InputEventKey): print it.scancode
@@ -8,10 +9,6 @@ template ifis*(a:typed, T:typed, body:untyped):untyped =
     var it {.inject.} = a as T
     body
 
-# auto conversion of parameters to Variants for emit_signal
-proc emit*(obj:Object, sig:string, args:varargs[Variant, `newVariant`]) =
-  obj.emit_signal(sig, args)
-
 # starts polling for asyncdispatch
 template startPolling*() =
   registerFrameCallback(
@@ -19,3 +16,25 @@ template startPolling*() =
       if hasPendingOperations():
         poll(0)
   )
+
+type
+  VariantDefect* = object of Defect
+# converts bracket surrounded parameters of a method call to Variants
+# toV self.call("myfunc", 123, true, idx) -> self.call("myfunc", newVariant(123), newVariant(true), newVariant(idx))
+macro toV*(callNode:untyped):untyped =
+  result = callNode
+  template errOut =
+    raise newException(VariantDefect, "toV expects method call with arguments in brackets, toV self.call(\"myfunc\", [123, true, id])")
+  if callNode.kind != nnkCall:
+    errOut
+  var vargsIdx:int = -1
+  for i in 0..<callNode.len:
+    var arg = callNode[i]
+    if arg.kind == nnkBracket:
+      vargsIdx = i
+  if vargsIdx == -1:
+    errOut
+  var vargs = callNode[vargsIdx]
+  callNode.del(vargsIdx)
+  for i in 0..<vargs.len:
+    callNode.add newCall("newVariant", vargs[i])
