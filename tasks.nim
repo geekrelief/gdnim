@@ -79,8 +79,6 @@ proc genGdns(name:string) =
     f.write(gdns_template % [name, name.pascal, relativePath(dllDir, appDir)])
     f.close()
     echo &"generated {gdns}"
-  else:
-    echo "{gdns} already exists"
 
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
@@ -177,7 +175,7 @@ task genapi, "generate the godot api bindings":
   var ext = if hostOS == "windows": ".exe" else : ""
   removeFile(&"{depsDir}/genapi{ext}")
 
-task prereqs, "Install prerequisites":
+task prereqs, "Install prerequisites, and calls genapi task":
   let packages = @[
     ("compiler", "compiler"),
     ("anycase", "anycase"),
@@ -245,7 +243,7 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
     f.close()
     echo &"generated {nim}"
   else:
-    echo "{nim} already exists"
+    echo &"{nim} already exists"
 
   genGdns(compName)
 
@@ -256,7 +254,7 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
     f.close()
     echo &"generated {tscn}"
   else:
-    echo "{tscn} already exists"
+    echo &"{tscn} already exists"
 
 proc prepBuildCompSettings(): tuple[sharedFlags:string, buildSettings:Table[string, bool]] =
   result.sharedFlags = getSharedFlags()
@@ -389,3 +387,6 @@ task help, "display list of tasks":
   echo "Call build with a task:"
   for i in 0..<tasks.len:
     echo "  ", tasks[i].task_name, " : ", tasks[i].description
+
+  echo "\nAdditional flags"
+  echo "  --ini:build.ini : sets the config file"

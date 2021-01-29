@@ -82,7 +82,7 @@ Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdn
  - `gdnim/hot.nim`: The module used by components to `register` with the Watcher node. Also has `save` / `load` macros for persisting data between reloads. When Watcher detects an updated dll, it calls the components' `hot_unload` callback to free references to components. Inside `proc hot_unload` the references to dll need to be freed. The `save` macro is used to serialize data with Watcher.  On `register`, Watcher will return the data as an `Option[MsgStream]`.  The `load` macro is used to deserialize the data. To deserialize the data, but ignore it a `!` can be prefixed to a symbol. For example:  If `save(self.speed, self.velocity)` was called in `hot_unload`, then `register(my_comp)?.load(self.speed, !self.velocity)`, will deserialize the types of `self.speed` and `self.velocity`, but `self.velocity` will not be assigned. This is used to reset values while preserving the serialization order between compiles/reloads.
  - `gdnim/utils.nim`: This module contains helper procs and macros.
  - `gdnim/gdnim.nim`: Loads and exports the gdnim `hot` and `utils` module.
- - `build.ini`: Configuration file used to specify directories and settings. This is read at runtime.
+ - `build.ini`: The default configuration file used to specify directories and settings. This is read at runtime. A different config file can be set using the `--ini` flag. Example: `./build --ini:my_config.ini cleanbuild`
  - `components`: Where nim component files live. Components must have unique identifiers. Dlls are generated from these components.
 
 

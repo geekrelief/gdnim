@@ -5,6 +5,8 @@ import os, osproc, tables, parseopt, strutils, strformat, parsecfg, terminal
 #requires "godot >= 0.8.1"
 #requires "msgpack4nim"
 
+var buildini:string = "build.ini"
+
 type
   Task = tuple[task_name:string, description:string, task_proc: proc():void {.nimcall.}]
 
@@ -40,6 +42,7 @@ let allCompilerFlagsTable = {
     # clean compile output, needs gcc dlls, produces large dlls by default, use strip
     "gcc":"--cc:gcc --threads:on --tlsEmulation:off",
     "gcc_strip": "--d:strip", # same as "--passL:\"-s\"", # removes debug symbols
+    "gcc_flto": "--passC:-flto", # https://gcc.gnu.org/wiki/LinkTimeOptimization
     # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
     "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
   # gc
@@ -48,7 +51,8 @@ let allCompilerFlagsTable = {
     "realtime":"--d:useRealtimeGC",
   "useMalloc":"--d:useMalloc", # use C memory primitives
   # build_kind
-    "release":"--d:danger",
+    "danger":"--d:danger",
+    "release":"--d:release",
     "debug":"--debugger:native --stackTrace:on",
     "diagnostic":"--d:danger --debugger:native", #for dumpincludes
   # hot
@@ -70,18 +74,18 @@ var otherFlagsTable:Table[string, string]
 
 proc configError(errMsg:string, prescription:string) =
   stderr.setForegroundColor(fgRed, true)
-  stderr.styledWrite("build.ini error: ", fgRed, errMsg)
+  stderr.styledWrite(&"{buildini} error: ", fgRed, errMsg)
   stderr.styledWrite("\n  Expected: ", fgWhite, prescription)
   quit()
 
 proc setFlag(flag:string, val:string = "on") =
   case flag:
     of "build_kind":
-      if val in ["debug", "release", "diagnostic"]:
+      if val in ["danger", "release", "debug", "diagnostic"]:
         taskCompilerFlagsTable.del("build_kind")
         taskCompilerFlagsTable["build_kind"] = allCompilerFlagsTable[val]
       else:
-        configError(&"build_kind = \"{val}\"", "debug, release, or diagnostic")
+        configError(&"build_kind = \"{val}\"", "danger, release, debug, or diagnostic")
     of "cc":
       if val in ["gcc", "vcc", "tcc"]:
         taskCompilerFlagsTable.del("cc")
@@ -105,22 +109,6 @@ proc setFlag(flag:string, val:string = "on") =
       else:
         otherFlagsTable[flag] = val
 
-var config = loadConfig("build.ini")
-
-setFlag("reload", config.getSectionValue("Hot", "reload"))
-setFlag("build_kind", config.getSectionValue("Compiler", "build_kind"))
-
-setFlag("cc", config.getSectionValue("Compiler", "cc"))
-if config.getSectionValue("Compiler", "cc") == "gcc" and
-  config.getSectionValue("Compiler", "build_kind") != "diagnostic":
-  setFlag("gcc_strip", config.getSectionValue("GCC", "strip"))
-
-setFlag("gc", config.getSectionValue("Compiler", "gc"))
-case config.getSectionValue("Compiler", "gc"):
-  of "arc", "orc":
-    setFlag("useMalloc", config.getSectionValue("Compiler", "useMalloc"))
-  else: discard
-
 var taskName = ""
 var compName = ""
 var args:seq[string]
@@ -135,6 +123,8 @@ for kind, key, val in p.getopt():
       setFlag("force")
     of "m":
       setFlag("move")
+    of "ini":
+      buildini = val
     else:
       setFlag(key, val)
   of cmdArgument:
@@ -142,6 +132,26 @@ for kind, key, val in p.getopt():
       taskName = key
     else:
       args.add key
+
+echo &"config file: {buildini}"
+var config = loadConfig(buildini)
+
+setFlag("reload", config.getSectionValue("Hot", "reload"))
+setFlag("build_kind", config.getSectionValue("Compiler", "build_kind"))
+
+setFlag("cc", config.getSectionValue("Compiler", "cc"))
+if config.getSectionValue("Compiler", "cc") == "gcc":
+  var build_kind = config.getSectionValue("Compiler", "build_kind")
+  if build_kind != "diagnostic":
+    setFlag("gcc_strip", config.getSectionValue("GCC", "strip"))
+
+  setFlag("gcc_flto", config.getSectionValue("GCC", "flto"))
+
+setFlag("gc", config.getSectionValue("Compiler", "gc"))
+case config.getSectionValue("Compiler", "gc"):
+  of "arc", "orc":
+    setFlag("useMalloc", config.getSectionValue("Compiler", "useMalloc"))
+  else: discard
 
 proc getSharedFlags():string =
   var sharedFlags = ""
