@@ -1,5 +1,5 @@
 from sequtils import toSeq, filter, mapIt
-import times, anycase, threadpool,strutils, osproc
+import anycase, threadpool
 
 const nim_template = """
 import gdnim, godotapi / [$3]

@@ -8,3 +8,4 @@ nimcache
 *.pdb
 .idea
 .nimcache
+nim.cfg
