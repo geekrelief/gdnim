@@ -35,6 +35,7 @@ let allCompilerFlagsTable = {
   "lib":"--app:lib --noMain",
   "mute":"--warning[LockLevel]:off --hint[Processing]:off",
   "parallel":"--parallelBuild:0",
+  "incremental":"--incremental:on",
   # cc
     "cc":"--cc:tcc", # doesn't work with threads:on
     # compiles that fastest, clean compile output, does not work with threads:on
@@ -152,6 +153,8 @@ case config.getSectionValue("Compiler", "gc"):
   of "arc", "orc":
     setFlag("useMalloc", config.getSectionValue("Compiler", "useMalloc"))
   else: discard
+
+setFlag("incremental", config.getSectionValue("Compiler", "incremental"))
 
 proc getSharedFlags():string =
   var sharedFlags = ""

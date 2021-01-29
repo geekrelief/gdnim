@@ -175,7 +175,8 @@ when defined(does_reload):
 
         for compName in self.compMetaTable.keys:
           if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and
-            getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath):
+            getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath) and
+            getFileSize(compName.safeDllPath) > 0:
             self.get_tree().paused = true
             self.notify(UNLOADING, &"Watcher unloading: {compName}")
             self.reloadingComps.add(compName)
