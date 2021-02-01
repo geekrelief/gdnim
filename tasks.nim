@@ -1,7 +1,7 @@
 from sequtils import toSeq, filter, mapIt
 import anycase, threadpool
 
-const nim_template = """
+const script_nim_template = """
 import gdnim, godotapi / [$3]
 
 gdobj $2 of $4:
@@ -12,6 +12,18 @@ gdobj $2 of $4:
 
   method enter_tree() =
     discard register($1)#?.load()
+"""
+
+const tool_nim_template = """
+import godot, godotapi / [editor_plugin, resource_loader]
+
+gdobj($2 of EditorPlugin, tool):
+
+  method enter_tree() =
+    discard
+
+  method exit_tree() =
+    discard
 """
 
 const gdns_template = """
@@ -38,6 +50,17 @@ const tscn_template = """
 
 [node name="$2" type="$4"]
 script = ExtResource( 1 )
+"""
+
+const plugin_cfg_template = """
+[plugin]
+
+name="$1"
+description=""
+author=""
+version=""
+script="$1.gdns"
+
 """
 
 let appDir = config.getSectionValue("Dir", "app")
@@ -72,8 +95,12 @@ let dllExt = case hostOS
                else: "unknown"
 
 proc genGdns(name:string) =
-  let gdns = &"{gdnsDir}/{name}.gdns"
-  let comp = &"{compsDir}/{name}.nim"
+  var comp = &"{compsDir}/{name}.nim"
+  var gdns = &"{gdnsDir}/{name}.gdns"
+  if not fileExists(comp):
+    comp = &"{compsDir}/tools/{name}.nim"
+    gdns = &"{appDir}/addons/{name}/{name}.gdns"
+
   if fileExists(comp) and not fileExists(gdns):
     var f = open(gdns, fmWrite)
     f.write(gdns_template % [name, name.pascal, relativePath(dllDir, appDir)])
@@ -106,7 +133,8 @@ task gdengine_update, "update the 3.2 custom branch with changes from upstream":
   for branch in gd_branches:
     execOrQuit(&"git merge {branch}")
 
-  execOrQuit(&"git push --force origin {gd_build_branch}")
+  if not ("keeplocal" in args):
+    execOrQuit(&"git push --force origin {gd_build_branch}")
 
   setCurrentDir(projDir)
 
@@ -229,6 +257,10 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
     removeFile dllPath
 
 task gencomp, "generate a component template (nim, gdns, tscn files), pass in the component name and  base class name in snake case:":
+  if args.len < 2:
+    echo "Usage: ./build gencomp comp_name base_node"
+    quit()
+
   var compName = args[0]
   var compClassName = compName.pascal
   var baseClassModuleName = args[1].tolower
@@ -239,13 +271,11 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
   let nim = &"{compsDir}/{compName}.nim"
   if not fileExists(nim):
     var f = open(nim, fmWrite)
-    f.write(nim_template % [compName, compClassName, baseClassModuleName, baseClassName])
+    f.write(script_nim_template % [compName, compClassName, baseClassModuleName, baseClassName])
     f.close()
     echo &"generated {nim}"
   else:
     echo &"{nim} already exists"
-
-  genGdns(compName)
 
   let tscn = &"{tscnDir}/{compName}.tscn"
   if not fileExists(tscn):
@@ -256,59 +286,122 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
   else:
     echo &"{tscn} already exists"
 
-proc prepBuildCompSettings(): tuple[sharedFlags:string, buildSettings:Table[string, bool]] =
+  genGdns(compName)
+
+proc getBuildSettings(): BuildSettings =
   result.sharedFlags = getSharedFlags()
-  var buildSettings: Table[string, bool]
-  buildSettings["move"] = "move" in otherFlagsTable
-  buildSettings["newOnly"] = not ("force" in result.sharedFlags)
-  buildSettings["noCheck"] = "nocheck" in otherFlagsTable
-  result.buildSettings = buildSettings
+  var settingsTable: Table[string, bool]
+  settingsTable["move"] = "move" in otherFlagsTable
+  settingsTable["newOnly"] = not ("force" in result.sharedFlags)
+  settingsTable["noCheck"] = "nocheck" in otherFlagsTable
+  result.settingsTable = settingsTable
 
-proc buildComp(compName:string, sharedFlags:string, buildSettings:Table[string, bool]):string =
+proc safeDllFilePath(compName:string): string =
+  &"{dllDir}/{compName}_safe.{dllExt}"
+proc hotDllFilePath(compName:string): string =
+  &"{dllDir}/{compName}.{dllExt}"
+proc nimFilePath(compName:string): string =
+  var nimFilePath = &"{compsDir}/{compName}.nim"
+  if not fileExists(nimFilePath):
+    nimFilePath = &"{compsDir}/tools/{compName}.nim"
+  nimFilePath
+
+proc shouldBuild(compName:string, buildSettings:BuildSettings ):bool =
+  let safe = safeDllFilePath(compName)
+  let hot = hotDllFilePath(compName)
+  let nim = nimFilePath(compName)
+  result = buildSettings.settingsTable["noCheck"] or
+    (not buildSettings.settingsTable["newOnly"]) or
+    (buildSettings.settingsTable["newOnly"] and (
+      (not fileExists(hot) and not fileExists(safe)) or
+      (fileExists(safe) and getLastModificationTime(nim) > getLastModificationTime(safe)) or
+      (fileExists(hot) and not fileExists(safe) and getLastModificationTime(nim) > getLastModificationTime(hot))
+    ))
+
+proc buildComp(compName:string, buildSettings:BuildSettings):string =
   {.cast(gcsafe).}:
-    genGdns(compName)
+    let safe = safeDllFilePath(compName)
+    let hot = hotDllFilePath(compName)
+    let nim = nimFilePath(compName)
 
-    let safeDllFilePath = &"{dllDir}/{compName}_safe.{dllExt}"
-    let hotDllFilePath = &"{dllDir}/{compName}.{dllExt}"
-    let nimFilePath = &"{compsDir}/{compName}.nim"
-
-    if not fileExists(nimFilePath):
-      result &= &"Error compiling {nimFilePath} [Not Found]"
+    if not fileExists(nim):
+      result &= &"Error: '{compName}' not found in components or components/tools"
       return
 
-    if buildSettings["noCheck"] or
-      (not buildSettings["newOnly"]) or
-      (buildSettings["newOnly"] and (
-        (not fileExists(hotDllFilePath) and not fileExists(safeDllFilePath)) or
-        (fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(safeDllFilePath)) or
-        (fileExists(hotDllFilePath) and not fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) > getLastModificationTime(hotDllFilePath))
-      )):
-      result &= &">>> Build {compName} <<<"
-      result &= execnim(&"{gdpathFlags} --path:.", sharedFlags, &"{safeDllFilePath}", &"{nimFilePath}")
+    genGdns(compName)
 
-    if fileExists(safeDllFilePath) and getLastModificationTime(nimFilePath) < getLastModificationTime(safeDllFilePath) and
-      (not fileExists(hotDllFilePath) or buildSettings["move"]):
-      moveFile(safeDllFilePath, hotDllFilePath)
+    if shouldBuild(compName, buildSettings):
+      result &= &">>> Build {compName} <<<"
+      result &= execnim(&"{gdpathFlags} --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
+
+    if fileExists(safe) and getLastModificationTime(nim) < getLastModificationTime(safe) and
+      (not fileExists(hot) or buildSettings.settingsTable["move"]):
+      moveFile(safe, hot)
       result &= ">>> dll moved safe to hot <<<"
+
+proc buildAllComps(res:var seq[FlowVar[string]], buildSettings:BuildSettings):int =
+  var count = 0
+  echo "building components: "
+  for compPath in walkFiles(&"{compsDir}/*.nim"):
+    inc count
+    var compName = splitFile(compPath)[1].snake
+    if shouldBuild(compName, buildSettings):
+      echo "  " & compName
+      res.add(spawn buildComp(compName, buildSettings))
+  for compPath in walkFiles(&"{compsDir}/tools/*.nim"):
+    inc count
+    var compName = splitFile(compPath)[1].snake
+    if shouldBuild(compName, buildSettings):
+      echo "  " & compName
+      res.add(spawn buildComp(compName, buildSettings))
+  count
 
 # components are named {compName}_safe.dll and
 # are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
 # the {compName}_safe.dll to the {compName}.dll and monitor the _dlls
 # folder to see if _safe.dll is rebuilt.
 task comp, "build component and generate a gdns file\n\tno component name means all components are rebuilt\n\tmove safe to hot with 'move' or 'm' flag (e.g.) build -m target\n\t--force or --f force rebuilds\n\t--nocheck or --nc skips compile without dll check but not force rebuilt":
-  var (sharedFlags, buildSettings) = prepBuildCompSettings()
+  var buildSettings = getBuildSettings()
 
   if not (compName == ""):
     compName = compName.snake
-    echo buildComp(compName, sharedFlags, buildSettings)
+    echo buildComp(compName, buildSettings)
   else:
     # compile all the comps
     var res = newSeq[FlowVar[string]]()
-    for compPath in walkFiles(&"{compsDir}/*.nim"):
-      res.add(spawn buildComp(splitFile(compPath)[1].snake, sharedFlags, buildSettings))
+    discard buildAllComps(res, buildSettings)
     sync()
     for f in res:
       echo ^f
+
+task gentool, "generate a tool / editor plugin scaffold":
+  if args.len != 1:
+    echo "Usage: ./build gentool tool_name"
+    quit()
+
+  var compName = args[0]
+  var compClassName = compName.pascal
+
+  let nim = &"{compsDir}/tools/{compName}.nim"
+  if not fileExists(nim):
+    var f = open(nim, fmWrite)
+    f.write(tool_nim_template % [compName, compClassName])
+    f.close()
+    echo &"generated {nim}"
+  else:
+    echo &"{nim} already exists"
+
+  let cfg = &"{appDir}/addons/{compName}/plugin.cfg"
+  if not fileExists(cfg):
+    createDir(&"{appDir}/addons/{compName}")
+    var f = open(cfg, fmWrite)
+    f.write(plugin_cfg_template % [compName])
+    f.close()
+    echo &"generated {cfg}"
+  else:
+    echo &"{cfg} already exists"
+
+  genGdns(compName)
 
 task flags, "display the flags used for compiling components":
   echo ">>> Task  compiler flags <<<"
@@ -331,15 +424,12 @@ task cleanbuild, "Rebuild all":
 
   var res = newSeq[FlowVar[string]]()
 
+  echo "building watcher"
   res.add(spawn buildWatcher())
 
   var compileCount = 1
-
   # comp task
-  var (sharedFlags, buildSettings) = prepBuildCompSettings()
-  for compPath in walkFiles(&"{compsDir}/*.nim"):
-    inc compileCount
-    res.add(spawn buildComp(splitFile(compPath)[1].snake, sharedFlags, buildSettings))
+  compileCount += buildAllComps(res, getBuildSettings())
   sync()
 
   var successes = 0
@@ -364,7 +454,7 @@ task cwatch, "Monitors the components folder for changes to recompile.":
   for compPath in walkFiles(&"{compsDir}/*.nim"):
     lastTimes[compPath] = getLastModificationTime(compPath)
 
-  var (sharedFlags, buildSettings) = prepBuildCompSettings()
+  var buildSettings = getBuildSettings()
 
   while true:
     for compPath in walkFiles(&"{compsDir}/*.nim"):
@@ -373,7 +463,7 @@ task cwatch, "Monitors the components folder for changes to recompile.":
         lastTimes[compPath] = curLastTime
         var compFilename = splitFile(compPath)[1].snake
         echo &"-- Recompiling {compFilename} --"
-        echo buildComp(compFilename, sharedFlags, buildSettings)
+        echo buildComp(compFilename, buildSettings)
     sleep cwatch_interval
 
 task diagnostic, "Displays code that contributes to your dll size. Pass in the comp name as an argument: ./build diagnostic comp_name":

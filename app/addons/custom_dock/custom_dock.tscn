@@ -1,0 +1,6 @@
+[gd_scene format=2]
+
+[node name="Custom Dock" type="Button"]
+margin_right = 390.0
+margin_bottom = 174.0
+text = "Click Me!"

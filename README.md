@@ -69,21 +69,22 @@ The goal is to streamline and speed up the process of development for [godot-nim
 Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
 
 ### Files and Folders ###
- - `/app`: This is the godot project folder.
-    - `/app/_dlls`: Location for `./build` compiled, component libraries (.dll's, .so's). If you have other dlls you want to store here, modify tasks.nim. See `task cleandll`, or put your dlls somewhere else.
-    - `/app/_gdns`: Location for `./build gencomp` generated NativeScript files. These are checked and regenerated for each component nim file. So they're safe to delete when you want to remove a component.
-    - `/app/_tscn`: Location for `./build gencomp` generated tscn files. Customize these for your needs.
-    - `/app/scenes`: (Optional) Location for your own scenes to keep separate from _tscn.
+ - `app`: This is the godot project folder.
+    - `app/_dlls`: Location for `./build` compiled, component libraries (.dll's, .so's). If you have other dlls you want to store here, modify tasks.nim. See `task cleandll`, or put your dlls somewhere else.
+    - `app/_gdns`: Location for `./build gencomp` generated NativeScript files. These are checked and regenerated for each component nim file. So they're safe to delete when you want to remove a component.
+    - `app/_tscn`: Location for `./build gencomp` generated tscn files. Customize these for your needs.
+    - `app/scenes`: (Optional) Location for your own scenes to keep separate from _tscn.
  - `deps/godot`: Custom version of godot-nim bindings. You can move this and update the location in `build.ini`
  - `deps/tcc`: tcc header required on Windows for asyncdispatch
  - `build.nim`: The build script, compiled with `nim c build`, includes the `tasks.nim`
  - `tasks.nim`: Build tasks are specified here for updating / compiling the godot engine, generating / compiling  components, running the godot editor, etc. After modifying rebuild with `nim c build`.
- - `gdnim/watcher.nim`: The Watcher node that monitors changes to registered components. In a new godot project set watcher.gdns to autoload.
+ - `gdnim/watcher.nim`: The Watcher node that monitors changes to registered components. In a new godot project set `_tscn/watcher.tscn` to autoload in Project Settings.
  - `gdnim/hot.nim`: The module used by components to `register` with the Watcher node. Also has `save` / `load` macros for persisting data between reloads. When Watcher detects an updated dll, it calls the components' `hot_unload` callback to free references to components. Inside `proc hot_unload` the references to dll need to be freed. The `save` macro is used to serialize data with Watcher.  On `register`, Watcher will return the data as an `Option[MsgStream]`.  The `load` macro is used to deserialize the data. To deserialize the data, but ignore it a `!` can be prefixed to a symbol. For example:  If `save(self.speed, self.velocity)` was called in `hot_unload`, then `register(my_comp)?.load(self.speed, !self.velocity)`, will deserialize the types of `self.speed` and `self.velocity`, but `self.velocity` will not be assigned. This is used to reset values while preserving the serialization order between compiles/reloads.
  - `gdnim/utils.nim`: This module contains helper procs and macros.
  - `gdnim/gdnim.nim`: Loads and exports the gdnim `hot` and `utils` module.
  - `build.ini`: The default configuration file used to specify directories and settings. This is read at runtime. A different config file can be set using the `--ini` flag. Example: `./build --ini:my_config.ini cleanbuild`
  - `components`: Where nim component files live. Components must have unique identifiers. Dlls are generated from these components.
+ - `components/tools`: Where nim files for tool / editor plugins go. Generated with `./build gentool my_tool_name`
 
 
 ## Setup ##

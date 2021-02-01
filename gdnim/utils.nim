@@ -1,4 +1,4 @@
-import godot, godotapi/objects, asyncdispatch, macros
+import godot, asyncdispatch, macros
 export asyncdispatch
 
 # helper to convert types and execute body, if object can be cast to type

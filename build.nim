@@ -9,6 +9,7 @@ var buildini:string = "build.ini"
 
 type
   Task = tuple[task_name:string, description:string, task_proc: proc():void {.nimcall.}]
+  BuildSettings = tuple[sharedFlags:string, settingsTable:Table[string, bool]]
 
 var tasks:seq[Task] = @[]
 

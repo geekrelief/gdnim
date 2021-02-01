@@ -4,6 +4,7 @@ import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils
 
 const does_reload* {.booldefine.}: bool = true
+const is_tool* {.booldefine.}: bool = false
 
 proc `^`(s:string):NimNode {.inline.} =
   ident(s)

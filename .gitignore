@@ -9,3 +9,4 @@ nimcache
 .idea
 .nimcache
 nim.cfg
+*.ini
