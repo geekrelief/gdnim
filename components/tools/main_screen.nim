@@ -17,16 +17,16 @@ gdobj(MainScreen of EditorPlugin, tool):
 
   # EditorPlugin.has_main_screen is virtual, but if we define it as a method
   # gdobj will prepend an underscore and godot won't find it
-  # define virtual without underscore as a proc and add gdExport pragma
-  proc hasMainScreen():bool {.gdExport.} =
+  # define virtual with gdExport pragma so the name is exported as is
+  method hasMainScreen():bool {.gdExport.} =
     true
 
-  proc makeVisible(visible:bool) {.gdExport.} =
+  method makeVisible(visible:bool) {.gdExport.} =
     if not self.main_panel_instance.isNil:
       self.main_panel_instance.visible = visible
 
-  proc getPluginName():string {.gdExport.} =
+  method getPluginName():string {.gdExport.} =
     "Main Screen"
 
-  proc getPluginIcon():Texture {.gdExport.} =
+  method getPluginIcon():Texture {.gdExport.} =
     self.get_editor_interface().get_base_control().get_icon("Node", "EditorIcons")
