@@ -906,6 +906,33 @@ proc typeNameToModuleName(name: string): string =
     # to avoid clash with stdlib
     result = "gd_os"
 
+const coreTypes = [
+  "void", "bool", "int", "float", "enum.Error", "String",
+  "Color", "Vector3", "Vector2", "Plane", "Basis", "Quat",
+  "AABB", "Rect2", "Transform2D", "Transform", "Variant",
+  "PoolByteArray", "PoolIntArray", "PoolRealArray",
+  "PoolVector2Array", "PoolVector3Array", "PoolColorArray",
+  "PoolStringArray",
+  ]
+proc addImportModule(typ:string, types:var HashSet[string], modules: var seq[string]) =
+  if typ notin coreTypes and typ notin types:
+    types.incl typ
+    modules.add(typeNameToModuleName(typ))
+
+proc getImportModules(obj:JsonNode):seq[string] =
+  var types = initHashSet[string]()
+  var modules:seq[string]
+  for property in obj["properties"]:
+    addImportModule(property["type"].str, types, modules)
+  for signal in obj["signals"]:
+    for arg in signal["arguments"]:
+      addImportModule(arg["type"].str, types, modules)
+  for meth in obj["methods"]:
+    addImportModule(meth["return_type"].str, types, modules)
+    for arg in meth["arguments"]:
+      addImportModule(arg["type"].str, types, modules)
+  modules
+
 proc newRegisterClassNode(typ: GodotType): PNode =
   newCall("registerClass",
     ident(typ.name),
@@ -1021,8 +1048,14 @@ proc genApi*(targetDir: string, apiJsonFile: string) =
     exportStmt.add(ident("godottypes"))
     tree.add(exportStmt)
 
-    var methodBindRegsitry = initHashSet[string]()
     let obj = typ.jsonNode
+
+    var imports = getImportModules(obj)
+    for imp in imports:
+      importStmt.add(ident(imp))
+      exportStmt.add(ident(imp))
+
+    var methodBindRegsitry = initHashSet[string]()
     if typ.baseName != "NimGodotObject":
       let baseModule = typeNameToModuleName(typ.baseName)
       let baseModuleNode = if getIdent(baseModule).isKeyword:
