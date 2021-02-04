@@ -327,6 +327,13 @@ const arrayTypes = toHashSet(["Array", "PoolByteArray",
   "PoolVector3Array", "PoolColorArray"])
 const wrapperTypes = union(arrayTypes,
                            toHashSet(["NodePath", "Dictionary", "Variant"]))
+const baseApiTypes = toHashSet(
+  ["void", "bool", "int64", "float64", "string", "Error",
+   "Vector2", "Rect2", "Vector3", "Transform2D", "Plane", "Quat", "AABB",
+   "Basis", "Transform", "Color", "RID", "NodePath", "Dictionary", "Variant",
+   "Array", "PoolByteArray", "PoolIntArray", "PoolRealArray", "PoolStringArray",
+   "PoolVector2Array", "PoolVector3Array", "PoolColorArray"])
+
 
 proc getInternalPtr(varName: PNode, typ: string): PNode =
   assert(typ in wrapperTypes or typ == "Object")
@@ -906,32 +913,27 @@ proc typeNameToModuleName(name: string): string =
     # to avoid clash with stdlib
     result = "gd_os"
 
-const coreTypes = [
-  "void", "bool", "int", "float", "enum.Error", "String",
-  "Color", "Vector3", "Vector2", "Plane", "Basis", "Quat",
-  "AABB", "Rect2", "Transform2D", "Transform", "Variant",
-  "PoolByteArray", "PoolIntArray", "PoolRealArray",
-  "PoolVector2Array", "PoolVector3Array", "PoolColorArray",
-  "PoolStringArray",
-  ]
-proc addImportModule(typ:string, types:var HashSet[string], modules: var seq[string]) =
-  if typ notin coreTypes and typ notin types:
-    types.incl typ
-    modules.add(typeNameToModuleName(typ))
+proc addImportModule(types:Table[string, GodotType], typ:string, moduleTypes:var HashSet[string]) =
+  var nimType = toNimType(types, typ)
+  if (nimType notin baseApiTypes) and (nimType notin moduleTypes):
+    moduleTypes.incl nimType
 
-proc getImportModules(obj:JsonNode):seq[string] =
-  var types = initHashSet[string]()
-  var modules:seq[string]
+proc getImportModules(types:Table[string, GodotType], obj:JsonNode, className:string):seq[string] =
+  var nimType = toNimType(className)
+  var moduleTypes = toHashSet([nimType])
   for property in obj["properties"]:
-    addImportModule(property["type"].str, types, modules)
+    addImportModule(types, property["type"].str, moduleTypes)
   for signal in obj["signals"]:
     for arg in signal["arguments"]:
-      addImportModule(arg["type"].str, types, modules)
+      addImportModule(types, arg["type"].str, moduleTypes)
   for meth in obj["methods"]:
-    addImportModule(meth["return_type"].str, types, modules)
+    addImportModule(types, meth["return_type"].str, moduleTypes)
     for arg in meth["arguments"]:
-      addImportModule(arg["type"].str, types, modules)
-  modules
+      addImportModule(types, arg["type"].str, moduleTypes)
+
+  moduleTypes.excl(nimType)
+  for moduleType in moduleTypes:
+    result.add(typeNameToModuleName(moduleType))
 
 proc newRegisterClassNode(typ: GodotType): PNode =
   newCall("registerClass",
@@ -1050,7 +1052,7 @@ proc genApi*(targetDir: string, apiJsonFile: string) =
 
     let obj = typ.jsonNode
 
-    var imports = getImportModules(obj)
+    var imports = getImportModules(types, obj, typ.name)
     for imp in imports:
       importStmt.add(ident(imp))
       exportStmt.add(ident(imp))
