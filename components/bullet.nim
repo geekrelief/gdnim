@@ -18,7 +18,6 @@ gdobj Bullet of Sprite:
   method enter_tree() =
     register(bullet)?.load(self.id, self.startTime, self.velocity, self.startPosition)
 
-
   proc hot_unload():seq[byte] {.gdExport.} =
     self.queue_free()
     save(self.id, self.startTime, self.velocity, self.startPosition)

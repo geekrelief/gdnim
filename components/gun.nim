@@ -21,9 +21,6 @@ gdobj Gun of Sprite:
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
-  method exit_tree() =
-    self.bulletRes = nil
-
   proc hot_unload():seq[byte] {.gdExport.} =
     self.queue_free()
     self.bulletRes = nil

@@ -623,6 +623,16 @@ proc toGodotStyle(s: string): string {.compileTime.} =
     else:
       result.add(c)
 
+macro nilRef*(p:typed):untyped =
+  var t = getType(p)
+  var k = typekind(t)
+  result = case k
+    of ntyRef:
+      var ap = p.copyNimTree()
+      quote do:
+        `ap` = nil
+    else: quote do: discard
+
 proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
   result = newNimNode(nnkStmtList)
 
@@ -642,10 +652,17 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
   let recList = newNimNode(nnkRecList)
   objTy.add(recList)
   let initBody = newStmtList()
+  let exitTreeBody = newStmtList()
   for decl in obj.fields:
     if not decl.defaultValue.isNil and decl.defaultValue.kind != nnkEmpty:
       initBody.add(newNimNode(nnkAsgn).add(newDotExpr(ident("self"), decl.name),
           decl.defaultValue))
+
+    var nameId = decl.name
+    let nilTest = quote do:
+        nilRef(self.`nameId`)
+    exitTreeBody.add(nilTest)
+
     let name = if not decl.isExported: decl.name
                else: postfix(decl.name, "*")
     recList.add(newIdentDefs(name, decl.typ))
@@ -655,7 +672,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
     newCall("init", newCall(obj.parentName, ident("self")))))
   var initMethod: NimNode
   for meth in obj.methods:
-    if meth.name == "init" and meth.nimNode[3].len == 1:
+    if ident(meth.name) == ident("init") and meth.nimNode[3].len == 1:
       initMethod = meth.nimNode
       break
   if initMethod.isNil:
@@ -670,6 +687,24 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
     ))
   else:
     initMethod.body.insert(0, initBody)
+
+  var exitTreeMethod: NimNode
+  for meth in obj.methods:
+    if ident(meth.name) == ident("exit_tree") and meth.nimNode[3].len == 1:
+      exitTreeMethod = meth.nimNode
+      break
+  if exitTreeMethod.isNil:
+    obj.methods.add(MethodDecl(
+      name: "exit_tree",
+      args: newSeq[VarDecl](),
+      returnType: newEmptyNode(),
+      isVirtual: true,
+      isNoGodot: false,
+      nimNode: newProc(postfix(ident("exit_tree"), "*"), body = exitTreeBody,
+                       procType = nnkMethodDef)
+    ))
+  else:
+    exitTreeMethod.body.add(exitTreeBody)
 
   #[
   when (NimMajor, NimMinor, NimPatch) < (0, 19, 0):
