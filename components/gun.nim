@@ -16,7 +16,7 @@ gdobj Gun of Sprite:
     register_dependencies(gun, bullet)
 
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
-    self.bulletRes = resource_loader.load(findCompTscn("bullet")) as PackedScene
+    self.bulletRes = loadScene("bullet")
 
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
     discard button_fireSingle.connect("pressed", self, "fire_single")
@@ -32,7 +32,7 @@ gdobj Gun of Sprite:
         if isUnloading:
           self.bulletRes = nil # free the reference or the dll can't unload
         else:
-          self.bulletRes = resource_loader.load(findCompTscn("bullet")) as PackedScene
+          self.bulletRes = loadScene("bullet")
 
   proc createBullet(v:Vector2, p:Vector2) =
     if self.bulletRes == nil: return

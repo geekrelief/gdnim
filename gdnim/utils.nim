@@ -1,5 +1,25 @@
-import godot, asyncdispatch, macros
-export asyncdispatch
+import godot, godotapi/[resource_loader, packed_scene],
+  os, asyncdispatch, macros, strformat
+from strutils import contains
+export asyncdispatch,
+  resource_loader, packed_scene
+
+# find the scene at runtime, returns the first resource that matches sceneName
+proc findScene*(sceneName:string):string =
+  var tscnFilename = &"{sceneName}.tscn"
+  var matches:seq[string]
+  for f in walkDirRec("."):
+    if f.contains(tscnFilename):
+      matches.add move(&"res://{f}")
+  if matches.len == 1:
+    return matches[0]
+  if matches.len == 0:
+    raise newException(IOError, &"Scene resource for {sceneName} could not be found!")
+  if matches.len > 1:
+    raise newException(IOError, &"Multiple resources found with {sceneName}:\n\t{matches}")
+
+proc loadScene*(compName:string):PackedScene =
+  load(findScene(compName)) as PackedScene
 
 # helper to convert types and execute body, if object can be cast to type
 # example: ifis(event, InputEventKey): print it.scancode

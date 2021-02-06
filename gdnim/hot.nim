@@ -1,5 +1,4 @@
-import macros, strformat, os
-from strutils import contains
+import macros, strformat
 import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils
 
@@ -194,19 +193,3 @@ macro register_dependencies*(compName:untyped, dependencies:varargs[untyped]):un
       )
   else:
     discard
-
-
-const tscnDir = "_tscn"
-# find the resource at runtime, returns the first resource that matches compName
-proc findCompTscn*(compName:string):string =
-  var tscnFilename = &"{compName}.tscn"
-  var matches:seq[string]
-  for f in walkDirRec(&"{tscnDir}"):
-    if f.contains(tscnFilename):
-      matches.add move(&"res://{f}")
-  if matches.len == 1:
-    return matches[0]
-  if matches.len == 0:
-    raise newException(IOError, &"Scene resource for {compName} could not be found!")
-  if matches.len > 1:
-    raise newException(IOError, &"Multiple resources found with {compName}:\n\t{matches}")

@@ -1,9 +1,8 @@
-import godot
+import gdnim
 import godotapi / [node, resource_loader, packed_scene, v_box_container, line_edit, scene_tree, theme]
 import os, strformat, times
 from sequtils import keepItIf
 import tables, sets, hashes
-import hot
 
 #[
 Watcher monitors the dll files for component changes.
@@ -207,7 +206,7 @@ when defined(does_reload):
       try:
         if not self.compMetaTable.hasKey(compName):
           self.notify(REGISTER_COMP, &"Watcher registering {compName}")
-          self.compMetaTable[compName] = ComponentMeta(resourcePath: findCompTscn(compName), saverProc: saverProc, loaderProc: loaderProc)
+          self.compMetaTable[compName] = ComponentMeta(resourcePath: findScene(compName), saverProc: saverProc, loaderProc: loaderProc)
           self.instancesByCompNameTable[compName] = @[]
 
         var instNode = self.get_node(saverPath)
