@@ -268,6 +268,15 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
   if baseClassName.endsWith("1d") or baseClassName.endsWith("2d") or baseClassName.endsWith("3d"):
     baseClassName[^1] = 'D'
 
+  baseClassModuleName = case baseClassModuleName:
+    of "object": "objects"
+    else: baseClassModuleName
+
+  var classFilename = &"{depsDir}/godotapi/{baseClassModuleName}.nim"
+  if not fileExists(classFilename):
+    echo &"Error generating component. Could not find {classFilename}!"
+    quit()
+
   let nim = &"{compsDir}/{compName}.nim"
   if not fileExists(nim):
     var f = open(nim, fmWrite)
