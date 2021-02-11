@@ -256,47 +256,6 @@ task cleandll, "clean the dlls, arguments are component names, default all non-g
     echo &"rm {dllPath}"
     removeFile dllPath
 
-task gencomp, "generate a component template (nim, gdns, tscn files), pass in the component name and  base class name in snake case:":
-  if args.len < 2:
-    echo "Usage: ./build gencomp comp_name base_node"
-    quit()
-
-  var compName = args[0]
-  var compClassName = compName.pascal
-  var baseClassModuleName = args[1].tolower
-  var baseClassName = baseClassModuleName.pascal
-  if baseClassName.endsWith("1d") or baseClassName.endsWith("2d") or baseClassName.endsWith("3d"):
-    baseClassName[^1] = 'D'
-
-  baseClassModuleName = case baseClassModuleName:
-    of "object": "objects"
-    else: baseClassModuleName
-
-  var classFilename = &"{depsDir}/godotapi/{baseClassModuleName}.nim"
-  if not fileExists(classFilename):
-    echo &"Error generating component. Could not find {classFilename}!"
-    quit()
-
-  let nim = &"{compsDir}/{compName}.nim"
-  if not fileExists(nim):
-    var f = open(nim, fmWrite)
-    f.write(script_nim_template % [compName, compClassName, baseClassModuleName, baseClassName])
-    f.close()
-    echo &"generated {nim}"
-  else:
-    echo &"{nim} already exists"
-
-  let tscn = &"{tscnDir}/{compName}.tscn"
-  if not fileExists(tscn):
-    var f = open(tscn, fmWrite)
-    f.write(tscn_template % [compName, compClassName, relativePath(gdnsDir, appDir), baseClassName])
-    f.close()
-    echo &"generated {tscn}"
-  else:
-    echo &"{tscn} already exists"
-
-  genGdns(compName)
-
 proc getBuildSettings(): BuildSettings =
   result.sharedFlags = getSharedFlags()
   var settingsTable: Table[string, bool]
@@ -364,6 +323,64 @@ proc buildAllComps(res:var seq[FlowVar[string]], buildSettings:BuildSettings):in
       echo "  " & compName
       res.add(spawn buildComp(compName, buildSettings))
   count
+
+
+task gencomp, "generate a component template (nim, gdns, tscn files), pass in the component name and  base class name in snake case\n\tUsage: ./build gencomp [notscn] comp_name base_node":
+
+  var compName:string
+  var baseClassModuleName:string
+  case args.len:
+    of 2:
+      compName = args[0]
+      baseClassModuleName = args[1].tolower
+    of 3:
+      compName = args[1]
+      baseClassModuleName = args[2].tolower
+    else:
+      echo "Usage: ./build gencomp [notscn] comp_name base_node"
+      echo "Example: ./build gencomp player kinematic_body_2d"
+      echo "Example without tscn: ./build gencomp notscn effect animated_sprite"
+      quit()
+
+  var compClassName = compName.pascal
+  var baseClassName = baseClassModuleName.pascal
+  if baseClassName.endsWith("1d") or baseClassName.endsWith("2d") or baseClassName.endsWith("3d"):
+    baseClassName[^1] = 'D'
+
+  baseClassModuleName = case baseClassModuleName:
+    of "object": "objects"
+    else: baseClassModuleName
+
+  var classFilename = &"{depsDir}/godotapi/{baseClassModuleName}.nim"
+  if not fileExists(classFilename):
+    echo &"Error generating component. Could not find {classFilename}!"
+    quit()
+
+  let nim = &"{compsDir}/{compName}.nim"
+  if not fileExists(nim):
+    var f = open(nim, fmWrite)
+    f.write(script_nim_template % [compName, compClassName, baseClassModuleName, baseClassName])
+    f.close()
+    echo &"generated {nim}"
+  else:
+    echo &"{nim} already exists"
+
+  if "notscn" notin args[0]:
+    let tscn = &"{tscnDir}/{compName}.tscn"
+    if not fileExists(tscn):
+      var f = open(tscn, fmWrite)
+      f.write(tscn_template % [compName, compClassName, relativePath(gdnsDir, appDir), baseClassName])
+      f.close()
+      echo &"generated {tscn}"
+    else:
+      echo &"{tscn} already exists"
+
+  genGdns(compName)
+
+  var buildSettings = getBuildSettings()
+  echo &"building {compName}"
+  echo buildComp(compName, buildSettings)
+
 
 # components are named {compName}_safe.dll and
 # are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy
@@ -459,6 +476,7 @@ task cleanbuild, "Rebuild all":
     echo "=== <<< Build Failed <<< ==="
 
 task cwatch, "Monitors the components folder for changes to recompile.":
+  echo "Monitoring components for changes.  Ctrl+C to stop"
   var lastTimes = newTable[string, Time]()
   for compPath in walkFiles(&"{compsDir}/*.nim"):
     lastTimes[compPath] = getLastModificationTime(compPath)
