@@ -30,6 +30,12 @@ proc stepify*(value, step: float32): float32 {.inline, noinit.} =
   else:
     value
 
+proc lerp*(a, b, t: float32): float32 {.inline, noinit.} =
+  (b - a) * t + a
+
+proc lerp*(a, b, t: float64): float64 {.inline, noinit.} =
+  (b - a) * t + a
+
 when (NimMajor, NimMinor, NimPatch) < (0, 20, 4):
   # Newer Nim has these procs in system module
 

@@ -190,12 +190,24 @@ proc floor*(self: Vector3): Vector3 {.inline.} =
 proc ceil*(self: Vector3): Vector3 {.inline.} =
   vec3(ceil(self.x), ceil(self.y), ceil(self.z))
 
+proc round*(self: Vector3): Vector3 {.inline.} =
+  vec3(round(self.x), round(self.y), round(self.z))
+
+proc sign*(self:Vector3): Vector3 {.inline, noinit.} =
+  result.x = if self.x == 0: 0.0 else: sign(self.x)
+  result.y = if self.y == 0: 0.0 else: sign(self.y)
+  result.z = if self.z == 0: 0.0 else: sign(self.z)
+
 proc lerp*(self: Vector3, other: Vector3, t: float32): Vector3 {.inline.} =
   vec3(
     self.x + t * (other.x - self.x),
     self.y + t * (other.y - self.y),
     self.z + t * (other.z - self.z)
   )
+
+proc directionTo*(self, to: Vector3):Vector3 {.inline, noinit.} =
+  result = to - self
+  result.normalize()
 
 proc distanceTo*(self, other: Vector3): float32 {.inline.} =
   (other - self).length()

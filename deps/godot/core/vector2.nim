@@ -106,6 +106,10 @@ proc angle*(self: Vector2): float32 {.inline, noinit.} =
 proc isNormalized*(self: Vector2): bool {.inline, noinit.} =
   isEqualApprox(self.lengthSquared(), 1.0)
 
+proc directionTo*(self, to: Vector2):Vector2 {.inline, noinit.} =
+  result = to - self
+  result.normalize()
+
 proc distanceTo*(self, to: Vector2): float32 {.inline, noinit.} =
   sqrt((self.x - to.x) * (self.x - to.x) + (self.y - to.y) * (self.y - to.y))
 
@@ -129,6 +133,16 @@ proc angleToPoint*(self, to: Vector2): float32 {.inline, noinit.} =
 
 proc floor*(self: Vector2): Vector2 {.inline, noinit.} =
   Vector2(x: floor(self.x), y: floor(self.y))
+
+proc ceil*(self: Vector2): Vector2 {.inline, noinit.} =
+  Vector2(x: ceil(self.x), y: ceil(self.y))
+
+proc round*(self: Vector2): Vector2 {.inline, noinit.} =
+  Vector2(x: round(self.x), y: round(self.y))
+
+proc sign*(self:Vector2): Vector2 {.inline, noinit.} =
+  result.x = if self.x == 0: 0.0 else: sign(self.x)
+  result.y = if self.y == 0: 0.0 else: sign(self.y)
 
 proc planeProject*(self: Vector2, d: float32,
                    vec: Vector2): Vector2 {.noinit.} =
