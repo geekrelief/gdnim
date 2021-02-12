@@ -863,9 +863,10 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
     nativeScriptRegisterSignal(getNativeLibHandle(), classNameLit, godotSignal)
 
   for sig in obj.signals:
+    var sigName  = toGodotStyle(sig.name)
     if sig.args.len == 0:
       result.add(getAst(
-        registerGodotSignalNoArgs(classNameLit, sig.name)))
+        registerGodotSignalNoArgs(classNameLit, sigName)))
     else:
       var sigArgsParams:seq[(NimNode, NimNode, NimNode)]
       for arg in sig.args:
@@ -879,7 +880,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
         sigArgs.add(getAst(
           createSignalArgument(p[0], p[1], p[2])))
       result.add(getAst(
-        registerGodotSignal(classNameLit, sig.name, sig.args.len, sigArgs)))
+        registerGodotSignal(classNameLit, sigName, sig.args.len, sigArgs)))
       for p in sigArgsParams:
         result.add(getAst(
           deinitSignalArgumentParameters(p[1], p[2])))
