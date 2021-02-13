@@ -131,6 +131,9 @@ proc angleTo*(self, to: Vector2): float32 {.noinit.} =
 proc angleToPoint*(self, to: Vector2): float32 {.inline, noinit.} =
   arctan2(self.y - to.y, self.x - to.x)
 
+proc sign*(self: Vector3): Vector2 {.inline.} =
+  vec2(sign(self.x),  sign(self.y))
+
 proc floor*(self: Vector2): Vector2 {.inline, noinit.} =
   Vector2(x: floor(self.x), y: floor(self.y))
 
@@ -139,10 +142,6 @@ proc ceil*(self: Vector2): Vector2 {.inline, noinit.} =
 
 proc round*(self: Vector2): Vector2 {.inline, noinit.} =
   Vector2(x: round(self.x), y: round(self.y))
-
-proc sign*(self:Vector2): Vector2 {.inline, noinit.} =
-  result.x = if self.x == 0: 0.0 else: sign(self.x)
-  result.y = if self.y == 0: 0.0 else: sign(self.y)
 
 proc planeProject*(self: Vector2, d: float32,
                    vec: Vector2): Vector2 {.noinit.} =
