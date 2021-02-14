@@ -260,8 +260,9 @@ proc getBuildSettings(): BuildSettings =
   result.sharedFlags = getSharedFlags()
   var settingsTable: Table[string, bool]
   settingsTable["move"] = "move" in otherFlagsTable
-  settingsTable["newOnly"] = not ("force" in result.sharedFlags)
+  settingsTable["newOnly"] = "force" notin result.sharedFlags
   settingsTable["noCheck"] = "nocheck" in otherFlagsTable
+  settingsTable["noReload"] = "reload" notin result.sharedFlags
   result.settingsTable = settingsTable
 
 proc safeDllFilePath(compName:string): string =
@@ -303,7 +304,7 @@ proc buildComp(compName:string, buildSettings:BuildSettings):string =
       result &= execnim(&"{gdpathFlags} --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
 
     if fileExists(safe) and getLastModificationTime(nim) < getLastModificationTime(safe) and
-      (not fileExists(hot) or buildSettings.settingsTable["move"]):
+      (not fileExists(hot) or buildSettings.settingsTable["move"]) or buildSettings.settingsTable["noReload"]:
       moveFile(safe, hot)
       result &= ">>> dll moved safe to hot <<<"
 
