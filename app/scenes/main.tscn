@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://_tscn/test_comp.tscn" type="PackedScene" id=1]
 [ext_resource path="res://_tscn/sprite_comp.tscn" type="PackedScene" id=2]
 [ext_resource path="res://_tscn/gun.tscn" type="PackedScene" id=3]
 [ext_resource path="res://_tscn/my_button.tscn" type="PackedScene" id=4]
+[ext_resource path="res://_tscn/health_ui.tscn" type="PackedScene" id=5]
 
 [node name="Node2D" type="Node2D"]
 
@@ -33,3 +34,10 @@ margin_left = 316.0
 margin_top = 376.0
 margin_right = 416.0
 margin_bottom = 426.0
+
+[node name="HealthUi" parent="." instance=ExtResource( 5 )]
+margin_left = 46.021
+margin_top = 97.093
+margin_right = 46.021
+margin_bottom = 97.093
+health = 4
