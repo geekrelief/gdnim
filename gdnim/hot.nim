@@ -31,12 +31,17 @@ macro save*(args: varargs[typed]):untyped =
     var buffer = genSym(nskVar, "buffer")
     stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init")))
     for arg in args:
-      var prop:NimNode
+      var dataNode:NimNode
       case arg.kind:
-      of nnkCall: prop = ^($arg[0])
-      else: prop = ^($arg[1])
+      of nnkCall:
+        dataNode = newDotExpr(^"self", ^($arg[0]))
+      of nnkDotExpr:
+        dataNode = newDotExpr(^"self", ^($arg[1]))
+      of nnkSym:
+        dataNode = arg
+      else: raise newException(HotReloadDefect, &"Unsupported save type {arg.kind}")
       stmts.add newCall(newDotExpr(buffer, ^"pack"),
-        newDotExpr(^"self", prop)
+        dataNode
       )
     stmts.add nnkCast.newTree(nnkBracketExpr.newTree(^"seq", ^"byte"), newDotExpr(buffer, ^"data"))
 
