@@ -2,17 +2,13 @@ import gdnim, godotapi / [control, texture_rect]
 import strformat
 
 gdobj HealthUi of Control:
-
-  var health {.gdExport, set:"set_health", get:"get_health".}:int
+  var health {.gdExport, set:"set_health".}:int
   var hearts:TextureRect
 
-  proc set_health(value:int) {.gdExport.} =
+  proc set_health(value:int) =
     self.health = max(0, value)
     if not self.hearts.isNil:
       self.hearts.rect_size = vec2(18 * float(self.health), 16)
-
-  proc get_health():int {.gdExport.} =
-    self.health
 
   proc hot_unload():seq[byte] {.gdExport.} =
     self.queue_free()

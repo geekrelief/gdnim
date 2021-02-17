@@ -132,7 +132,7 @@ proc angleToPoint*(self, to: Vector2): float32 {.inline, noinit.} =
   arctan2(self.y - to.y, self.x - to.x)
 
 proc sign*(self: Vector3): Vector2 {.inline.} =
-  vec2(sign(self.x),  sign(self.y))
+  Vector2(x: sign(self.x), y: sign(self.y))
 
 proc floor*(self: Vector2): Vector2 {.inline, noinit.} =
   Vector2(x: floor(self.x), y: floor(self.y))

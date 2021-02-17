@@ -36,8 +36,8 @@ margin_right = 416.0
 margin_bottom = 426.0
 
 [node name="HealthUi" parent="." instance=ExtResource( 5 )]
-margin_left = 46.021
-margin_top = 97.093
-margin_right = 46.021
-margin_bottom = 97.093
+margin_left = 42.6839
+margin_top = 74.4007
+margin_right = 42.6839
+margin_bottom = 74.4007
 health = 4

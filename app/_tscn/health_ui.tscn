@@ -5,7 +5,6 @@
 
 [node name="HealthUi" type="Control"]
 script = ExtResource( 1 )
-health = 0
 
 [node name="Hearts" type="TextureRect" parent="."]
 margin_right = 18.0
