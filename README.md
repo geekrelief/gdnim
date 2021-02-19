@@ -64,10 +64,16 @@ The goal is to streamline and speed up the process of development for [godot-nim
     - (see [Compiler notes](#compiler-notes) below for details on differences)
 
 ## Tips ##
+- **Hot reloading** makes use of components as sub-scenes.  Think of a component as unit that has a `.tscn` scene file, with the root node containing the `.gdns` nativescript attached, pointing to the `.nim` code file. The correct setup for reloading is a hieararchy of scenes. See `/app/scenes/main.tscn` and how it references the other component scenes from `/app/_tscn`.
+ - Flags used with `./build`
+    - By default, builds any modified components for hot reload.
+    - `./build comp compName` is the same as `./build compName`. Only component `compName` is built.
+    - `-m` or `--move`: `./build -m` builds and moves the dll from the safe to hot path. Used when the game is closed to prevent Watcher from reloading on start.
+    - `-f` or `--force`: `./build -f` force builds the components.
+    - `--ini:custom_build.ini`: pass in your own ini file for different build configurations.
  - If the godot app crashes, or your component gets into a weird state where it can't reload cleanly. Close the app and run `./build -m` to move the safe dll to the hot dll path and rerun the app.
  - If the app is crashing when trying to reload, try force rebuilding the component `./build -f comp_name` or deleting the dll and rebuilding.
 - If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
-- Hot reloading makes use of components as sub-scenes. So the nativescript is attached to a node that isn't the root of a scene, when it gets reloaded, none of its children will be created. See `/app/scenes/main.tscn` and how it references the the other nodes from `/app/_tscn`.
 
 ## Project Structure ##
 Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
