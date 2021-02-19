@@ -10,10 +10,16 @@ gdobj Gun of Sprite:
   var fireTime:float64
   var fireInterval:float64 = 0.3
 
+  proc hot_unload():seq[byte] {.gdExport.} =
+    self.queue_free()
+    self.hot_depreload("bullets", true)
+    save(self.nextBulletId, self.position)
+
   method enter_tree() =
     register(gun)?.load(self.nextBulletId, self.position)
     # gun needs to register bullet as a dependency
     register_dependencies(gun, bullet)
+    self.hot_depreload("bullets")
 
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
     self.bulletRes = loadScene("bullet")
@@ -21,12 +27,7 @@ gdobj Gun of Sprite:
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
-  proc hot_unload():seq[byte] {.gdExport.} =
-    self.queue_free()
-    self.bulletRes = nil
-    save(self.nextBulletId, self.position)
-
-  proc hot_depreload(compName:string, isUnloading:bool) {.gdExport.} =
+  proc hot_depreload(compName:string, isUnloading:bool = false) {.gdExport.} =
     case compName:
       of "bullet":
         if isUnloading:
