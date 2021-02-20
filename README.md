@@ -2,7 +2,9 @@
 
 gdnim is a testbed for experimental features for [godot-nim] projects that implements hot reloading of dlls as well as features for ease of development.
 
-*NOTE*: This only works on Windows and Linux platforms so far. There's been a little work done to get it working for Mac, but a PR will be gladly accepted.
+**WARNING** gdnim is not battle tested / production ready. Use [godot-nim] if you need something stable.
+
+*NOTE* This only works on Windows and Linux platforms so far. There's been a little work done to get it working for Mac, but a PR will be gladly accepted.
 
 - [Gdnim](#gdnim)
   - [Why](#why?)
@@ -10,6 +12,7 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
   - [Quick Dev Guide](#quick-dev-guide)
   - [Prerequisites](#prerequisites)
   - [Tips](#tips)
+  - [Sample Projects](#sample-projects)
   - [Project Structure](#project-structure)
     - [Files and Folders](#files-and-folders)
   - [Setup](#setup)
@@ -22,14 +25,15 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
 
 The goal is to streamline and speed up the process of development for [godot-nim] by adding experimental features like:
   - hot reloading
+    - (todo) better code support for disabling
   - match gdscript features, e.g.: signal declarations and async signal handling
   - experimental support for Nim (devel branch), e.g.: gc:ORC support, IC
   - (todo) support for Godot 4.0, e.g.: GDNative 4.0 (when it's stable)
-  - reducing tedium / boilerplate:
+  - reducing tedium / boilerplate / error proneness:
     - file watcher recompiles on save
     - generation of files for scripts and editor plugins (.nim, .gdns, .tscn, etc)
     - generated Godot API includes exports for referenced classes. For example you don't need to `import godotapi / [scene_tree]` on `node` since node exports `scene_tree`.
-    - automated nil'ing of references on `exit_tree`. You don't need to `self.myResource = nil` in `exit_tree`.
+    - automatic nil'ing Godot types on `exit_tree` to stop console warnings. e.g.: `self.myResource = nil` in `exit_tree` is defined automatically.
 
 ## Quick Setup Guide ##
 
@@ -42,13 +46,13 @@ The goal is to streamline and speed up the process of development for [godot-nim
 ## Quick Dev Guide ##
  - To **make a new nim component** run: `./build gencomp my_comp node_2d`. The nim file is created for you in `components` See [Setup](#setup) for details.
  - Edit as needed `components/my_comp.nim`
- - Build the component: `./build -m` (`-m` moves the dll to the hot dll path)
+ - Build the component: `./build -m` (`-m` moves the safe dll to the hot dll path)
  - Launch godot editor with: `./build gd` (if this fails, launch godot manually, or see the [Setup](#setup) section)
  - Open, edit (as needed) and play the generated component scene file: `_tscn/my_comp.tscn`
  - Start the component file watcher for recompilation `./build cwatch`
  - Make a modification to component, the component watcher will rebuild the component.
  - Hot reload should occur if there were no compiler errors.
- - **Note:** The hot module contains save and load macros to persist state between reloads.
+ - **Note:** The hot module contains save and load macros to persist state between reloads. See examples in `components`
 
 ## Prerequisites ##
   - [godot engine 3.2.4+]: commit [311ca0c6 or newer](https://github.com/godotengine/godot/commit/311ca0c6f23784dfa831d8f058a335f698dcc5ea) has my patch merged for dll unloading or my custom repo [godot 3.2 custom]
@@ -66,14 +70,18 @@ The goal is to streamline and speed up the process of development for [godot-nim
 ## Tips ##
 - **Hot reloading** makes use of components as sub-scenes.  Think of a component as unit that has a `.tscn` scene file, with the root node containing the `.gdns` nativescript attached, pointing to the `.nim` code file. The correct setup for reloading is a hieararchy of scenes. See `/app/scenes/main.tscn` and how it references the other component scenes from `/app/_tscn`.
  - Flags used with `./build`
-    - By default, builds any modified components for hot reload.
+    - By default, builds any modified component `.nim` for hot reload.
     - `./build comp compName` is the same as `./build compName`. Only component `compName` is built.
-    - `-m` or `--move`: `./build -m` builds and moves the dll from the safe to hot path. Used when the game is closed to prevent Watcher from reloading on start.
+    - `-m` or `--move`: `./build -m` builds and moves the dll from the safe to hot path. Use when the game is closed to prevent Watcher from reloading on start.
     - `-f` or `--force`: `./build -f` force builds the components.
     - `--ini:custom_build.ini`: pass in your own ini file for different build configurations.
  - If the godot app crashes, or your component gets into a weird state where it can't reload cleanly. Close the app and run `./build -m` to move the safe dll to the hot dll path and rerun the app.
  - If the app is crashing when trying to reload, try force rebuilding the component `./build -f comp_name` or deleting the dll and rebuilding.
 - If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
+- If you get some type of crash when running your game, you probably have a `NilAccess` error in your code.
+
+## Sample Projects ##
+ - [HeartBeast's Action RPG](https://github.com/geekrelief/gdnim_hb_arpg)
 
 ## Project Structure ##
 Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
