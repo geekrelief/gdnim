@@ -301,7 +301,7 @@ proc buildComp(compName:string, buildSettings:BuildSettings):string =
 
     if shouldBuild(compName, buildSettings):
       result &= &">>> Build {compName} <<<"
-      result &= execnim(&"{gdpathFlags} --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
+      result &= execnim(&"{gdpathFlags} --path:. --define:compsDir:{compsDir} --define:depsDir:{depsDir}", buildSettings.sharedFlags, &"{safe}", &"{nim}")
 
     if fileExists(safe) and getLastModificationTime(nim) < getLastModificationTime(safe) and
       (not fileExists(hot) or buildSettings.settingsTable["move"]) or buildSettings.settingsTable["noReload"]:

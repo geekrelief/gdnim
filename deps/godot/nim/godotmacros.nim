@@ -684,9 +684,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
           decl.defaultValue))
 
     var nameId = decl.name
-    let nilTest = quote do:
-        nilRef(self.`nameId`)
-    exitTreeBody.add(nilTest)
+    exitTreeBody.add(quote do: nilRef(self.`nameId`))
 
     let name = if not decl.isExported: decl.name
                else: postfix(decl.name, "*")
