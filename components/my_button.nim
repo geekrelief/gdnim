@@ -1,14 +1,17 @@
-import gdnim, godotapi / [button]
+import gdnim
+import macros
 
-gdobj MyButton of Button:
+gdnim MyButton of Button:
   var count:int = 0
 
-  proc hot_unload():seq[byte] {.gdExport.} =
+  unload:
     self.queue_free()
     save(self.rectPosition, self.count)
 
+  reload:
+    load(self.rectPosition, self.count)
+
   method enter_tree() =
-    register(my_button)?.load(self.rectPosition, self.count)
     discard self.connect("pressed", self, "clicked")
 
   proc clicked() {.gdExport.} =

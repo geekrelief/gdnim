@@ -1,7 +1,7 @@
-import gdnim, godotapi / [node, label]
+import gdnim
 import strformat, tables
 
-gdobj TestComp of Label:
+gdnim TestComp of Label:
   var tick:int
   var elapsedSeconds:float
   var tickIntervalSeconds:float = 0.1
@@ -10,9 +10,15 @@ gdobj TestComp of Label:
 
   signal test_sig(a_bool:bool, a_int8:int8, a_string:string)
 
+  unload:
+    self.queue_free()
+    save(self.tick, self.aString1)
+
+  reload:
+    load(self.tick, self.aString1)
+
   method enter_tree() =
     self.text = "TestComp enter_tree"
-    register(test_comp)?.load(self.tick, self.aString1)
 
   method ready() =
     discard self.connect("test_sig", self, "on_test_sig")
@@ -21,10 +27,6 @@ gdobj TestComp of Label:
 
   proc on_test_sig(a_bool:bool, a_int8:int8, a_string:string) {.gdExport.} =
     print &"got test_sig {a_bool = } {a_int8 = } {a_string = }"
-
-  proc hot_unload():seq[byte] {.gdExport.} =
-    self.queue_free()
-    save(self.tick, self.aString1)
 
   method process(delta:float) =
     self.elapsedSeconds += delta

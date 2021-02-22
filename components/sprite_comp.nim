@@ -1,9 +1,12 @@
-import gdnim, godotapi / [sprite, input_event_mouse_button, scene_tree, timer]
+import gdnim
 import strformat, math
 
 type FireAsyncState = enum A, B, C, D, E, F, G, H, I
 
-gdobj SpriteComp of Sprite:
+gdnim SpriteComp of Sprite:
+  #same as: import godotapi / [class1, class2]
+  godotapi InputEventMouseButton # same as: godotapi input_event_mouse_button
+
   var startPos:Vector2
   var radius:float = 30.0
   var speed:float = 0.11
@@ -15,10 +18,16 @@ gdobj SpriteComp of Sprite:
   signal bclick(button_idx:int)
   signal bsclick(button_idx:int, shape_idx:int)
 
-  method enter_tree() =
+  unload:
+    self.queue_free()
+    save(self.startPos, self.fireState, self.rotation_degrees)
+
+  reload:
     self.startPos = self.position
     # ! in front of a symbol reads the symbol's type from the buffer but doesn't assign
-    register(sprite_comp)?.load(self.startPos, !self.fireState, !self.rotation_degrees)
+    load(self.startPos, !self.fireState, !self.rotation_degrees)
+
+  method enter_tree() =
     self.timer = gdnew[Timer]()
     self.timer.one_shot = true
     self.add_child(self.timer)
@@ -31,11 +40,6 @@ gdobj SpriteComp of Sprite:
     startPolling()
     asyncCheck self.fireTimer()
 
-  proc hot_unload():seq[byte] {.gdExport.} =
-    self.queue_free()
-    save(self.startPos, self.fireState, self.rotation_degrees)
-
-
   proc on_area2d_input_event(viewport:Node, event:InputEvent, shape_idx:int) {.gdExport.} =
     ifis(event, InputEventMouseButton):
       if it.pressed:
@@ -44,7 +48,6 @@ gdobj SpriteComp of Sprite:
         toV self.emit_signal("bclick", [it.button_index])
         toV self.emit_signal("bsclick", [it.button_index, shape_idx])
         self.get_tree().set_input_as_handled()
-
 
   proc on_bsclick(button_idx:int, shape_idx:int) {.gdExport.} =
     print &"bsclick {button_idx = } {shape_idx = }"

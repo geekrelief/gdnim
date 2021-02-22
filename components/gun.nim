@@ -1,8 +1,7 @@
-import gdnim, godotapi/[sprite, scene_tree, packed_scene, resource_loader, node_2d]
+import gdnim
 import tables, strformat, sequtils
 
-gdobj Gun of Sprite:
-
+gdnim Gun of Sprite:
   var bulletRes:PackedScene
   var bulletSpawnPoint:Node2D
 
@@ -10,30 +9,22 @@ gdobj Gun of Sprite:
   var fireTime:float64
   var fireInterval:float64 = 0.3
 
-  proc hot_unload():seq[byte] {.gdExport.} =
+  unload:
     self.queue_free()
-    self.hot_depreload("bullets", true)
     save(self.nextBulletId, self.position)
 
-  method enter_tree() =
-    register(gun)?.load(self.nextBulletId, self.position)
-    # gun needs to register bullet as a dependency
-    register_dependencies(gun, bullet)
-    self.hot_depreload("bullets")
+  reload:
+    load(self.nextBulletId, self.position)
 
+  dependencies:
+    bullet:
+      self.bulletRes = loadScene("bullet")
+
+  method enter_tree() =
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
-    self.bulletRes = loadScene("bullet")
 
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
     discard button_fireSingle.connect("pressed", self, "fire_single")
-
-  proc hot_depreload(compName:string, isUnloading:bool = false) {.gdExport.} =
-    case compName:
-      of "bullet":
-        if isUnloading:
-          self.bulletRes = nil # free the reference or the dll can't unload
-        else:
-          self.bulletRes = loadScene("bullet")
 
   proc createBullet(v:Vector2, p:Vector2) =
     if self.bulletRes == nil: return

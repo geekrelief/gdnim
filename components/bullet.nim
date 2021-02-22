@@ -1,7 +1,7 @@
-import gdnim, godotapi / [sprite, global_constants]
+import gdnim
 import math, times, std/monotimes
 
-gdobj Bullet of Sprite:
+gdnim Bullet of Sprite:
   # gun will spawn
   var id:int64
   var velocity = vec2()
@@ -12,15 +12,15 @@ gdobj Bullet of Sprite:
 
   signal dead(id:int)
 
-  method init() =
-    self.startTime = getMonoTime()
-
-  method enter_tree() =
-    register(bullet)?.load(self.id, self.startTime, self.velocity, self.startPosition)
-
-  proc hot_unload():seq[byte] {.gdExport.} =
+  unload:
     self.queue_free()
     save(self.id, self.startTime, self.velocity, self.startPosition)
+
+  reload:
+    load(self.id, self.startTime, self.velocity, self.startPosition)
+
+  method init() =
+    self.startTime = getMonoTime()
 
   proc set_data(id:int64, v:Vector2, p:Vector2) {.gdExport.} =
     self.id = id

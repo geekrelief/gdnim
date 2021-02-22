@@ -1,3 +1,18 @@
+***NOTE***
+This `gdnim` branch simplifies the hot reloading setup.
+A top level `gdnim` macro is implemented to replace the used of `gdobj`.
+
+Inside the `gdnim` macro:
+  * Calling `register` is automatic.
+  * `unload` macro produces the `hot_unload` function called by Watcher
+  * `dependencies` macro replaces `hot_depreload`
+  * `reload` macro body replaces the `register()?.load()` call usually found in the `enter_tree` method. Initialization code for the purpose of hot reloading should go here.
+  * Imports of godot classes is more automatic.
+    * Any `var` definitions with Godot types are imported.
+    * TODO: parse the code, determine all Godot types and import them automatically
+  * TODO: Parse the code, replace component instance access depending on whether reloading is enabled so a `release` task can build all the components into one dll and disable hot reloading.
+    * For example, gun calls bullet's `set_data` like `discard toV bulletInstance.call("set_data", [...])`
+    * Ideally it would be `bulletInstance.set_data(...)` so that when hot reloading is disabled, proc call is accessed directly.
 # Gdnim #
 
 gdnim is a testbed for experimental features for [godot-nim] projects that implements hot reloading of dlls as well as features for ease of development.
@@ -66,6 +81,7 @@ The goal is to streamline and speed up the process of development for [godot-nim
   - gcc is the recommended compiler for most cases
     - gcc, vcc, and tcc are supported
     - (see [Compiler notes](#compiler-notes) below for details on differences)
+  - Windows only: https://github.com/microsoft/terminal used to launch the godot editor.
 
 ## Tips ##
 - **Hot reloading** makes use of components as sub-scenes.  Think of a component as unit that has a `.tscn` scene file, with the root node containing the `.gdns` nativescript attached, pointing to the `.nim` code file. The correct setup for reloading is a hieararchy of scenes. See `/app/scenes/main.tscn` and how it references the other component scenes from `/app/_tscn`.
