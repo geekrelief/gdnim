@@ -208,7 +208,7 @@ var godotapiDir {.compileTime.}:string = depsDir & "/godotapi"
 
 proc classStyleToCompStyle(className: string): string =
   var s:string = className
-  if s.endsWith("1D") or s.endsWith("2D") or s.endsWith("3D"):
+  if s[^2].isDigit() and s.endsWith("D"):
     s[^1] = 'd'
 
   result = $(s[0].toLowerAscii())
@@ -218,6 +218,11 @@ proc classStyleToCompStyle(className: string): string =
       result.add(c.toLowerAscii())
     else:
       result.add(c)
+
+  if result == "object": # keyword
+    result = "objects"
+  if result == "os": # to avoid clash with stdlib
+    result = "gd_os"
 
 proc gdnimDefect(msg:string) =
   raise newException(GDNimDefect, msg)

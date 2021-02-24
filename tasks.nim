@@ -2,16 +2,15 @@ from sequtils import toSeq, filter, mapIt
 import anycase, threadpool
 
 const script_nim_template = """
-import gdnim, godotapi / [$3]
+import gdnim, godotapi / [$1]
 
-gdobj $2 of $4:
+gdnim $2 of $3:
 
-  proc hot_unload():seq[byte] {.gdExport.} =
-    self.queue_free()
-    #save()
+  unload:
+    save()
 
-  method enter_tree() =
-    discard register($1)#?.load()
+  reload:
+    load()
 """
 
 const tool_nim_template = """
@@ -274,6 +273,10 @@ proc nimFilePath(compName:string): string =
   if not fileExists(nimFilePath):
     nimFilePath = &"{compsDir}/tools/{compName}.nim"
   nimFilePath
+proc gdnsFilePath(compName:string): string =
+  &"{gdnsDir}/{compName}.gdns"
+proc tscnFilePath(compName:string): string =
+  &"{tscnDir}/{compName}.tscn"
 
 proc shouldBuild(compName:string, buildSettings:BuildSettings ):bool =
   let safe = safeDllFilePath(compName)
@@ -300,7 +303,7 @@ proc buildComp(compName:string, buildSettings:BuildSettings):string =
     genGdns(compName)
 
     if shouldBuild(compName, buildSettings):
-      result &= &">>> Build {compName} <<<"
+      result &= &">>> Build {compName} <<<\n"
       result &= execnim(&"{gdpathFlags} --skipParentCfg:on --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
 
     if fileExists(safe) and getLastModificationTime(nim) < getLastModificationTime(safe) and
@@ -345,7 +348,7 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
 
   var compClassName = compName.pascal
   var baseClassName = baseClassModuleName.pascal
-  if baseClassName.endsWith("1d") or baseClassName.endsWith("2d") or baseClassName.endsWith("3d"):
+  if baseClassName[^2].isDigit and baseClassName.endsWith("d"):
     baseClassName[^1] = 'D'
 
   baseClassModuleName = case baseClassModuleName:
@@ -360,7 +363,7 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
   let nim = &"{compsDir}/{compName}.nim"
   if not fileExists(nim):
     var f = open(nim, fmWrite)
-    f.write(script_nim_template % [compName, compClassName, baseClassModuleName, baseClassName])
+    f.write(script_nim_template % [baseClassModuleName, compClassName, baseClassName])
     f.close()
     echo &"generated {nim}"
   else:
@@ -382,6 +385,18 @@ task gencomp, "generate a component template (nim, gdns, tscn files), pass in th
   echo &"building {compName}"
   echo buildComp(compName, buildSettings)
 
+task delcomp, "delete a component, removes the nim, gdns, tscn, and dlls associated with the component":
+  var compName = args[0]
+  var files = @[nimFilePath(compName),
+              gdnsFilePath(compName),
+              tscnFilePath(compName)]
+  for dllFile in walkFiles(&"{dllDir}/{compName}*"):
+    files.add dllFile
+
+  for filepath in files:
+    if fileExists(filepath):
+      echo &"removing {filepath}"
+      removeFile(filepath)
 
 # components are named {compName}_safe.dll and
 # are loaded by the watcher.dll via resources. At runtime, the watcher.dll will copy

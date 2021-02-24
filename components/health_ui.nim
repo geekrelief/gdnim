@@ -1,5 +1,4 @@
 import gdnim
-import strformat
 
 gdnim HealthUi of Control:
   # health is updateable from the Local inspector while running,
