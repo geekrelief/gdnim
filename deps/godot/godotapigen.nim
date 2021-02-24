@@ -131,8 +131,16 @@ proc prefix(op: string, right: PNode): PNode =
 proc newBracketExpr(first, bracket: PNode): PNode =
   newPNode(nkBracketExpr).addChain(first, bracket)
 
+proc newExprColonExpr(left, right: PNode): PNode =
+  newPNode(nkExprColonExpr).addChain(left, right)
+
+proc newPragma(child: PNode):PNode =
+  result = newPNode(nkPragma)
+  result.add(child)
+
 proc newEmptyNode(): PNode =
   newPNode(nkEmpty)
+
 
 type GodotType = ref object
   name: string
@@ -1041,11 +1049,14 @@ proc genApi*(targetDir: string, apiJsonFile: string) =
     let moduleName = typeNameToModuleName(typ.name)
     echo "Generating ", moduleName, ".nim..."
     let tree = newPNode(nkStmtList)
+    tree.add(newPragma(newExprColonExpr(newBracketExpr(ident("warning"), ident("UnusedImport")), ident("off"))))
+
     let importStmt = newPNode(nkImportStmt)
     importStmt.add(ident("godot"))
     importStmt.add(ident("godottypes"))
     importStmt.add(ident("godotinternal"))
     tree.add(importStmt)
+
     let exportStmt = newPNode(nkExportStmt)
     exportStmt.add(ident("godottypes"))
     tree.add(exportStmt)

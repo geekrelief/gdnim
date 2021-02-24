@@ -11,7 +11,6 @@ proc `^`(s:string):NimNode {.inline.} =
 type
   GDNimDefect = object of Defect
   HotReloadDefect = object of Defect
-  StopCompile = object of Defect
 
   WatcherNoticeCode* = enum
     UNLOADING,
@@ -371,23 +370,27 @@ macro gdnim*(ast:varargs[untyped]) =
 
   #generate
   when defined(does_reload):
-    if not unloadNode.isNil:
-      for prop in godotPropertyNames:
-        var propIdent = ^prop
-        unloadNode.add(
-          quote do:
-            self.`propIdent` = nil
-        )
-      for prop in typeUnknownPropertyNames:
-        var propIdent = ^prop
-        unloadNode.add(
-          quote do:
-            nilRef(self.`propIdent`)
-        )
-      var returnType = nnkBracketExpr.newTree(^"seq", ^"byte")
-      var hot_unload = newProc(name = ^"hot_unload", params = @[returnType],  body = unloadNode,
-        pragmas = nnkPragma.newTree(^"gdExport"))
-      gdObjBody.add hot_unload
+    if unloadNode.isNil:
+      unloadNode = newStmtlist()
+
+    unloadNode.add quote do:
+      self.queue_free()
+
+    for prop in godotPropertyNames:
+      var propIdent = ^prop
+      unloadNode.add(
+        quote do:
+          self.`propIdent` = nil
+      )
+    for prop in typeUnknownPropertyNames:
+      var propIdent = ^prop
+      unloadNode.add(
+        quote do:
+          nilRef(self.`propIdent`)
+      )
+
+    gdObjBody.add(newProc(name = ^"hot_unload", params = @[nnkBracketExpr.newTree(^"seq", ^"byte")],
+                          body = unloadNode, pragmas = nnkPragma.newTree(^"gdExport")))
 
   var dependenciesCompNames:seq[string]
   if not dependenciesNode.isNil:
