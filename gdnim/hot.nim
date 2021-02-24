@@ -426,6 +426,9 @@ macro gdnim*(ast:varargs[untyped]) =
     gdObjBody.add(hot_depreload)
 
   when defined(does_reload):
+    if reloadNode.isNil:
+      reloadNode = newStmtList()
+
     if not reloadNode.isNil:
       if enterTreeNode.isNil:
         enterTreeNode = nnkMethodDef.newTree(^"enter_tree", newEmptyNode(), newEmptyNode(),
