@@ -25,25 +25,14 @@ macro save*(args: varargs[typed]):untyped =
     b.pack(self.i)
     b.pack(self.f)
     b.pack(self.s)
-    cast[seq[byte]](b.data)
+    result = cast[seq[byte]](b.data)
   ]#
   when defined(does_reload):
     var stmts = newStmtList()
     var buffer = genSym(nskVar, "buffer")
     stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init")))
     for arg in args:
-      var dataNode:NimNode
-      case arg.kind:
-      of nnkCall:
-        dataNode = newDotExpr(^"self", ^($arg[0]))
-      of nnkDotExpr:
-        dataNode = newDotExpr(^"self", ^($arg[1]))
-      of nnkSym:
-        dataNode = arg
-      else: raise newException(HotReloadDefect, &"Unsupported save type {arg.kind}")
-      stmts.add newCall(newDotExpr(buffer, ^"pack"),
-        dataNode
-      )
+      stmts.add newCall(newDotExpr(buffer, ^"pack"), arg)
     stmts.add newAssignment(^"result",
       nnkCast.newTree(nnkBracketExpr.newTree(^"seq", ^"byte"), newDotExpr(buffer, ^"data")))
 
@@ -315,7 +304,6 @@ macro gdnim*(ast:varargs[untyped]) =
           gdObjBody.add(node)
       of nnkVarSection:
         var identDef = node[0]
-        #echo identDef.astGenRepr
         var name:string
         case identDef[0].kind
           of nnkIdent:
@@ -324,12 +312,13 @@ macro gdnim*(ast:varargs[untyped]) =
             name = identDef[0][0].strVal
           else:
             gdnimDefect(&"Unhandled node kind {identDef[0].kind}: {lineInfo(identDef)}\n{node.astGenRepr}")
+
         var typName:string
-        if identDef[1].kind == nnkIdent:
-          typName = identDef[1].strVal
+        if not (identDef[1].kind == nnkEmpty):
+          typName = identDef[1].repr
         else:
           if identDef[2].kind == nnkEmpty:
-            gdnimDefect(&"Unknown type for field {name}")
+            gdnimDefect(&"Unknown type for field {name}: {lineInfo(identDef)}\n{identDef[1].repr}")
           else:
             typeUnknownPropertyNames.incl name
             gdObjBody.add(node)
