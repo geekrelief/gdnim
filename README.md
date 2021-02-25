@@ -1,24 +1,10 @@
-***NOTE***
-This `gdnim` branch simplifies the hot reloading setup.
-A top level `gdnim` macro is implemented to replace the used of `gdobj`.
-
-Inside the `gdnim` macro:
-  * Calling `register` is automatic.
-  * `unload` macro produces the `hot_unload` function called by Watcher
-  * `dependencies` macro replaces `hot_depreload`
-  * `reload` macro body replaces the `register()?.load()` call usually found in the `enter_tree` method. Initialization code for the purpose of hot reloading should go here.
-  * Imports of godot classes is more automatic.
-    * Any `var` definitions with Godot types are imported.
-    * TODO: parse the code, determine all Godot types and import them automatically
-  * TODO: Parse the code, replace component instance access depending on whether reloading is enabled so a `release` task can build all the components into one dll and disable hot reloading.
-    * For example, gun calls bullet's `set_data` like `discard toV bulletInstance.call("set_data", [...])`
-    * Ideally it would be `bulletInstance.set_data(...)` so that when hot reloading is disabled, proc call is accessed directly.
 # Gdnim #
 
 gdnim is a testbed for experimental features for [godot-nim] projects that implements hot reloading of dlls as well as features for ease of development.
 
 **WARNING** gdnim is not battle tested / production ready. Use [godot-nim] if you need something stable.
 
+*NOTE* A new macro `gdnim` was added to replace `gdobj` for defining classes. See the `gdobj` branch for the old samples.
 *NOTE* This only works on Windows and Linux platforms so far. There's been a little work done to get it working for Mac, but a PR will be gladly accepted.
 
 - [Gdnim](#gdnim)
@@ -26,11 +12,12 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
   - [Quick Setup Guide](#quick-setup-guide)
   - [Quick Dev Guide](#quick-dev-guide)
   - [Prerequisites](#prerequisites)
+  - [Hot Reloading](#hot-reloading)
   - [Tips](#tips)
   - [Sample Projects](#sample-projects)
   - [Project Structure](#project-structure)
     - [Files and Folders](#files-and-folders)
-  - [Setup](#setup)
+  - [Project Setup](#project-setup)
   - [Tasks](#tasks)
   - [Implementation details](#implementation-details)
     - [Nim notes](#nim-notes)
@@ -83,8 +70,16 @@ The goal is to streamline and speed up the process of development for [godot-nim
     - (see [Compiler notes](#compiler-notes) below for details on differences)
   - Windows only: https://github.com/microsoft/terminal used to launch the godot editor.
 
+## Hot Reloading ##
+A top level `gdnim` macro is implemented to replace the use of `gdobj`. See below for [implemenation details](#implementation-details)
+
+- **Hot reloading** makes use of components as sub-scenes.  A component is a unit that has a `.tscn` scene file, with the root node containing the `.gdns` nativescript attached, pointing to the `.nim` code file generated dynamic library. The correct setup for reloading is a hierarchy of scenes. See `/app/scenes/main.tscn` and how it references the other component scenes from `/app/_tscn`.
+- In the autoload settings, the Watcher scene is loaded which monitors the `/app/_dlls` folder for changes.
+- Setup a component properly for reloading, use the `gdnim` macro to define your class.
+
+See `components` for samples on how to set things up for reloading.
+
 ## Tips ##
-- **Hot reloading** makes use of components as sub-scenes.  Think of a component as unit that has a `.tscn` scene file, with the root node containing the `.gdns` nativescript attached, pointing to the `.nim` code file. The correct setup for reloading is a hieararchy of scenes. See `/app/scenes/main.tscn` and how it references the other component scenes from `/app/_tscn`.
  - Flags used with `./build`
     - By default, builds any modified component `.nim` for hot reload.
     - `./build comp compName` is the same as `./build compName`. Only component `compName` is built.
@@ -121,7 +116,7 @@ Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdn
  - `components/tools`: Where nim files for tool / editor plugins go. Generated with `./build gentool my_tool_name`
 
 
-## Setup ##
+## Project Setup ##
 The project is primarily, developed and tested on Windows / Linux. (Mac support PR welcome).
 Modify the `build.ini`, `build.nim` and `tasks.nim` script for your needs. `build.ini` expects some paths the godot engine repo and editor executables.
 
@@ -148,9 +143,9 @@ isn't a general way to support launching the editor from a terminal for all dist
   By default running `./build` will build any components that have changed.  If you supply an argument with no task name: `./build my_comp` the argument is assumed to be a component.
 
 ## Implementation details ##
-Watcher monitors the `app/_dlls` folder for updates and coordinates the reload process
-with the components. The components use the hot module save and load macros to
-persist data with Watcher.
+Watcher monitors the `app/_dlls` folder for updates and coordinates the reload process with the components. The components use the hot module save and load macros to persist data with Watcher.
+
+**NOTE** Below details how to hot reloading works when using the `gdobj` macro.  Using the `gdnim` macro reduces the boilerplate for the setup, and does all this stuff for you. See the `gdobj` branch `components` for samples.
 
 To set up a component for reloading, the component needs to:
  - call `hot.register` which registers the component name with the Watcher node. Typically, done when or after `enter_tree()` runs, so the component can find the Watcher. If you run `./build gencomp`, the template generated nim file will include register for you.
