@@ -204,16 +204,6 @@ proc findComponentGDSuperClass(className:string):string =
     # get the base class and repeat
     baseClassName = "something"
   result = baseClassName
-
-macro nilRef*(p:typed):untyped =
-  var t = getType(p)
-  var k = typekind(t)
-  result = case k
-    of ntyRef:
-      var ap = p.copyNimTree()
-      quote do:
-        `ap` = nil
-    else: quote do: discard
 ]#
 
 macro gdnim*(ast:varargs[untyped]) =
@@ -264,47 +254,43 @@ macro gdnim*(ast:varargs[untyped]) =
         else:
           gdObjBody.add(node)
       of nnkVarSection:
-        var identDef = node[0]
-        var name:string
-        case identDef[0].kind
-          of nnkIdent:
-            name = identDef[0].strVal
-          of nnkPragmaExpr:
-            name = identDef[0][0].strVal
-          else:
-            gdnimDefect(&"Unhandled node kind {identDef[0].kind}: {lineInfo(identDef)}\n{node.astGenRepr}")
+        gdObjBody.add(node)
+        for identDef in node:
+          var name:string
+          case identDef[0].kind
+            of nnkIdent:
+              name = identDef[0].strVal
+            of nnkPragmaExpr:
+              name = identDef[0][0].strVal
+            else:
+              gdnimDefect(&"Unhandled node kind {identDef[0].kind}: {lineInfo(identDef)}\n{node.astGenRepr}")
 
-        var typName:string
-        if not (identDef[1].kind == nnkEmpty):
-          typName = identDef[1].repr
-        else:
-          if identDef[2].kind == nnkEmpty:
-            gdnimDefect(&"Unknown type for field {name}: {lineInfo(identDef)}\n{identDef[1].repr}")
+          var typName:string
+          if not (identDef[1].kind == nnkEmpty):
+            typName = identDef[1].repr
           else:
-            typeUnknownPropertyNames.incl name
-            gdObjBody.add(node)
-            continue
+            if identDef[2].kind == nnkEmpty:
+              gdnimDefect(&"Unknown type for field {name}: {lineInfo(identDef)}\n{identDef[1].repr}")
+            else:
+              typeUnknownPropertyNames.incl name
+              continue
 
-        if typName in standardTypes:
-          gdObjBody.add(node)
-        else:
-          var filename = classStyleToCompStyle(typName)
-          if isGodotApi(typName):
-            gdObjBody.add(node)
-            if filename notin importedGdModules:
-              importedGdModules.incl filename
-              godotModules.add ^filename
-              godotPropertyNames.incl name
-          elif isComponent(typName):
-            # need to replace the type of the property with gd base class
-            # if defined(does_reload):
-            if filename notin importedCompModules:
-              importedCompModules.incl filename
-              compModules.add ^filename
-              compPropertyNames.incl name
-          else:
-            typeUnknownPropertyNames.incl name
-            gdObjBody.add(node)
+          if typName notin standardTypes:
+            var filename = classStyleToCompStyle(typName)
+            if isGodotApi(typName):
+              if filename notin importedGdModules:
+                importedGdModules.incl filename
+                godotModules.add ^filename
+                godotPropertyNames.incl name
+            elif isComponent(typName):
+              # need to replace the type of the property with gd base class
+              # if defined(does_reload):
+              if filename notin importedCompModules:
+                importedCompModules.incl filename
+                compModules.add ^filename
+                compPropertyNames.incl name
+            else:
+              typeUnknownPropertyNames.incl name
       of nnkCall:
         var callName = node[0]
         if callName == ^"unload":
