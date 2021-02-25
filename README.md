@@ -27,12 +27,12 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
 
 The goal is to streamline and speed up the process of development for [godot-nim] by adding experimental features like:
   - hot reloading
-  - match gdscript features, e.g.: signal declarations and async signal handling
+  - match gdscript features, e.g.: signal declarations, async signal handling, field accessors
   - experimental support for Nim (devel branch), e.g.: gc:ORC support, IC
   - reducing tedium / boilerplate / error proneness:
     - file watcher recompiles on save
     - generation of files for scripts and editor plugins (.nim, .gdns, .tscn, etc)
-    - generated Godot API includes exports for referenced classes. For example you don't need to `import godotapi / [scene_tree]` on `node` since node exports `scene_tree`.
+    - generated Godot API includes exports for referenced classes. For example you don't need to `import godotapi / [scene_tree]` on `node` since node exports `scene_tree`, unless you want autocompletion from nimsuggest.
     - automatic nil'ing Godot types on `exit_tree` to stop console warnings. e.g.: `self.myResource = nil` in `exit_tree` is defined automatically.
 
 ## Quick Setup Guide ##
