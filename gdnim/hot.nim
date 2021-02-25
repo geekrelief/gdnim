@@ -380,20 +380,8 @@ macro gdnim*(ast:varargs[untyped]) =
       var enterTreeBody = enterTreeNode.body
       # find load call in reloadNode
       var reloadBody = newStmtList()
-      for node in reloadNode:
-        case node.kind:
-          of nnkCall:
-            if node[0] == ^"load":
-              var compNameIdent = ^compName
-              reloadBody.add quote do:
-                var data = register(`compNameIdent`)
-                data?.`node`
-            else:
-              reloadBody.add node
-          else:
-              reloadBody.add node
-      enterTreeBody.insert(0, reloadBody)
 
+      var dependencies = newEmptyNode()
       if dependenciesCompNames.len > 0:
         var rdepCall = nnkCall.newTree(^"register_dependencies", ^compName)
         var reloadInit = newStmtList()
@@ -401,9 +389,25 @@ macro gdnim*(ast:varargs[untyped]) =
           rdepCall.add ^dcompName
           reloadInit.add quote do:
             self.hot_depreload(`dcompName`, false)
-        reloadBody
-          .add(rdepCall)
-          .add(reloadInit)
+        dependencies = quote do:
+          `rdepCall`
+          `reloadInit`
+
+      for node in reloadNode:
+        case node.kind:
+          of nnkCall:
+            if node[0] == ^"load":
+              var compNameIdent = ^compName
+              reloadBody.add quote do:
+                var data = register(`compNameIdent`)
+                `dependencies`
+                data?.`node`
+            else:
+              reloadBody.add node
+          else:
+              reloadBody.add node
+      enterTreeBody.insert(0, reloadBody)
+
       gdObjBody.add enterTreeNode
   else:
     gdnimDefect("need to implement when not reload, initializations")

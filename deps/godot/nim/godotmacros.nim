@@ -207,27 +207,39 @@ proc parseVarSection(decl: NimNode): seq[VarDecl] =
     else:
       result.add(identDefsToVarDecls(decl[i]))
 
-proc parseSignal(sig: NimNode): SignalDecl =
-  let errorMsg = "Signal declaration must have this format: signal my_signal(param1: int, param2: string)"
+proc parseSignal(sig: NimNode): seq[SignalDecl] =
+  let errorMsg = "Signal declaration must have this format: signal my_signal(param1: int, param2: string) or signal: my_signal(param1: int, param2: string)"
 
-  if sig.kind != nnkCommand:
-    parseError(sig, errorMsg)
-  if not (sig[1].kind == nnkCall or sig[1].kind == nnkObjConstr):
-    parseError(sig, errorMsg)
-
-  result = SignalDecl(
-    name: $sig[1][0],
-    args: newSeq[SignalArgDecl]()
-  )
-
-  if sig[1].kind == nnkObjConstr:
-    for i in 1..<sig[1].len:
-      var nexpr = sig[1][i]
-      case nexpr.kind:
-      of nnkExprColonExpr:
-        result.args.add(SignalArgDecl(name: nexpr[0].repr, typ: nexpr[1]))
-      else:
+  var sigDefs:seq[NimNode]
+  case sig.kind
+    of nnkCommand:
+      if not (sig[1].kind == nnkCall or sig[1].kind == nnkObjConstr):
         parseError(sig, errorMsg)
+      else:
+        sigDefs = sig[1..^1]
+    of nnkCall:
+      if not (sig[1].kind == nnkStmtList and sig[1].len > 0):
+        parseError(sig, errorMsg)
+      else:
+        sigDefs = sig[1][0..^1]
+    else:
+      parseError(sig, errorMsg)
+
+  for sdef in sigDefs:
+    var sdecl = SignalDecl(
+      name: $sdef[0],
+      args: newSeq[SignalArgDecl]()
+    )
+    result.add sdecl
+
+    if sdef.kind == nnkObjConstr:
+      for i in 1..<sdef.len:
+        var nexpr = sdef[i]
+        case nexpr.kind:
+        of nnkExprColonExpr:
+          sdecl.args.add(SignalArgDecl(name: nexpr[0].repr, typ: nexpr[1]))
+        else:
+          parseError(sig, errorMsg)
 
 proc parseOnSignalCall(onSignalId:NimNode, onSignalPostfix:string, onSigStmt:NimNode): (VarDecl, MethodDecl, MethodDecl) =
   # future
@@ -394,10 +406,9 @@ proc parseType(ast: NimNode): ObjectDecl =
         else:
           let meth = parseMethod(statement)
           result.methods.add(meth)
-      of nnkCommand:
+      of nnkCommand, nnkCall:
         if statement[0].strVal == "signal":
-          let sig = parseSignal(statement)
-          result.signals.add(sig)
+          result.signals.add parseSignal(statement)
       of nnkCommentStmt:
         discard
       else:
@@ -684,7 +695,9 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
           decl.defaultValue))
 
     var nameId = decl.name
-    exitTreeBody.add(quote do: nilRef(self.`nameId`))
+    let nilTest = quote do:
+        nilRef(self.`nameId`)
+    exitTreeBody.add(nilTest)
 
     let name = if not decl.isExported: decl.name
                else: postfix(decl.name, "*")
