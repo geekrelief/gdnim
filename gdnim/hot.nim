@@ -40,69 +40,30 @@ macro save*(args: varargs[typed]):untyped =
   else:
     discard
 
-# loads args from buffer where args are tuples of properties and whether they should be assigned
-macro loadHelper(data:typed, args:varargs[typed]):untyped =
-  when defined(does_reload):
-    var stmts = newStmtList()
-    var buffer = data
-    if getTypeInst(data).repr == "seq[byte]":
-      buffer = genSym(nskVar, "buffer")
-      stmts.add newVarStmt(buffer, newCall(newDotExpr(^"MsgStream", ^"init"), nnkCast.newTree(^"string", data)))
-
-    for arg in args:
-      var prop = arg[0]
-      var isAssigned = arg[1]
-      var unpackVar:NimNode = genSym(nskVar)
-      var propType:NimNode = getTypeInst(prop)
-
-      stmts.add quote do:
-        var `unpackVar`:`propType`
-        `buffer`.unpack(`unpackVar`)
-
-      stmts.add case prop.kind
-      of nnkCall: # for method properties `prop=`(self, T)
-        var propName = prop[0]
-        quote do:
-          if `isAssigned`:
-            self.`propName` = `unpackVar`
-      of nnkDotExpr: # for data properties self.prop
-        var propName = prop[1]
-        quote do:
-          if `isAssigned`:
-            self.`propName` = `unpackVar`
-      of nnkSym: # for variables
-        var propName = prop
-        quote do:
-          if `isAssigned`:
-            `propName` = `unpackVar`
-      else:
-        raise newException(HotReloadDefect, &"Unsupporterd {prop.repr}")
-
-    #echo stmts.repr
-    result = stmts
-  else:
-    discard
+# used by load to get type information on arg
+macro createArgVar(unpackVar:untyped, arg:typed) =
+  var typInst = arg.getTypeInst
+  if typeKind(getType(arg)) == ntyRef:
+    raise newException(HotReloadDefect, &"load({arg.repr}) is ref type: {typInst}. Only primitives and object types allowed.")
+  result = quote do:
+    var `unpackVar`:`typInst`
 
 #load takes a MsgStream or seq[byte] for loading
 # symbol with '!' in front are loaded from the buffer, but not asssigned
-# load converts the args from untyped to typed and pass it to loadHelper
+# implementation note: takes in untyped args, but we need type information to create a variable
+#   pass untyped to a macro that takes typed createArgVar
 macro load*(data:typed, args: varargs[untyped]):untyped =
   # load(buffer, self.speed, !self.direction)
   when defined(does_reload):
-    var targs:NimNode = newNimNode(nnkArgList)
+    result = newStmtList()
     for arg in args:
-      var t = newNimNode(nnkTupleConstr)
-      if arg.kind == nnkPrefix and arg[0].repr == "!":
-        t.add(arg[1])
-        t.add(newLit(false))
-      else:
-        t.add(arg)
-        t.add(newLit(true))
-
-      targs.add t
-
-    result = quote do:
-      loadHelper(`data`, `targs`)
+      var isAssign = newLit(if arg.kind == nnkPrefix and arg[0].repr == "!": false else: true)
+      var unpackVar:NimNode = genSym(nskVar)
+      result.add quote do:
+        createArgVar(`unpackVar`, `arg`)
+        `data`.unpack(`unpackVar`)
+        if `isAssign`:
+          `arg` = `unpackVar`
   else:
     discard
 

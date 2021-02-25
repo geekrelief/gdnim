@@ -27,10 +27,8 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
 
 The goal is to streamline and speed up the process of development for [godot-nim] by adding experimental features like:
   - hot reloading
-    - (todo) better code support for disabling
   - match gdscript features, e.g.: signal declarations and async signal handling
   - experimental support for Nim (devel branch), e.g.: gc:ORC support, IC
-  - (todo) support for Godot 4.0, e.g.: GDNative 4.0 (when it's stable)
   - reducing tedium / boilerplate / error proneness:
     - file watcher recompiles on save
     - generation of files for scripts and editor plugins (.nim, .gdns, .tscn, etc)
