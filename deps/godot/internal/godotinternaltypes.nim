@@ -71,36 +71,36 @@ type
   GodotCharString* {.byref.} = object
     data: array[sizeof(int), byte]
 
-  VariantType* {.size: sizeof(cint), pure.} = enum
-    Nil,   ##  atomic types
-    Bool,
-    Int,
-    Real,
-    String,
+  VariantType* {.size: sizeof(cint).} = enum
+    vtNil,   ##  atomic types
+    vtBool,
+    vtInt,
+    vtReal,
+    vtString,
     # math types
-    Vector2, ##  5
-    Rect2,
-    Vector3,
-    Transform2D,
-    Plane,
-    Quat, ##  10
-    AABB,
-    Basis,
-    Transform, ##  misc types
-    Color,
-    NodePath, ##  15
-    RID,
-    Object,
-    Dictionary,
-    Array,
+    vtVector2, ##  5
+    vtRect2,
+    vtVector3,
+    vtTransform2D,
+    vtPlane,
+    vtQuat, ##  10
+    vtAABB,
+    vtBasis,
+    vtTransform, ##  misc types
+    vtColor,
+    vtNodePath, ##  15
+    vtRID,
+    vtObject,
+    vtDictionary,
+    vtArray,
     # arrays
-    PoolByteArray, ## 20
-    PoolIntArray,
-    PoolRealArray,
-    PoolStringArray,
-    PoolVector2Array,
-    PoolVector3Array, ## 25
-    PoolColorArray
+    vtPoolByteArray, ## 20
+    vtPoolIntArray,
+    vtPoolRealArray,
+    vtPoolStringArray,
+    vtPoolVector2Array,
+    vtPoolVector3Array, ## 25
+    vtPoolColorArray
 
   VariantCallErrorType* {.size: sizeof(cint), pure.} = enum
     OK,

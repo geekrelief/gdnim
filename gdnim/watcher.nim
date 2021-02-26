@@ -112,7 +112,7 @@ when defined(does_reload):
         var name = d["name"].asString
         var typ = cast[VariantType](d["type"].asInt())
         var val = node.get_impl(name)
-        if not (typ == VariantType.Object):
+        if not (typ == VariantType.vtObject):
           props.add InstanceProperty(name: name, val: val)
       result = props
 
