@@ -1,5 +1,6 @@
 import gdnim
 import strformat, math
+import macros
 
 type FireAsyncState = enum A, B, C, D, E, F, G, H, I
 
@@ -8,7 +9,7 @@ gdnim SpriteComp of Sprite:
   godotapi InputEventMouseButton # same as: godotapi input_event_mouse_button
 
   var startPos:Vector2
-  var radius:float = 30.0
+  var radius:float = 50.0
   var speed:float = 0.11
   var elapsedTime:float
   var timer:Timer
@@ -27,12 +28,11 @@ gdnim SpriteComp of Sprite:
     # ! in front of a symbol reads the symbol's type from the buffer but doesn't assign
     load(self.startPos, !self.fireState, !self.rotation_degrees)
 
-  method enter_tree() =
+  method ready() =
     self.timer = gdnew[Timer]()
     self.timer.one_shot = true
     self.add_child(self.timer)
 
-  method ready() =
     var area2D = self.get_node("Area2D")
     discard area2D.connect("input_event", self, "on_area2d_input_event")
     discard self.connect("bsclick", self, "on_bsclick")

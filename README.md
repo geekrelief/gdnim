@@ -146,7 +146,7 @@ Watcher monitors the `app/_dlls` folder for updates and coordinates the reload p
 **NOTE** Below details how to hot reloading works when using the `gdobj` macro.  Using the `gdnim` macro reduces the boilerplate for the setup, and does all this stuff for you. See the `gdobj` branch `components` for samples.
 
 To set up a component for reloading, the component needs to:
- - call `hot.register` which registers the component name with the Watcher node. Typically, done when or after `enter_tree()` runs, so the component can find the Watcher. If you run `./build gencomp`, the template generated nim file will include register for you.
+ - call `hot.register` which registers the component name with the Watcher node. Typically, done when `ready()` runs, so the component can find the Watcher. If you run `./build gencomp`, the template generated nim file will include register for you.
  - `hot.register` has two versions. A simple register that is called with the component name, where the node expects to manage its own reload process, and a one where you can specify another node responsible for saving and reloading the component.
  - to persist data between reloads Watcher needs to call a saver proc and loader proc on nodes.
  - by default the saver proc is a callback in your component class named `hot_unload`, that returns `seq[byte]`, with a `{.gdExport.}` pragma so Watcher can find it.

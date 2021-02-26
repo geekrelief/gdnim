@@ -20,7 +20,7 @@ gdnim Gun of Sprite:
     bullet:
       self.bulletRes = loadScene("bullet")
 
-  method enter_tree() =
+  method ready() =
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
 
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")

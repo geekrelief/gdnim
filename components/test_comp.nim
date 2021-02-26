@@ -17,7 +17,7 @@ gdnim TestComp of Label:
   reload:
     load(self.tick, self.aString1)
 
-  method enter_tree() =
+  method ready() =
     self.text = "TestComp enter_tree"
 
   method ready() =

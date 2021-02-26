@@ -11,7 +11,7 @@ gdnim MyButton of Button:
   reload:
     load(self.rectPosition, self.count)
 
-  method enter_tree() =
+  method ready() =
     discard self.connect("pressed", self, "clicked")
 
   proc clicked() {.gdExport.} =

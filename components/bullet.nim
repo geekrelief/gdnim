@@ -19,7 +19,7 @@ gdnim Bullet of Sprite:
   reload:
     load(self.id, self.startTime, self.velocity, self.startPosition)
 
-  method init() =
+  method ready() =
     self.startTime = getMonoTime()
 
   proc set_data(id:int64, v:Vector2, p:Vector2) {.gdExport.} =

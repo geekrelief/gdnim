@@ -57,13 +57,16 @@ macro load*(data:typed, args: varargs[untyped]):untyped =
   when defined(does_reload):
     result = newStmtList()
     for arg in args:
-      var isAssign = newLit(if arg.kind == nnkPrefix and arg[0].repr == "!": false else: true)
+      let isAssign = if arg.kind == nnkPrefix and arg[0].repr == "!": false else: true
+      var isAssignNode = newLit(isAssign)
+      var argNode:NimNode = if isAssign: arg else: arg[1]
       var unpackVar:NimNode = genSym(nskVar)
+
       result.add quote do:
-        createArgVar(`unpackVar`, `arg`)
+        createArgVar(`unpackVar`, `argNode`)
         `data`.unpack(`unpackVar`)
-        if `isAssign`:
-          `arg` = `unpackVar`
+        if `isAssignNode`:
+          `argNode` = `unpackVar`
   else:
     discard
 
@@ -238,7 +241,7 @@ macro gdnim*(ast:varargs[untyped]) =
   var unloadNode:NimNode
   var reloadNode:NimNode
   var dependenciesNode:NimNode
-  var enterTreeNode:NimNode
+  var readyNode:NimNode
 
   var astBody = ast[^1]
   # parse
@@ -302,8 +305,8 @@ macro gdnim*(ast:varargs[untyped]) =
         else:
           gdObjBodyRest.add(node)
       of nnkMethodDef:
-        if node[0] == ^"enter_tree":
-          enterTreeNode = node
+        if node[0] == ^"ready":
+          readyNode = node
         else:
           gdObjBodyRest.add(node)
       else:
@@ -373,42 +376,44 @@ macro gdnim*(ast:varargs[untyped]) =
     if reloadNode.isNil:
       reloadNode = newStmtList()
 
-    if not reloadNode.isNil:
-      if enterTreeNode.isNil:
-        enterTreeNode = nnkMethodDef.newTree(^"enter_tree", newEmptyNode(), newEmptyNode(),
-          nnkFormalParams.newTree(newEmptyNode()), newEmptyNode(), newEmptyNode(), newStmtList())
-      var enterTreeBody = enterTreeNode.body
+    if readyNode.isNil:
+      readyNode = nnkMethodDef.newTree(^"ready", newEmptyNode(), newEmptyNode(),
+        nnkFormalParams.newTree(newEmptyNode()), newEmptyNode(), newEmptyNode(), newStmtList())
+
+    var readyBody = readyNode.body
+    gdObjBody.add readyNode
+
+    var dependencies = newEmptyNode()
+    if dependenciesCompNames.len > 0:
+      var rdepCall = nnkCall.newTree(^"register_dependencies", ^compName)
+      var reloadInit = newStmtList()
+      for dcompName in dependenciesCompNames:
+        rdepCall.add ^dcompName
+        reloadInit.add quote do:
+          self.hot_depreload(`dcompName`, false)
+      dependencies = quote do:
+        `rdepCall`
+        `reloadInit`
+
+    if reloadNode.len > 0:
       # find load call in reloadNode
-      var reloadBody = newStmtList()
-
-      var dependencies = newEmptyNode()
-      if dependenciesCompNames.len > 0:
-        var rdepCall = nnkCall.newTree(^"register_dependencies", ^compName)
-        var reloadInit = newStmtList()
-        for dcompName in dependenciesCompNames:
-          rdepCall.add ^dcompName
-          reloadInit.add quote do:
-            self.hot_depreload(`dcompName`, false)
-        dependencies = quote do:
-          `rdepCall`
-          `reloadInit`
-
+      var dataIdent = genSym(nskVar, "data")
+      var compNameIdent = ^compName
+      var reloadBody = quote do:
+        var `dataIdent` = register(`compNameIdent`)
+        `dependencies`
       for node in reloadNode:
         case node.kind:
           of nnkCall:
             if node[0] == ^"load":
-              var compNameIdent = ^compName
-              reloadBody.add quote do:
-                var data = register(`compNameIdent`)
-                `dependencies`
-                data?.`node`
+              echo reloadBody.repr
+              reloadBody.add nnkInfix.newTree(^"?.", dataIdent, node)
+              echo reloadBody.repr
             else:
               reloadBody.add node
           else:
               reloadBody.add node
-      enterTreeBody.insert(0, reloadBody)
-
-      gdObjBody.add enterTreeNode
+      readyBody.insert(0, reloadBody)
   else:
     gdnimDefect("need to implement when not reload, initializations")
 
