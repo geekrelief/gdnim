@@ -406,9 +406,7 @@ macro gdnim*(ast:varargs[untyped]) =
         case node.kind:
           of nnkCall:
             if node[0] == ^"load":
-              echo reloadBody.repr
               reloadBody.add nnkInfix.newTree(^"?.", dataIdent, node)
-              echo reloadBody.repr
             else:
               reloadBody.add node
           else:
