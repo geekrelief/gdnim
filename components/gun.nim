@@ -18,7 +18,7 @@ gdnim Gun of Sprite:
 
   dependencies:
     bullet:
-      self.bulletRes = loadScene("bullet")
+      self.bulletRes = load("res://_tscn/bullet.tscn") as PackedScene
 
   method ready() =
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
