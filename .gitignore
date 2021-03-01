@@ -9,4 +9,6 @@ nimcache
 .idea
 .nimcache
 nim.cfg
-*.ini
+*.inibuild
+build
+app/export_presets.cfg
