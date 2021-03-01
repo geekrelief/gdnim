@@ -1,0 +1,18 @@
+[general]
+
+singleton=false
+load_once=true
+symbol_prefix="godot_"
+reloadable=true
+
+[entry]
+
+Windows.64 = "res://_dlls/health_ui.dll"
+X11.64 = "res://_dlls/libhealth_ui.so"
+OSX.64 = "res://_dlls/health_ui.dylib"
+
+[dependencies]
+
+Windows.64=[  ]
+X11.64=[  ]
+OSX.64=[  ]

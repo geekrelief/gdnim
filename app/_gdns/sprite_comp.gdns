@@ -1,12 +1,8 @@
 [gd_resource type="NativeScript" load_steps=2 format=2]
 
-[sub_resource type="GDNativeLibrary" id=1]
-entry/Windows.64 = "res://_dlls/sprite_comp.dll"
-entry/X11.64 = "res://_dlls/sprite_comp.so"
-dependency/Windows.64 = [  ]
-dependency/X11.64 = [  ]
+[ext_resource path="res://_gdnlib/sprite_comp.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
 resource_name = "SpriteComp"
 class_name = "SpriteComp"
-library = SubResource( 1 )
+library = ExtResource( 1 )

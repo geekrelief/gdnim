@@ -1,12 +1,8 @@
 [gd_resource type="NativeScript" load_steps=2 format=2]
 
-[sub_resource type="GDNativeLibrary" id=1]
-entry/Windows.64 = "res://_dlls/my_button.dll"
-entry/X11.64 = "res://_dlls/my_button.so"
-dependency/Windows.64 = [  ]
-dependency/X11.64 = [  ]
+[ext_resource path="res://_gdnlib/my_button.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
 resource_name = "MyButton"
 class_name = "MyButton"
-library = SubResource( 1 )
+library = ExtResource( 1 )

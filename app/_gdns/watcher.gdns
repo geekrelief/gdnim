@@ -1,12 +1,8 @@
 [gd_resource type="NativeScript" load_steps=2 format=2]
 
-[sub_resource type="GDNativeLibrary" id=1]
-entry/Windows.64 = "res://_dlls/watcher.dll"
-entry/X11.64 = "res://_dlls/watcher.so"
-dependency/Windows.64 = [  ]
-dependency/X11.64 = [  ]
+[ext_resource path="res://_gdnlib/watcher.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
 resource_name = "Watcher"
 class_name = "Watcher"
-library = SubResource( 1 )
+library = ExtResource( 1 )

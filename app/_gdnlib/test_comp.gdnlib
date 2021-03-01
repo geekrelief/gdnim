@@ -1,0 +1,18 @@
+[general]
+
+singleton=false
+load_once=true
+symbol_prefix="godot_"
+reloadable=true
+
+[entry]
+
+Windows.64 = "res://_dlls/test_comp.dll"
+X11.64 = "res://_dlls/libtest_comp.so"
+OSX.64 = "res://_dlls/test_comp.dylib"
+
+[dependencies]
+
+Windows.64=[  ]
+X11.64=[  ]
+OSX.64=[  ]

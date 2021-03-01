@@ -12,7 +12,12 @@ Components need to register with the Watcher, so they can be reloaded.
 During a reload phase, the components data can be save and restored upon reload.
 ]#
 const dllDir {.strdefine.}:string = "_dlls"
-const dllExt {.strdefine.}:string = "dll"
+const dllPrefix = when hostOS == "linux": "lib"
+                else: ""
+const dllExt = when hostOS == "windows": "dll"
+             elif hostOS == "linux": "so"
+             elif hostOS == "macosx": "dylib"
+             else: "unknown"
 
 const META_INSTANCE_ID = "hot_meta_instance_id" #track instances
 const UNLOAD_PROCNAME = "hot_unload"
@@ -20,9 +25,9 @@ const DEPENDENCY_RELOAD_PROCNAME = "hot_depreload"
 const ADD_CHILD = "add_child"
 
 func safeDllPath(compName:string):string =
-  &"{dllDir}/{compName}_safe.{dllExt}"
+  &"{dllDir}/{dllPrefix}{compName}_safe.{dllExt}"
 func hotDllPath(compName:string):string =
-  &"{dllDir}/{compname}.{dllExt}"
+  &"{dllDir}/{dllPrefix}{compname}.{dllExt}"
 
 gdobj WatcherUnregisterHelper of Reference:
   # helper to store callback on node tree_exited
