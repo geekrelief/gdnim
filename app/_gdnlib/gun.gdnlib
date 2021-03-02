@@ -7,12 +7,22 @@ reloadable=true
 
 [entry]
 
+Android.arm64-v8a="res://_dlls/android/debug/arm64-v8a/libgun.so"
+Android.armeabi="res://_dlls/android/debug/armeabi/libgun.so"
+Android.armeabi-v7a="res://_dlls/android/debug/armeabi-v7a/libgun.so"
+Android.x86="res://_dlls/android/debug/x86/libgun.so"
+Android.x86_64="res://_dlls/android/debug/x86_64/libgun.so"
 Windows.64="res://_dlls/gun.dll"
 X11.64="res://_dlls/libgun.so"
 OSX.64="res://_dlls/gun.dylib"
 
 [dependencies]
 
+Android.arm64-v8a=[  ]
+Android.armeabi=[  ]
+Android.armeabi-v7a=[  ]
+Android.x86=[  ]
+Android.x86_64=[  ]
 Windows.64=[  ]
 X11.64=[  ]
 OSX.64=[  ]

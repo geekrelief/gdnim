@@ -7,12 +7,22 @@ reloadable=true
 
 [entry]
 
+Android.arm64-v8a="res://_dlls/android/debug/arm64-v8a/libhealth_ui.so"
+Android.armeabi="res://_dlls/android/debug/armeabi/libhealth_ui.so"
+Android.armeabi-v7a="res://_dlls/android/debug/armeabi-v7a/libhealth_ui.so"
+Android.x86="res://_dlls/android/debug/x86/libhealth_ui.so"
+Android.x86_64="res://_dlls/android/debug/x86_64/libhealth_ui.so"
 Windows.64 = "res://_dlls/health_ui.dll"
 X11.64 = "res://_dlls/libhealth_ui.so"
 OSX.64 = "res://_dlls/health_ui.dylib"
 
 [dependencies]
 
+Android.armeabi=[  ]
+Android.armeabi-v7a=[  ]
+Android.x86=[  ]
+Android.arm64-v8a=[  ]
+Android.x86_64=[  ]
 Windows.64=[  ]
 X11.64=[  ]
 OSX.64=[  ]

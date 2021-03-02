@@ -7,12 +7,22 @@ reloadable=true
 
 [entry]
 
+Android.arm64-v8a="res://_dlls/android/debug/arm64-v8a/libwatcher.so"
+Android.armeabi="res://_dlls/android/debug/armeabi/libwatcher.so"
+Android.armeabi-v7a="res://_dlls/android/debug/armeabi-v7a/libwatcher.so"
+Android.x86="res://_dlls/android/debug/x86/libwatcher.so"
+Android.x86_64="res://_dlls/android/debug/x86_64/libwatcher.so"
 Windows.64 = "res://_dlls/watcher.dll"
 X11.64 = "res://_dlls/libwatcher.so"
 OSX.64 = "res://_dlls/watcher.dylib"
 
 [dependencies]
 
+Android.armeabi=[  ]
+Android.armeabi-v7a=[  ]
+Android.x86=[  ]
+Android.arm64-v8a=[  ]
+Android.x86_64=[  ]
 Windows.64=[  ]
 X11.64=[  ]
 OSX.64=[  ]

@@ -7,12 +7,22 @@ reloadable=true
 
 [entry]
 
+Android.arm64-v8a="res://_dlls/android/debug/arm64-v8a/libmain_screen.so"
+Android.armeabi="res://_dlls/android/debug/armeabi/libmain_screen.so"
+Android.armeabi-v7a="res://_dlls/android/debug/armeabi-v7a/libmain_screen.so"
+Android.x86="res://_dlls/android/debug/x86/libmain_screen.so"
+Android.x86_64="res://_dlls/android/debug/x86_64/libmain_screen.so"
 Windows.64 = "res://_dlls/main_screen.dll"
 X11.64 = "res://_dlls/libmain_screen.so"
 OSX.64 = "res://_dlls/main_screen.dylib"
 
 [dependencies]
 
+Android.armeabi=[  ]
+Android.armeabi-v7a=[  ]
+Android.x86=[  ]
+Android.arm64-v8a=[  ]
+Android.x86_64=[  ]
 Windows.64=[  ]
 X11.64=[  ]
 OSX.64=[  ]

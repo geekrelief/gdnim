@@ -46,12 +46,22 @@ reloadable=true
 
 [entry]
 
+Android.arm64-v8a="res://$3/lib$1.so"
+Android.armeabi="res://$3/lib$1.so"
+Android.armeabi-v7a="res://$3/lib$1.so"
+Android.x86="res://$3/lib$1.so"
+Android.x86_64="res://$3/lib$1.so"
 Windows.64 = "res://$3/$1.dll"
 X11.64 = "res://$3/lib$1.so"
 OSX.64 = "res://$3/$1.dylib"
 
 [dependencies]
 
+Android.arm64-v8a=[  ]
+Android.armeabi=[  ]
+Android.armeabi-v7a=[  ]
+Android.x86=[  ]
+Android.x86_64=[  ]
 Windows.64=[  ]
 X11.64=[  ]
 OSX.64=[  ]
@@ -95,6 +105,7 @@ let gd_base_branch = config.getSectionValue("Godot", "base_branch")
 let gd_build_branch = config.getSectionValue("Godot", "build_branch")
 let gd_branches = config.getSectionValue("Godot", "merge_branches").split(",")
 let gd_platform = config.getSectionValue("Godot", "platform")
+let gd_arch = config.getSectionValue("Godot", "arch")
 let gd_bits = config.getSectionValue("Godot", "bits")
 #let gd_bin = config.getSectionValue("Godot", "bin")
 let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
@@ -103,13 +114,13 @@ let gd_tools_release_bin = config.getSectionValue("Godot", "tools_release_bin")
 var cwatch_interval = parseInt(config.getSectionValue("Build", "cwatch_interval"))
 if cwatch_interval == 0: cwatch_interval = 300
 
-let dllPrefix = case hostOS
-               of "linux": "lib"
-               else: ""
+let dllPrefix = case gd_platform
+                  of "android", "linuxbsd", "x11": "lib"
+                  else: ""
 
-let dllExt = case hostOS
+let dllExt = case gd_platform
                of "windows": "dll"
-               of "linux": "so"
+               of "android", "linuxbsd", "x11": "so"
                of "macosx": "dylib"
                else: "unknown"
 
