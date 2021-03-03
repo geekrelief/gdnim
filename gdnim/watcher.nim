@@ -60,7 +60,7 @@ func lerp(a, b, t:float32):float32 =
 
 
 when defined(does_reload):
-  gdobj Watcher of Control:
+  gdobj(Watcher of Control, tool):
 
     signal notice(code:int, msg:string)
 
@@ -273,7 +273,7 @@ when defined(does_reload):
       self.emit_signal("notice", int(code).toVariant, msg.toVariant)
 
 else:
-  gdobj(Watcher of Control):
+  gdobj(Watcher of Control, tool):
     var enableWatch {.gdExport.}:bool = true
     var watchIntervalSeconds {.gdExport.}:float = 0.3
     var reloadIntervalSeconds {.gdExport.}:float = 0.3

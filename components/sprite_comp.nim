@@ -4,7 +4,7 @@ import macros
 
 type FireAsyncState = enum A, B, C, D, E, F, G, H, I
 
-gdnim SpriteComp of Sprite:
+gdnim(SpriteComp of Sprite, tool):
   #same as: import godotapi / [class1, class2]
   godotapi InputEventMouseButton # same as: godotapi input_event_mouse_button
 
