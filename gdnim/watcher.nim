@@ -286,3 +286,5 @@ else:
     var enableNotifications {.gdExport.}:bool = true
     var notification_duration {.gdExport.}:float  = 10.0
     var notification_time_to_fade {.gdExport.}:float = 2.0
+    proc register_dependencies(compName:string, dependencies:seq[string]) {.gdExport.} = discard
+    proc register_instance(compName:string, saverPath:string, loaderPath:string, saverProc=UNLOAD_PROCNAME, loaderProc=ADD_CHILD):seq[byte] {.gdExport.} = discard
