@@ -45,6 +45,7 @@ let allCompilerFlagsTable = {
     "gcc":"--cc:gcc --threads:on --tlsEmulation:off",
     "gcc_strip": "--d:strip", # same as "--passL:\"-s\"", # removes debug symbols
     "gcc_flto": "--passC:-flto", # https://gcc.gnu.org/wiki/LinkTimeOptimization
+    "mingw": "-d:mingw",
     # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
     "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
     "clang":"--cc:clang --threads:on --tlsEmulation:off", # default toolchain for android
@@ -179,7 +180,7 @@ proc setFlag(flag:string, val:string) =
       else:
         configError(&"build_kind = \"{val}\"", "danger, release, debug, or diagnostic")
     of "cc":
-      if val in ["gcc", "vcc", "tcc", "clang"]:
+      if val in ["gcc", "vcc", "tcc", "clang", "mingw"]:
         taskCompilerFlagsTable.del("cc")
         taskCompilerFlagsTable["cc"] = allCompilerFlagsTable[val]
       else:
