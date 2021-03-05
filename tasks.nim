@@ -16,6 +16,14 @@ gdnim $2 of $3:
 const tool_nim_template = """
 import godot, godotapi / [editor_plugin, resource_loader]
 
+#[
+WARNING: GDNative reloading of tool scripts is broken.
+If you enable and disable the plugin, or unfocus the editor window while
+the plugin is enabled which will cause the plugin to reload, you might
+get a crash. You also might get warnings about leaked resources, when the
+plugin is enabled while the editor is closed.
+]#
+
 gdobj($2 of EditorPlugin, tool):
 
   method enter_tree() =
@@ -214,6 +222,17 @@ task gdengine, "build the godot engine, default with debugging and tools args:\n
   discard execShellCmd &"scons -j{threads}  p={gd_platform} bits={gd_bits} {flags}"
   setCurrentDir(projDir)
 
+task term, "launches the terminal with cwatch, pass in another arg for second panel":
+  if hostOS == "windows":
+    var curDir = getCurrentDir()
+    var second = ""
+    if args.len == 1:
+      second = &"cmd /k \".\\build.exe {args[0]}\""
+
+    discard execShellCmd &"wt -d {curDir} ./build cwatch; split-pane -d {curDir} {second}"
+  else:
+    echo &"not implemented on {hostOS}"
+
 task gd, "launches terminal with godot project\n\toptional argument for scene to open":
   var gdbin = if "debug" in getSharedFlags(): gd_tools_debug_bin else: gd_tools_release_bin
 
@@ -224,8 +243,20 @@ task gd, "launches terminal with godot project\n\toptional argument for scene to
   if args.len == 1:
     scn = args[0] & ".tscn"
 
-  if hostOS == "windows": discard execShellCmd &"wt -d {curDir} {gdbin} -e --path {projDir} {scn}"
-  else: discard execShellCmd &"{gdbin} -e --path {projDir} {scn}"
+  echo &"{gdbin} --verbose -e --path {projDir} {scn}"
+  discard execShellCmd &"{gdbin} --verbose -e --path {projDir} {scn}"
+
+task play, "launches the project without editor, optionally pass in name of a scene to run":
+  var gdbin = if "debug" in getSharedFlags(): gd_tools_debug_bin else: gd_tools_release_bin
+
+  var projDir = "app"
+
+  var scn = ""
+  if args.len == 1:
+    scn = args[0] & ".tscn"
+
+  echo &"{gdbin} --verbose --path {projDir} {scn}"
+  discard execShellCmd &"{gdbin} --verbose --path {projDir} {scn}"
 
 proc checkPrereq(packageName, sourceName:string, verbose:bool = true) =
   var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
@@ -426,7 +457,12 @@ task gencomp, "generate a component template (nim, gdns, gdnlib, tscn files), pa
   echo &"building {compName}"
   echo buildComp(compName, buildSettings)
 
+
 task delcomp, "delete a component, removes the nim, gdns, gdnlib, tscn, and dlls associated with the component":
+  if args.len != 1:
+    echo "Usage: ./build delcomp comp_name"
+    quit()
+
   var compName = args[0]
   var files = @[nimFilePath(compName),
               gdnsFilePath(compName),

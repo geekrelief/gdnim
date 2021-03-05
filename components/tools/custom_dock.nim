@@ -1,11 +1,15 @@
 import gdnim, godotapi / [editor_plugin, resource_loader, packed_scene, control]
 
+
+#[
+WARNING: GDNative reloading of tool scripts is broken.
+If you enable and disable the plugin, or unfocus the editor window while
+the plugin is enabled which will cause the plugin to reload, you might
+get a crash. You also might get warnings about leaked resources, when the
+plugin is enabled while the editor is closed.
+]#
+
 gdobj(CustomDock of EditorPlugin, tool):
-  #[
-  proc hot_unload():seq[byte] {.gdExport.} =
-    self.queue_free()
-    #save()
-  ]#
   var dock:Control
 
   method enter_tree() =

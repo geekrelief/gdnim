@@ -1,6 +1,13 @@
 import gdnim, godotapi / [editor_plugin, resource_loader, editor_interface, packed_scene, control, viewport]
 
-#The scene doesn't appear
+#[
+WARNING: GDNative reloading of tool scripts is broken.
+If you enable and disable the plugin, or unfocus the editor window while
+the plugin is enabled which will cause the plugin to reload, you might
+get a crash. You also might get warnings about leaked resources, when the
+plugin is enabled while the editor is closed.
+]#
+
 gdobj(MainScreen of EditorPlugin, tool):
 
   var main_panel_instance:Control

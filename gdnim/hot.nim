@@ -219,10 +219,14 @@ macro gdnim*(ast:varargs[untyped]) =
   var gdObjBody = newStmtList()
   if fileExists(baseClassFilePath):
     var gdobj = nnkCommand.newTree(^"gdobj", astInfix)
+    if ast[1].kind == nnkIdent and $ast[1] == "tool":
+      gdobj.add ast[1]
+
     gdobj.add gdObjBody
     result.add gdobj
   else:
     gdnimDefect(&"Expected Godot class {baseClassName} at {baseClassFilePath}.")
+
 
   var typeUnknownPropertyNames = initHashSet[string]()
 
