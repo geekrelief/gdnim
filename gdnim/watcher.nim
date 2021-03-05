@@ -60,7 +60,7 @@ func lerp(a, b, t:float32):float32 =
 
 
 when defined(does_reload):
-  gdobj(Watcher of Control, tool):
+  gdobj Watcher of Control:
 
     signal notice(code:int, msg:string)
 
