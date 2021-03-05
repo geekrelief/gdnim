@@ -113,7 +113,7 @@ let gd_base_branch = config.getSectionValue("Godot", "base_branch")
 let gd_build_branch = config.getSectionValue("Godot", "build_branch")
 let gd_branches = config.getSectionValue("Godot", "merge_branches").split(",")
 let gd_platform = config.getSectionValue("Godot", "platform")
-let gd_arch = config.getSectionValue("Godot", "arch")
+#let gd_arch = config.getSectionValue("Godot", "arch")
 let gd_bits = config.getSectionValue("Godot", "bits")
 #let gd_bin = config.getSectionValue("Godot", "bin")
 let gd_tools_debug_bin = config.getSectionValue("Godot", "tools_debug_bin")
@@ -235,16 +235,12 @@ task term, "launches the terminal with cwatch, pass in another arg for second pa
 
 task gd, "launches terminal with godot project\n\toptional argument for scene to open":
   var gdbin = if "debug" in getSharedFlags(): gd_tools_debug_bin else: gd_tools_release_bin
-
-  var curDir = getCurrentDir()
-  var projDir = "app"
-
   var scn = ""
   if args.len == 1:
     scn = args[0] & ".tscn"
 
-  echo &"{gdbin} --verbose -e --path {projDir} {scn}"
-  discard execShellCmd &"{gdbin} --verbose -e --path {projDir} {scn}"
+  echo &"{gdbin} --verbose -e --path {appDir} {scn}"
+  discard execShellCmd &"{gdbin} --verbose -e --path {appDir} {scn}"
 
 task play, "launches the project without editor, optionally pass in name of a scene to run":
   var gdbin = if "debug" in getSharedFlags(): gd_tools_debug_bin else: gd_tools_release_bin

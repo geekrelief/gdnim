@@ -79,9 +79,6 @@ var taskCompilerFlagsTable = {
   "reload":"--d:does_reload",
 }.toTable
 
-var cCompilerflags: string
-var linkerFlags: string
-
 var otherFlagsTable:Table[string, string]
 
 proc configError(errMsg:string, prescription:string) =

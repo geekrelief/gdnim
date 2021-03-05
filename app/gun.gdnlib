@@ -1,0 +1,28 @@
+[general]
+
+singleton=false
+load_once=true
+symbol_prefix="godot_"
+reloadable=true
+
+[entry]
+
+Android.arm64-v8a="res://_dlls/libgun.so"
+Android.armeabi="res://_dlls/libgun.so"
+Android.armeabi-v7a="res://_dlls/libgun.so"
+Android.x86="res://_dlls/libgun.so"
+Android.x86_64="res://_dlls/libgun.so"
+Windows.64 = "res://_dlls/gun.dll"
+X11.64 = "res://_dlls/libgun.so"
+OSX.64 = "res://_dlls/gun.dylib"
+
+[dependencies]
+
+Android.arm64-v8a=[  ]
+Android.armeabi=[  ]
+Android.armeabi-v7a=[  ]
+Android.x86=[  ]
+Android.x86_64=[  ]
+Windows.64=[  ]
+X11.64=[  ]
+OSX.64=[  ]

@@ -18,10 +18,6 @@ config/icon="res://icon.png"
 
 Watcher="*res://_tscn/watcher.tscn"
 
-[editor_plugins]
-
-enabled=PoolStringArray( "res://addons/main_screen/plugin.cfg" )
-
 [rendering]
 
 environment/default_environment="res://default_env.tres"
