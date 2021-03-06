@@ -6,6 +6,10 @@ If you enable and disable the plugin, or unfocus the editor window while
 the plugin is enabled which will cause the plugin to reload, you might
 get a crash. You also might get warnings about leaked resources, when the
 plugin is enabled while the editor is closed.
+
+As a workaround, gdnlib's reloadable flag is set to false, so the
+plugin will not reload when the editor is unfocused. To see your
+changes, close the editor and reopen after compilation.
 ]#
 
 gdobj(MainScreen of EditorPlugin, tool):

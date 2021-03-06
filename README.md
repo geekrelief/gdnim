@@ -112,7 +112,7 @@ Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdn
  - `build.ini`: The default configuration file used to specify directories and settings. This is read at runtime. A different config file can be set using the `--ini` flag. Example: `./build --ini:my_config.ini cleanbuild`
  - `components`: Where nim component files live. Components must have unique identifiers. Dlls are generated from these components.
  - `components/tools`: Where nim files for tool / editor plugins go. Generated with `./build gentool my_tool_name`
-   - **WARNING**: GDNative reloading of tool scripts is broken. If you enable and disable the plugin, or unfocus the editor window while the plugin is enabled which will cause the plugin to reload, you might get a crash. You also might get warnings about leaked resources, when the plugin is enabled while the editor is closed.
+   - **WARNING**: GDNative reloading of tool scripts is broken. If you enable and disable the plugin, or unfocus the editor window while the plugin is enabled which will cause the plugin to reload, you might get a crash. You also might get warnings about leaked resources, when the plugin is enabled while the editor is closed. As a workaround, gdnlib's reloadable flag is set to false, so the plugin will not reload when the editor is unfocused. To see your changes, close the editor and reopen after compilation.
 
 
 

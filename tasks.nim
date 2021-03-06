@@ -1,3 +1,5 @@
+# nim says anycase is unused, but pascal and snake are from anycase
+{.push warning[UnusedImport]:off.}
 from sequtils import toSeq, filter, mapIt
 import anycase, threadpool
 
@@ -22,6 +24,10 @@ If you enable and disable the plugin, or unfocus the editor window while
 the plugin is enabled which will cause the plugin to reload, you might
 get a crash. You also might get warnings about leaked resources, when the
 plugin is enabled while the editor is closed.
+
+As a workaround, gdnlib's reloadable flag is set to false, so the
+plugin will not reload when the editor is unfocused. To see your
+changes, close the editor and reopen after compilation.
 ]#
 
 gdobj($2 of EditorPlugin, tool):
@@ -50,7 +56,7 @@ const gdnlib_template = """
 singleton=false
 load_once=true
 symbol_prefix="godot_"
-reloadable=true
+reloadable=$4
 
 [entry]
 
@@ -132,7 +138,7 @@ let dllExt = case gd_platform
                of "macosx": "dylib"
                else: "unknown"
 
-proc genGdns(name:string) =
+proc genGdns(name:string, isTool:bool = false) =
   var comp = &"{compsDir}/{name}.nim"
   var gdns = &"{gdnsDir}/{name}.gdns"
   var gdnlib = &"{gdnlibDir}/{name}.gdnlib"
@@ -149,7 +155,8 @@ proc genGdns(name:string) =
       echo &"generated {gdns}"
     if not fileExists(gdnlib):
       var f = open(gdnlib, fmWrite)
-      f.write(gdnlib_template % [name, name.pascal, relativePath(dllDir, appDir)])
+      var reloadable = not isTool
+      f.write(gdnlib_template % [name, name.pascal, relativePath(dllDir, appDir), $reloadable])
       f.close()
       echo &"generated {gdnlib}"
 
@@ -517,7 +524,7 @@ task gentool, "generate a tool / editor plugin scaffold":
   else:
     echo &"{cfg} already exists"
 
-  genGdns(compName)
+  genGdns(compName, isTool = true)
 
 task flags, "display the flags used for compiling components":
   echo ">>> Task  compiler flags <<<"
