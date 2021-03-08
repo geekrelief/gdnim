@@ -12,10 +12,11 @@ type
   GDNimDefect = object of Defect
   HotReloadDefect = object of Defect
 
+  #emitted by Watcher notice
   WatcherNoticeCode* = enum
-    UNLOADING,
-    RELOADED,
-    REGISTER_COMP
+    wncUnloading,
+    wncReloaded,
+    wncRegisterComp
 
 # packs arguments pass as a seq[byte]
 # save(self.i, self.f, self.s)

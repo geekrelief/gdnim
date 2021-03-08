@@ -1,5 +1,5 @@
 import gdnim
-import godotapi / [node, resource_loader, packed_scene, v_box_container, line_edit, scene_tree, theme]
+import godotapi / [node, resource_loader, canvas_layer, v_box_container, line_edit, theme]
 import os, strformat, times
 from sequtils import keepItIf
 import tables, sets, hashes
@@ -19,10 +19,10 @@ const dllExt = when hostOS == "windows": "dll"
              elif hostOS == "macosx": "dylib"
              else: "unknown"
 
-const META_INSTANCE_ID = "hot_meta_instance_id" #track instances
-const UNLOAD_PROCNAME = "hot_unload"
-const DEPENDENCY_RELOAD_PROCNAME = "hot_depreload"
-const ADD_CHILD = "add_child"
+const MetaInstanceId = "hot_meta_instance_id"
+const UnloadProcname = "hot_unload"
+const DependencyReloadProcname = "hot_depreload"
+const AddChild = "add_child"
 
 func safeDllPath(compName:string):string =
   &"{dllDir}/{dllPrefix}{compName}_safe.{dllExt}"
@@ -44,7 +44,7 @@ type
     id:InstanceID
     saverPath:string
     loaderPath:string
-    data:seq[byte]
+    data:Variant # seq[byte]
     helper:WatcherUnRegisterHelper
 
   ComponentMeta = object
@@ -65,7 +65,7 @@ func lerp(a, b, t:float32):float32 =
 
 
 when defined(does_reload):
-  gdobj Watcher of Control:
+  gdobj Watcher of CanvasLayer:
 
     signal notice(code:int, msg:string)
 
@@ -151,8 +151,8 @@ when defined(does_reload):
               try:
                 var loaderNode = self.get_node(instData.loaderPath)
                 var instNode = pscene.instance()
-                instNode.set_meta(META_INSTANCE_ID, int64(instData.id).toVariant())
-                loaderNode.call_deferred(ADD_CHILD, instNode.toVariant())
+                instNode.set_meta(MetaInstanceId, int64(instData.id).toVariant())
+                loaderNode.call_deferred(AddChild, instNode.toVariant())
               except:
                 printError &"!!! Could not reinstance \"{instData.saverPath }\" @ \"{instData.loaderPath}\""
 
@@ -160,7 +160,7 @@ when defined(does_reload):
               for rdcompName in self.rdependencies[compName]:
                 for rinstData in self.instancesByCompNameTable[rdcompName]:
                   var rnode = self.get_node(rinstData.saverPath)
-                  rnode.call_deferred(DEPENDENCY_RELOAD_PROCNAME, compName.toVariant, false.toVariant)
+                  rnode.call_deferred(DependencyReloadProcname, compName.toVariant, false.toVariant)
 
             finReloadingComps.add(compName)
           else:
@@ -169,7 +169,7 @@ when defined(does_reload):
         self.reloadingComps.keepItIf(not (it in finReloadingComps))
 
         self.get_tree().paused = false
-        self.notify(RELOADED, &"Watcher reload complete")
+        self.notify(wncReloaded, &"Watcher reload complete")
         return
 
       #check for new dlls
@@ -182,7 +182,7 @@ when defined(does_reload):
             getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath) and
             getFileSize(compName.safeDllPath) > 0:
             self.get_tree().paused = true
-            self.notify(UNLOADING, &"Watcher unloading: {compName}")
+            self.notify(wncUnloading, &"Watcher unloading: {compName}")
             self.reloadingComps.add(compName)
 
             var cmeta = self.compMetaTable[compName]
@@ -191,9 +191,7 @@ when defined(does_reload):
               try:
                 #printWarning &"saving {instData.saverPath}"
                 var node = self.get_node(instData.saverPath)
-                var saveData:seq[byte]
-                discard saveData.fromVariant(node.call(cmeta.saverProc))
-                instData.data = move(saveData)
+                instData.data = node.call(cmeta.saverProc)
               except CallError as e:
                 printError &"Watcher reloading: {compName}, Error '{e.err.error}'. From {compName}.{cmeta.saverProc} @ {instData.saverPath}"
                 raise
@@ -201,29 +199,30 @@ when defined(does_reload):
               for rdep in self.rdependencies[compName]:
                 for rinstData in self.instancesByCompNameTable[rdep]:
                   var node = self.get_node(rinstData.saverPath)
-                  discard node.call(DEPENDENCY_RELOAD_PROCNAME, compName.toVariant, true.toVariant)
+                  discard node.call(DependencyReloadProcname, compName.toVariant, true.toVariant)
 
     # registers the instance and its component for Watcher monitoring
-    proc register_instance(compName:string, saverPath:string, loaderPath:string, saverProc=UNLOAD_PROCNAME, loaderProc=ADD_CHILD):seq[byte] {.gdExport.} =
+    proc register_instance(compName:string, saverPath:string, loaderPath:string,
+                            saverProc=UnloadProcname, loaderProc=AddChild):seq[byte] {.gdExport.} =
       if not fileExists(compName.hotDllPath):
         printError &"Watcher failed to register {compName}. No dll with this name."
         return
       try:
         if not self.compMetaTable.hasKey(compName):
-          self.notify(REGISTER_COMP, &"Watcher registering {compName}")
+          self.notify(wncRegisterComp, &"Watcher registering {compName}")
           self.compMetaTable[compName] = ComponentMeta(resourcePath: findScene(compName), saverProc: saverProc, loaderProc: loaderProc)
           self.instancesByCompNameTable[compName] = @[]
 
         var instNode = self.get_node(saverPath)
         var instData:InstanceData
         var instID:InstanceID
-        if not instNode.has_meta(META_INSTANCE_ID):
+        if not instNode.has_meta(MetaInstanceId):
           # first instance
           instData = new(InstanceData)
           inc self.NextInstanceID
           instID = self.NextInstanceID
           instData.id = instID
-          instNode.set_meta(META_INSTANCE_ID, int64(instID).toVariant)
+          instNode.set_meta(MetaInstanceId, int64(instID).toVariant)
           instData.compName = compName
           instData.saverPath = saverPath
           instData.loaderPath = loaderPath
@@ -232,12 +231,12 @@ when defined(does_reload):
           self.instancesByCompNameTable[compName].add instData
         else:
           # reloaded
-          instID = InstanceID(instNode.get_meta(META_INSTANCE_ID).asInt())
+          instID = InstanceID(instNode.get_meta(MetaInstanceId).asInt())
           #printWarning &"reloaded {instID} @ {saverPath}"
           instData = self.instanceByIDTable[instID]
           instData.saverPath = saverPath
-          result = instData.data
-          instData.data.setLen(0)
+          discard result.fromVariant(instData.data)
+          instData.data = nil
 
         proc callback() =
           self.unregisterInstance(instID)
@@ -268,13 +267,14 @@ when defined(does_reload):
         self.instancesByCompNameTable[instData.compName].del(index)
 
     proc notify(code:WatcherNoticeCode, msg:string) =
+      if not self.enableNotifications: return
       printWarning &"{msg}"
 
       var n = ReloadNotification(gdLine: self.lineEditPacked.instance() as LineEdit)
-      self.notifications.add(n)
+      self.notifications.add n
       n.gdLine.text = msg
       if self.vbox != nil:
-        self.vbox.call_deferred(ADD_CHILD, n.gdLine.toVariant)
+        self.vbox.call_deferred(AddChild, n.gdLine.toVariant)
       self.emit_signal("notice", int(code).toVariant, msg.toVariant)
 
 else:
@@ -287,4 +287,5 @@ else:
     var notification_duration {.gdExport.}:float  = 10.0
     var notification_time_to_fade {.gdExport.}:float = 2.0
     proc register_dependencies(compName:string, dependencies:seq[string]) {.gdExport.} = discard
-    proc register_instance(compName:string, saverPath:string, loaderPath:string, saverProc=UNLOAD_PROCNAME, loaderProc=ADD_CHILD):seq[byte] {.gdExport.} = discard
+    proc register_instance(compName:string, saverPath:string, loaderPath:string,
+                            saverProc=UnloadProcname, loaderProc=AddChild):seq[byte] {.gdExport.} = discard

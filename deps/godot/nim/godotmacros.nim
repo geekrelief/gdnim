@@ -730,6 +730,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
       exitTreeMethod = meth.nimNode
       break
   if exitTreeMethod.isNil:
+    # exit_tree is nnkProcDef to avoid nim complaining about {.base.} methods
     obj.methods.add(MethodDecl(
       name: "exit_tree",
       args: newSeq[VarDecl](),
@@ -737,7 +738,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
       isVirtual: true,
       isNoGodot: false,
       nimNode: newProc(postfix(ident("exit_tree"), "*"), body = exitTreeBody,
-                       procType = nnkMethodDef)
+                       procType = nnkProcDef)
     ))
   else:
     exitTreeMethod.body.add(exitTreeBody)
