@@ -52,7 +52,7 @@ let allCompilerFlagsTable = {
   # gc
     "arc":"--gc:arc", # using arc with async will cause memory leaks, async generates cycles arc cannot collect
     "orc":"--gc:orc", #crashes with --d:useMalloc, will collect async cycles
-    "realtime":"--d:useRealtimeGC",
+    "refc":"--gc:refc",
   "useMalloc":"--d:useMalloc", # use C memory primitives
   # build_kind
     "danger":"--d:danger",
@@ -183,11 +183,11 @@ proc setFlag(flag:string, val:string) =
       else:
         configError(&"cc = \"{val}\"", "gcc, vcc, or tcc")
     of "gc":
-      if val in ["arc", "orc", "realtime"]:
+      if val in ["arc", "orc", "refc"]:
         taskCompilerFlagsTable.del("gc")
         taskCompilerFlagsTable["gc"] = allCompilerFlagsTable[val]
       else:
-        configError(&"gc = \"{val}\"", "orc, arc, or realtime")
+        configError(&"gc = \"{val}\"", "orc, arc, or refc")
     of "nocheck", "nc":
       otherFlagsTable["nocheck"] = "on"
     of "os":

@@ -12,3 +12,4 @@ nim.cfg
 *.inibuild
 build
 app/export_presets.cfg
+*.ini
