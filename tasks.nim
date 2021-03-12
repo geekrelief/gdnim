@@ -308,10 +308,18 @@ const gccDlls = @["libgcc_s_seh-1", "libwinpthread-1"]
 final:
   if hostOS == "windows":
     if taskCompilerFlagsTable["cc"] == allCompilerFlagsTable["gcc"]:
-      echo ">>> gcc dlls check <<<"
+      var copyFromDeps = false
+      var msg = ""
       for dll in gccDlls:
         if not fileExists(&"{dllDir}/{dll}.dll"):
-          echo &"Missing {dllDir}/{dll}.dll, please copy from gcc/bin"
+          copyFromDeps = true
+          msg &= &"--- Missing {dllDir}\\{dll}.dll! ---\n\tCopying from {depsDir}\\gcc\\windows\\{dll}.dll\n"
+          copyFile(&"{depsDir}/gcc/windows/{dll}.dll", &"{dllDir}/{dll}.dll")
+      if copyFromDeps:
+        echo ">>> gcc dlls check <<<"
+        echo msg
+        echo "If the app fails to run with the dll(s), try copying from your gcc/bin directory"
+
 
 task cleandll, "clean the dlls, arguments are component names, default all non-gcc dlls":
   var dllPaths:seq[string]
