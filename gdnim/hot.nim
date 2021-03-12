@@ -220,7 +220,7 @@ macro gdnim*(ast:varargs[untyped]) =
   var gdObjBody = newStmtList()
   if fileExists(baseClassFilePath):
     var gdobj = nnkCommand.newTree(^"gdobj", astInfix)
-    if ast[1].kind == nnkIdent and $ast[1] == "tool":
+    if ast[1].kind == nnkIdent and ast[1].eqIdent("tool"):
       gdobj.add ast[1]
 
     gdobj.add gdObjBody
@@ -255,7 +255,7 @@ macro gdnim*(ast:varargs[untyped]) =
     case node.kind
       of nnkCommand:
         var commandName = node[0]
-        if commandName == ^"godotapi":
+        if commandName.eqIdent("godotapi"):
           for godotModule in node[1..^1]:
             var cGodotModule = ^(classStyleToCompStyle(godotModule.repr))
             godotModules.add cGodotModule
@@ -301,16 +301,16 @@ macro gdnim*(ast:varargs[untyped]) =
               typeUnknownPropertyNames.incl name
       of nnkCall:
         var callName = node[0]
-        if callName == ^"unload":
+        if callName.eqIdent("unload"):
           unloadNode = node[^1]
-        elif callName == ^"reload":
+        elif callName.eqIdent("reload"):
           reloadNode = node[^1]
-        elif callName == ^"dependencies":
+        elif callName.eqIdent(^"dependencies"):
           dependenciesNode = node[^1]
         else:
           gdObjBodyRest.add(node)
       of nnkMethodDef:
-        if node[0] == ^"ready":
+        if node[0].eqIdent("ready"):
           readyNode = node
         else:
           gdObjBodyRest.add(node)
@@ -410,7 +410,7 @@ macro gdnim*(ast:varargs[untyped]) =
       for node in reloadNode:
         case node.kind:
           of nnkCall:
-            if node[0] == ^"load":
+            if node[0].eqIdent("load"):
               reloadBody.add nnkInfix.newTree(^"?.", dataIdent, node)
             else:
               reloadBody.add node

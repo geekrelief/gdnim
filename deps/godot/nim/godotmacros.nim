@@ -69,7 +69,7 @@ proc extractNames(definition: NimNode):
     result.name = definition.strVal
   else:
     if not (definition.kind == nnkInfix and
-            definition[0].strVal == "of"):
+            definition[0].eqIdent("of")):
       parseError(definition, "invalid type definition")
     result.name = definition[1].strVal
     case definition[2].kind:
@@ -87,13 +87,13 @@ proc newCStringLit(s: string): NimNode {.compileTime.} =
   newNimNode(nnkCallStrLit).add(ident("cstring"), newRStrLit(s))
 
 iterator pragmas(node: NimNode):
-      tuple[key: string, value: NimNode, index: int] =
+      tuple[key: NimNode, value: NimNode, index: int] =
   assert node.kind in {nnkPragma, nnkEmpty}
   for index in countdown(node.len - 1, 0):
     if node[index].kind == nnkExprColonExpr:
-      yield (node[index][0].strVal, node[index][1], index)
+      yield (node[index][0], node[index][1], index)
     elif node[index].kind == nnkIdent:
-      yield (node[index].strVal, nil, index)
+      yield (node[index], nil, index)
 
 proc hasPragma(statement: NimNode, pname: string): bool =
   if not (RoutineNodes.contains(statement.kind) or
@@ -103,7 +103,7 @@ proc hasPragma(statement: NimNode, pname: string): bool =
   var pragmas = if RoutineNodes.contains(statement.kind): statement.pragma()
                 else: statement[1]
   for ident, val, i in pragmas(pragmas):
-    if ident == pname:
+    if ident.eqIdent(pname):
       return true
 
 proc removePragmaNode(statement: NimNode,
@@ -118,7 +118,7 @@ proc removePragmaNode(statement: NimNode,
   var pragmas = if RoutineNodes.contains(statement.kind): statement.pragma()
                 else: statement[1]
   for ident, val, i in pragmas(pragmas):
-    if ident == pname:
+    if ident.eqIdent(pname):
       pragmas.del(i)
       return val
 
@@ -130,7 +130,7 @@ proc removePragma(statement: NimNode, pname: string): bool =
   var pragmas = if RoutineNodes.contains(statement.kind): statement.pragma()
                 else: statement[1]
   for ident, val, i in pragmas(pragmas):
-    if ident == pname:
+    if ident.eqIdent(pname):
       pragmas.del(i)
       return true
 
@@ -316,7 +316,7 @@ proc recurseOnSignalCalls(methodName:string, signalCallIds:var HashSet[string], 
 
   case nnode.kind
     of nnkCall:
-      if nnode[0] == ident("onSignal"):
+      if nnode[0].eqIdent("onSignal"):
         #generate the future, callback and onSignal proc for the signal
         var target = nnode[1]
         var targetName = if target.kind != nnkIdent: genSym().toStrLit.strVal[1..^1] else: target.repr
@@ -386,7 +386,7 @@ proc parseType(ast: NimNode): ObjectDecl =
     let option = ast[i]
     if option.kind != nnkIdent:
       parseError(option, "type specifier expected")
-    if option.strVal == "tool":
+    if option.eqIdent("tool"):
       isTool = true
     else:
       parseError(option, "valid type specifier expected")
@@ -407,7 +407,7 @@ proc parseType(ast: NimNode): ObjectDecl =
           let meth = parseMethod(statement)
           result.methods.add(meth)
       of nnkCommand, nnkCall:
-        if statement[0].strVal == "signal":
+        if statement[0].eqIdent("signal"):
           result.signals.add parseSignal(statement)
       of nnkCommentStmt:
         discard
@@ -708,7 +708,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
     newCall("init", newCall(obj.parentName, ident("self")))))
   var initMethod: NimNode
   for meth in obj.methods:
-    if ident(meth.name) == ident("init") and meth.nimNode[3].len == 1:
+    if meth.name.eqIdent("init") and meth.nimNode[3].len == 1:
       initMethod = meth.nimNode
       break
   if initMethod.isNil:
@@ -726,7 +726,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
 
   var exitTreeMethod: NimNode
   for meth in obj.methods:
-    if ident(meth.name) == ident("exit_tree") and meth.nimNode[3].len == 1:
+    if meth.name.eqIdent("exit_tree") and meth.nimNode[3].len == 1:
       exitTreeMethod = meth.nimNode
       break
   if exitTreeMethod.isNil:
@@ -863,7 +863,7 @@ proc genType(obj: ObjectDecl): NimNode {.compileTime.} =
     let hasReturnValueBool = not (meth.returnType.isNil or
                          meth.returnType.kind == nnkEmpty or
                           (meth.returnType.kind == nnkIdent and
-                          meth.returnType.strVal == "void"))
+                          meth.returnType.eqIdent("void")))
     let hasReturnValue = if hasReturnValueBool: ident("true")
                          else: ident("false")
     result.add(getAst(
