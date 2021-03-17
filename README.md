@@ -22,6 +22,7 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
   - [Implementation details](#implementation-details)
     - [Nim notes](#nim-notes)
     - [Compiler notes](#compiler-notes)
+  - [License](#license)
 
 ## Why? ##
 
@@ -35,6 +36,7 @@ The goal is to streamline and speed up the process of development for [godot-nim
     - generated Godot API includes exports for referenced classes. For example you don't need to `import godotapi / [scene_tree]` on `node` since node exports `scene_tree`, unless you want autocompletion from nimsuggest.
     - automatic nil'ing Godot types on `exit_tree` to stop console warnings. e.g.: `self.myResource = nil` in `exit_tree` is defined automatically.
 
+
 ## Quick Setup Guide ##
 
  - Compile the build script: `nim c build`
@@ -42,6 +44,7 @@ The goal is to streamline and speed up the process of development for [godot-nim
  - See available tasks: `./build help`
  - Download Nim prerequisite libraries and generate the godot-nim bindings: `./build prereqs`
  - Build watcher and components: `./build cleanbuild`
+
 
 ## Quick Dev Guide ##
  - To **make a new nim component** run: `./build gencomp my_comp node_2d`. The nim file is created for you in `components` See [Setup](#setup) for details.
@@ -54,7 +57,9 @@ The goal is to streamline and speed up the process of development for [godot-nim
  - Hot reload should occur if there were no compiler errors.
  - **Note:** The hot module contains save and load macros to persist state between reloads. See examples in `components`
 
+
 ## Prerequisites ##
+
   - [godot engine 3.2.4+]: commit [311ca0c6 or newer](https://github.com/godotengine/godot/commit/311ca0c6f23784dfa831d8f058a335f698dcc5ea) has my patch merged for dll unloading or my custom repo [godot 3.2 custom]
   - [nim](https://github.com/nim-lang/Nim) use stable or devel 3b963a81,
     - the commit after breaks godot-nim. [bug report](https://github.com/pragmagic/godot-nim/issues/81)
@@ -68,6 +73,7 @@ The goal is to streamline and speed up the process of development for [godot-nim
     - (see [Compiler notes](#compiler-notes) below for details on differences)
   - Windows only: https://github.com/microsoft/terminal used to launch the godot editor.
 
+
 ## Hot Reloading ##
 A top level `gdnim` macro is implemented to replace the use of `gdobj`. See below for [implemenation details](#implementation-details)
 
@@ -76,6 +82,7 @@ A top level `gdnim` macro is implemented to replace the use of `gdobj`. See belo
 - Setup a component properly for reloading, use the `gdnim` macro to define your class.
 
 See `components` for samples on how to set things up for reloading.
+
 
 ## Tips ##
  - Flags used with `./build`
@@ -89,8 +96,10 @@ See `components` for samples on how to set things up for reloading.
 - If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
 - If you get some type of crash when running your game, you probably have a `NilAccess` error in your code.
 
+
 ## Sample Projects ##
  - [HeartBeast's Action RPG](https://github.com/geekrelief/gdnim_hb_arpg)
+
 
 ## Project Structure ##
 Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
@@ -135,12 +144,14 @@ See `./build help` for available tasks like downloading the godot source, compil
 isn't a general way to support launching the editor from a terminal for all distributions
 (as far as I know), so modify the `task gd` for your system.
 
+
 ## Tasks ##
   The build system consists of `build.nim`, `tasks.nim`, `build.nim.cfg` and `build.ini`.  `build.nim` includes `tasks.nim` and reads `build.ini` at runtime.  To compile the build system run: `nim c build`.
 
   Tasks are defined in `tasks.nim`.  You can customize it for your needs, just make sure to recompile. Changes to `build.ini` are picked up when `./build` executes. Find out what tasks are available by inspecting that file or running `./build help`
 
   By default running `./build` will build any components that have changed.  If you supply an argument with no task name: `./build my_comp` the argument is assumed to be a component.
+
 
 ## Implementation details ##
 Watcher monitors the `app/_dlls` folder for updates and coordinates the reload process with the components. The components use the hot module save and load macros to persist data with Watcher.
@@ -184,6 +195,13 @@ Avoid the `useMalloc` option with ORC. It'll eventually cause a crash.
  * TCC [Tiny C Compiler](https://github.com/mirror/tinycc)
 TCC has the fastest compile times, but crashes when compiling with threads:on. If compiling on windows, read `deps/tcc/README.md` to make tcc work with the `asynchdispatch` module. Tcc is not as well supported as the other compilers, and may not support all features of gdnim.
 
+
+## License ##
+This project is licensed under the MIT license. Read [LICENSE](https://github.com/geekrelief/gdnim/blob/master/LICENSE) file for details.
+
+Copyright (c) 2018 Xored Software, Inc.
+
+Copyright (c) 2020 Don-Duong Quach
 
 [godot engine 3.2.4+]:https://github.com/godotengine/godot
 [godot-nim]:https://github.com/pragmagic/godot-nim
