@@ -278,7 +278,6 @@ task genapi, "generate the godot api bindings":
 task prereqs, "Install prerequisites, and calls genapi task":
   let packages = @[
     ("compiler", "compiler"),
-    ("anycase", "anycase"),
     ("msgpack4nim", "msgpack4nim"),
     ("optionsutils", "https://github.com/PMunch/nim-optionsutils")
   ]
