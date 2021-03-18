@@ -547,7 +547,7 @@ task cleanbuild, "Rebuild all":
   setFlag("force")
   setFlag("move")
 
-  var startTime = cpuTime()
+  var startTime = getTime()
   # watcher task
   genGdns("watcher")
 
@@ -571,7 +571,11 @@ task cleanbuild, "Rebuild all":
       failures.add output
 
   if successes == compileCount:
-    echo "=== Build OK! === ", cpuTime() - startTime, " seconds"
+    var parts = toParts(getTime() - startTime)
+    var timeStr = ""
+    timeStr &= (if parts[Minutes] > 0: $parts[Minutes] & " minutes " else: "")
+    timeStr &= (if parts[Seconds] > 0: $parts[Seconds] & "." & $parts[Milliseconds] & " seconds " else: "")
+    echo "=== Build OK! === ", timeStr
   else:
     echo "=== >>> Build Failed >>> ==="
     for f in failures:
