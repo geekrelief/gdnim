@@ -179,7 +179,7 @@ task gdengine_update, "update the 3.2 custom branch with changes from upstream":
     execOrQuit(&"git checkout {branch}")
     execOrQuit(&"git rebase {gd_base_branch}")
 
-  execOrQuit(&"git branch -D {gd_build_branch}")
+  discard execShellCmd(&"git branch -D {gd_build_branch}")
   execOrQuit(&"git checkout -b {gd_build_branch} {gd_base_branch}")
 
   for branch in gd_branches:
