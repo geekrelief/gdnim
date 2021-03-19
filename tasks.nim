@@ -114,6 +114,8 @@ let gdnsDir = appDir / config.getSectionValue("App", "gdns")
 let gdnlibDir = appDir / config.getSectionValue("App", "gdnlib")
 let tscnDir = appDir / config.getSectionValue("App", "tscn")
 
+let gd_scons_flags = config.getSectionValue("Godot", "scons_flags")
+
 let gd_src = expandTilde(config.getSectionValue("Godot", "src"))
 let gd_base_branch = config.getSectionValue("Godot", "base_branch")
 let gd_build_branch = config.getSectionValue("Godot", "build_branch")
@@ -207,11 +209,13 @@ task gdengine, "build the godot engine, default with debugging and tools args:\n
   else:
     info &= "tools, "
     if "debug" in args :
-      flags = "target=debug debug_symbols=yes vsproj=yes"
+      flags = "target=debug debug_symbols=yes"
       info &= "debug"
     else:
       flags = "target=release_debug"
       info &= "release"
+
+  flags &= &" {gd_scons_flags}"
 
   var projDir = getCurrentDir()
   setCurrentDir(gd_src)
@@ -224,7 +228,7 @@ task gdengine, "build the godot engine, default with debugging and tools args:\n
     discard execShellCmd &"scons -c {flags}"
 
   var threads = countProcessors()
-  echo &"Compiling godot {info} threads:{threads}"
+  echo &"Compiling godot {info} scons -j{threads}  p={gd_platform} bits={gd_bits} {flags}"
   discard execShellCmd &"scons -j{threads}  p={gd_platform} bits={gd_bits} {flags}"
   setCurrentDir(projDir)
 

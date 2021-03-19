@@ -124,7 +124,7 @@ else:
   setFlag("cc", config.getSectionValue("Compiler", "cc"))
 if config.getSectionValue("Compiler", "cc") in ["gcc", "clang"]:
   var build_kind = config.getSectionValue("Compiler", "build_kind")
-  if build_kind != "diagnostic":
+  if build_kind notin ["debug", "diagnostic"]:
     setFlag("gcc_strip", config.getSectionValue("GCC", "strip"))
 
   setFlag("gcc_flto", config.getSectionValue("GCC", "flto"))
