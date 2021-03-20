@@ -205,19 +205,19 @@ proc `=destroy`*(obj: var NimGodotObj) =
   var godotObjectAddr = toAddress(obj.godotObject)
   if allocatedObjects.hasKey(godotObjectAddr):
     var val = allocatedObjects[godotObjectAddr]
-    print &"=destroy @ {godotObjectAddr} {val}"
-    print &"\t{cast[int64](obj.linkedObjectPtr) = :#X}"
+    echo &"=destroy @ {godotObjectAddr} {val}"
+    echo &"\t{cast[int64](obj.linkedObjectPtr) = :#X}"
     allocatedObjects.del(godotObjectAddr)
   else:
-    print &"=destroy not in allocatedObjects \n\t{cast[int64](obj.godotObject) = :#X} {cast[int64](obj.linkedObjectPtr) = :#X}"
+    echo &"=destroy not in allocatedObjects \n\t{cast[int64](obj.godotObject) = :#X} {cast[int64](obj.linkedObjectPtr) = :#X}"
   if (obj.isRef or not linkedGodotObject.isNil and linkedGodotObject.isRef) and
     obj.godotObject.unreference():
     obj.godotObject.deinit()
     obj.godotObject = nil
 
-  print &"\t--- allocatedObjects:"
+  echo &"\t--- allocatedObjects:"
   for address, val in allocatedObjects.pairs:
-    print &"\t\tnimGodotObject @ {address} {val}"
+    echo &"\t\tnimGodotObject @ {address} {val}"
 
 proc linkedObject(obj: NimGodotObject): NimGodotObject {.inline.} =
   cast[NimGodotObject](obj.linkedObjectPtr)
@@ -311,7 +311,7 @@ proc newNimGodotObject[T: NimGodotObject](
     if not allocatedObjects.hasKey(godotObjectAddr):
       allocatedObjects[godotObjectAddr] = &"type = {typeof(result).repr} {godotClassName = } objInfo: baseNativeClass = {objInfo.baseNativeClass} isNative = {objInfo.isNative} isRef = {objInfo.isRef}"
     var val = allocatedObjects[godotObjectAddr]
-    print &"newNimGodotObject @ {godotObjectAddr} {val}"
+    echo &"newNimGodotObject @ {godotObjectAddr} {val}"
     result.godotObject = godotObject
     result.isRef = objInfo.isRef
     if not noRef and objInfo.isRef:
@@ -904,7 +904,7 @@ proc godot_nativescript_init(handle: pointer) {.
   {.emit: """
     NimMain();
   """.}
-  print "godot_nativescript_init"
+  echo "godot_nativescript_init"
 
 proc godot_gdnative_init(options: ptr GDNativeInitOptions) {.
     cdecl, exportc, dynlib.} =
@@ -913,7 +913,7 @@ proc godot_gdnative_init(options: ptr GDNativeInitOptions) {.
 
 proc godot_gdnative_terminate(options: ptr GDNativeTerminateOptions) {.
     cdecl, exportc, dynlib.} =
-  print "godot_gdnative_terminate"
+  echo "godot_gdnative_terminate"
   discard
 
 const nimGcStepLengthUs {.intdefine.} = 2000
