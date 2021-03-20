@@ -1,8 +1,0 @@
-[gd_resource type="NativeScript" load_steps=2 format=2]
-
-[ext_resource path="res://_gdnlib/sprite_comp.gdnlib" type="GDNativeLibrary" id=1]
-
-[resource]
-resource_name = "SpriteComp"
-class_name = "SpriteComp"
-library = ExtResource( 1 )

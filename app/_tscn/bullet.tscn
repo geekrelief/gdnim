@@ -1,9 +1,0 @@
-[gd_scene load_steps=3 format=2]
-
-[ext_resource path="res://bullet.png" type="Texture" id=1]
-[ext_resource path="res://_gdns/bullet.gdns" type="Script" id=2]
-
-[node name="Bullet" type="Sprite"]
-process_priority = -1
-texture = ExtResource( 1 )
-script = ExtResource( 2 )

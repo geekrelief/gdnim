@@ -1,8 +1,0 @@
-[gd_resource type="NativeScript" load_steps=2 format=2]
-
-[ext_resource path="res://_gdnlib/watcher.gdnlib" type="GDNativeLibrary" id=1]
-
-[resource]
-resource_name = "Watcher"
-class_name = "Watcher"
-library = ExtResource( 1 )
