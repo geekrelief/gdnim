@@ -10,6 +10,7 @@ import core/vector2, core/rect2,
        core/nodepaths, core/rids, core/dictionaries,
        core/arrays, core/poolarrays, core/variants
 import godotinternal
+import strformat
 
 ## This module defines ``NimGodotObject`` and ``toVariant``/``fromVariant``
 ## converters for Nim types. The converters are used by
@@ -188,16 +189,35 @@ proc deinit*(obj: NimGodotObject) =
   obj.godotObject.deinit()
   obj.godotObject = nil
 
+var allocatedObjects {.threadvar.}:Table[string, string]
+
+func toAddressKey(godotObject: ptr GodotObject):auto =
+  &"{cast[int64](godotObject):#X}"
+
 proc `=destroy`*(obj: var NimGodotObj) =
   if obj.godotObject.isNil or obj.isNative: return
+
   # important to set it before so that ``unreference`` is aware
   obj.isFinalized = true
 
   let linkedGodotObject = cast[NimGodotObject](obj.linkedObjectPtr)
+
+  var godotObjectAddr = toAddressKey(obj.godotObject)
+  if allocatedObjects.hasKey(godotObjectAddr):
+    var val = allocatedObjects[godotObjectAddr]
+    print &"=destroy @ {godotObjectAddr} {val}"
+    print &"\t{cast[int64](obj.linkedObjectPtr) = :#X}"
+    allocatedObjects.del(godotObjectAddr)
+  else:
+    print &"=destroy not in allocatedObjects \n\t{cast[int64](obj.godotObject) = :#X} {cast[int64](obj.linkedObjectPtr) = :#X}"
   if (obj.isRef or not linkedGodotObject.isNil and linkedGodotObject.isRef) and
     obj.godotObject.unreference():
     obj.godotObject.deinit()
     obj.godotObject = nil
+
+  print &"\t--- allocatedObjects:"
+  for address, val in allocatedObjects.pairs:
+    print &"\t\tnimGodotObject @ {address} {val}"
 
 proc linkedObject(obj: NimGodotObject): NimGodotObject {.inline.} =
   cast[NimGodotObject](obj.linkedObjectPtr)
@@ -287,6 +307,11 @@ proc newNimGodotObject[T: NimGodotObject](
     printError("Nim constructor not found for class " & $godotClassName)
   else:
     result = T(objInfo.constructor())
+    var godotObjectAddr = toAddressKey(godotObject)
+    if not allocatedObjects.hasKey(godotObjectAddr):
+      allocatedObjects[godotObjectAddr] = &"type = {typeof(result).repr} {godotClassName = } objInfo: baseNativeClass = {objInfo.baseNativeClass} isNative = {objInfo.isNative} isRef = {objInfo.isRef}"
+    var val = allocatedObjects[godotObjectAddr]
+    print &"newNimGodotObject @ {godotObjectAddr} {val}"
     result.godotObject = godotObject
     result.isRef = objInfo.isRef
     if not noRef and objInfo.isRef:
@@ -879,6 +904,7 @@ proc godot_nativescript_init(handle: pointer) {.
   {.emit: """
     NimMain();
   """.}
+  print "godot_nativescript_init"
 
 proc godot_gdnative_init(options: ptr GDNativeInitOptions) {.
     cdecl, exportc, dynlib.} =
@@ -887,6 +913,7 @@ proc godot_gdnative_init(options: ptr GDNativeInitOptions) {.
 
 proc godot_gdnative_terminate(options: ptr GDNativeTerminateOptions) {.
     cdecl, exportc, dynlib.} =
+  print "godot_gdnative_terminate"
   discard
 
 const nimGcStepLengthUs {.intdefine.} = 2000
