@@ -101,7 +101,7 @@ script="$1.gdns"
 
 """
 
-var traceFlags = " --define:traceArc --define:logOrc --define:traceCollector --define:nimArcDebug "
+var traceFlags = " --define:traceArc --define:nimOwnedEnabled --define:nimArcIds --define:nimArcDebug "
 
 let appDir = config.getSectionValue("Dir", "app")
 let compsDir = config.getSectionValue("Dir", "comps")

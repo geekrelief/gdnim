@@ -540,11 +540,21 @@ proc refcountDecremented(obj: ptr GodotObject, methodData: pointer,
 
 template registerGodotClass(classNameIdent, classNameLit; isRefClass: bool;
                             baseNameLit, createFuncIdent; isTool: bool) =
+
+  import strformat # debug_crash
+
   proc createFuncIdent(obj: ptr GodotObject,
                        methData: pointer): pointer {.noconv.} =
     var nimObj: classNameIdent
     #new(nimObj, nimGodotObjectFinalizer[classNameIdent])
     new(nimObj)
+    # debug_crash
+    var nimObjAddr = cast[int64](nimObj[].addr) - 24 # RefHeaderSize
+    var addrFmt = newStringOfCap(20)
+    addrFmt.formatValue(nimObjAddr, "0>16X")
+    echo "createFuncIdent " & $(typeof(classNameIdent)) & " @ " & addrFmt
+    #end debug_crash
+
     nimObj.setGodotObject(obj)
     nimObj.isRef = when isRefClass: true else: false
     nimObj.setNativeObject(asNimGodotObject[NimGodotObject](

@@ -95,6 +95,23 @@ type
 
   FNV1Hash = uint32
 
+# debug_crash
+  RefHeader = object
+    rc: int # the object header is now a single RC field.
+            # we could remove it in non-debug builds for the 'owned ref'
+            # design but this seems unwise.
+    when defined(gcOrc):
+      rootIdx: int # thanks to this we can delete potential cycle roots
+                   # in O(1) without doubly linked lists
+    when defined(nimArcDebug) or defined(nimArcIds):
+      refId: int
+
+const RefHeaderSize = sizeof(RefHeader)
+
+template `-!`(p: pointer, s: SomeInteger): pointer =
+  cast[pointer](cast[int](p) -% int(s))
+# end debug_crash
+
 include "internal/backwardcompat.inc.nim"
 
 proc isFinalized*(obj: NimGodotObject): bool {.inline.} =
@@ -189,10 +206,12 @@ proc deinit*(obj: NimGodotObject) =
   obj.godotObject.deinit()
   obj.godotObject = nil
 
+# debug_crash
 var allocatedObjects {.threadvar.}:Table[string, string]
 
-func toAddress(godotObject: ptr GodotObject):auto =
-  &"{cast[int64](godotObject):#X}"
+func toAddress(objPtr: pointer):auto =
+  &"{cast[int64](objPtr):0>16X}"
+# end debug_crash
 
 proc `=destroy`*(obj: var NimGodotObj) =
   if obj.godotObject.isNil or obj.isNative: return
@@ -202,22 +221,30 @@ proc `=destroy`*(obj: var NimGodotObj) =
 
   let linkedGodotObject = cast[NimGodotObject](obj.linkedObjectPtr)
 
+# debug_crash
+  var nimGodotObjAddr = toAddress(obj.addr -! RefHeaderSize)
   var godotObjectAddr = toAddress(obj.godotObject)
-  if allocatedObjects.hasKey(godotObjectAddr):
-    var val = allocatedObjects[godotObjectAddr]
-    echo &"=destroy @ {godotObjectAddr} {val}"
-    echo &"\t{cast[int64](obj.linkedObjectPtr) = :#X}"
-    allocatedObjects.del(godotObjectAddr)
+  var linkedGodotObjectAddr = toAddress(obj.linkedObjectPtr)
+  if allocatedObjects.hasKey(nimGodotObjAddr):
+    var val = allocatedObjects[nimGodotObjAddr]
+    echo &"=destroy @ {val}"
+    echo &"\t{linkedGodotObjectAddr = }"
+    allocatedObjects.del(nimGodotObjAddr)
   else:
-    echo &"=destroy not in allocatedObjects \n\t{cast[int64](obj.godotObject) = :#X} {cast[int64](obj.linkedObjectPtr) = :#X}"
+    echo &"=destroy not in allocatedObjects \n\t{nimGodotObjAddr = } {godotObjectAddr = } {linkedGodotObjectAddr = }"
+# end debug_crash
+
   if (obj.isRef or not linkedGodotObject.isNil and linkedGodotObject.isRef) and
     obj.godotObject.unreference():
     obj.godotObject.deinit()
     obj.godotObject = nil
 
+# debug_crash
+  echo getStackTrace()
   echo &"\t--- allocatedObjects:"
   for address, val in allocatedObjects.pairs:
-    echo &"\t\tnimGodotObject @ {address} {val}"
+    echo &"\t\t{val}"
+# end debug_crash
 
 proc linkedObject(obj: NimGodotObject): NimGodotObject {.inline.} =
   cast[NimGodotObject](obj.linkedObjectPtr)
@@ -307,11 +334,16 @@ proc newNimGodotObject[T: NimGodotObject](
     printError("Nim constructor not found for class " & $godotClassName)
   else:
     result = T(objInfo.constructor())
+
+# debug_crash
+    var nimGodotObjectAddr = toAddress(result[].addr -! RefHeaderSize)
     var godotObjectAddr = toAddress(godotObject)
-    if not allocatedObjects.hasKey(godotObjectAddr):
-      allocatedObjects[godotObjectAddr] = &"type = {typeof(result).repr} {godotClassName = } objInfo: baseNativeClass = {objInfo.baseNativeClass} isNative = {objInfo.isNative} isRef = {objInfo.isRef}"
-    var val = allocatedObjects[godotObjectAddr]
-    echo &"newNimGodotObject @ {godotObjectAddr} {val}"
+    if not allocatedObjects.hasKey(nimGodotObjectAddr):
+      allocatedObjects[nimGodotObjectAddr] = &"{nimGodotObjectAddr = }, {godotObjectAddr = }, type = {typeof(result).repr}, {godotClassName = }, objInfo: baseNativeClass = {objInfo.baseNativeClass}, isNative = {objInfo.isNative}, isRef = {objInfo.isRef}"
+    var val = allocatedObjects[nimGodotObjectAddr]
+    echo &"new {val}"
+    echo getStackTrace()
+# end debug_crash
     result.godotObject = godotObject
     result.isRef = objInfo.isRef
     if not noRef and objInfo.isRef:
