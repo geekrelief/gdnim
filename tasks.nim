@@ -101,6 +101,8 @@ script="$1.gdns"
 
 """
 
+var traceFlags = " --define:traceArc --define:logOrc --define:traceCollector --define:nimArcDebug "
+
 let appDir = config.getSectionValue("Dir", "app")
 let compsDir = config.getSectionValue("Dir", "comps")
 let depsDir = config.getSectionValue("Dir", "deps")
@@ -295,7 +297,7 @@ proc buildWatcher():string =
     let dllPath = &"{dllDir}/{dllPrefix}watcher.{dllExt}"
     let watcherPath = "gdnim/watcher.nim"
     if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime(watcherPath) > getLastModificationTime(&"{dllPath}")):
-      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllExt:{dllExt}", flags, &"{dllPath}", watcherPath)
+      result = execnim(&"{gdpathFlags} {traceFlags} --define:dllDir:{baseDllDir} --define:dllExt:{dllExt}", flags, &"{dllPath}", watcherPath)
     else:
       result = "Watcher is unchanged"
 
@@ -389,7 +391,7 @@ proc buildComp(compName:string, buildSettings:BuildSettings):string =
 
     if shouldBuild(compName, buildSettings):
       result &= &">>> Build {compName} <<<\n"
-      result &= execnim(&"{gdpathFlags} --skipParentCfg:on --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
+      result &= execnim(&"{gdpathFlags} {traceFlags} --skipParentCfg:on --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
 
     if fileExists(safe) and getLastModificationTime(nim) < getLastModificationTime(safe) and
       (not fileExists(hot) or buildSettings.settingsTable["move"]) or buildSettings.settingsTable["noReload"]:

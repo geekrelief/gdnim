@@ -191,7 +191,7 @@ proc deinit*(obj: NimGodotObject) =
 
 var allocatedObjects {.threadvar.}:Table[string, string]
 
-func toAddressKey(godotObject: ptr GodotObject):auto =
+func toAddress(godotObject: ptr GodotObject):auto =
   &"{cast[int64](godotObject):#X}"
 
 proc `=destroy`*(obj: var NimGodotObj) =
@@ -202,7 +202,7 @@ proc `=destroy`*(obj: var NimGodotObj) =
 
   let linkedGodotObject = cast[NimGodotObject](obj.linkedObjectPtr)
 
-  var godotObjectAddr = toAddressKey(obj.godotObject)
+  var godotObjectAddr = toAddress(obj.godotObject)
   if allocatedObjects.hasKey(godotObjectAddr):
     var val = allocatedObjects[godotObjectAddr]
     print &"=destroy @ {godotObjectAddr} {val}"
@@ -307,7 +307,7 @@ proc newNimGodotObject[T: NimGodotObject](
     printError("Nim constructor not found for class " & $godotClassName)
   else:
     result = T(objInfo.constructor())
-    var godotObjectAddr = toAddressKey(godotObject)
+    var godotObjectAddr = toAddress(godotObject)
     if not allocatedObjects.hasKey(godotObjectAddr):
       allocatedObjects[godotObjectAddr] = &"type = {typeof(result).repr} {godotClassName = } objInfo: baseNativeClass = {objInfo.baseNativeClass} isNative = {objInfo.isNative} isRef = {objInfo.isRef}"
     var val = allocatedObjects[godotObjectAddr]
