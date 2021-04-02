@@ -2,7 +2,7 @@ import parsecfg, os, strformat, godotapigen
 
 var config = loadConfig("build.ini")
 let depsDir = config.getSectionValue("Dir", "deps")
-let gd_bin = config.getSectionValue("Godot", "bin")
+let gd_bin = config.getSectionValue("Godot", "tools_release_bin")
 
 removeDir(depsDir / "godotapi")
 
