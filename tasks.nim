@@ -166,13 +166,8 @@ proc execOrQuit(command:string) =
 
 task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
-  var godotSrcPath = getEnv("GODOT_SRC_PATH")
-  if godotSrcPath == "":
-    echo "Please set GODOT_SRC_PATH env variable to godot source directory."
-    quit()
-
   var projDir = getCurrentDir()
-  setCurrentDir(godotSrcPath)
+  setCurrentDir(gd_src)
 
   execOrQuit(&"git checkout {gd_base_branch}")
   execOrQuit("git pull")
