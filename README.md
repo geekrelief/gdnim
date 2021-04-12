@@ -83,6 +83,16 @@ A top level `gdnim` macro is implemented to replace the use of `gdobj`. See belo
 
 See `components` for samples on how to set things up for reloading.
 
+- **Disable hot reloading** This will stop compilation of the Watcher, delete the Watcher files, and disable the reloading parts of the components.
+  - Edit `build.ini`, under `[Hot]`, set `reload="off"`.
+  - Do a clean build. `./build cleanbuild`
+  - Modify `project.godot` `Autoload` so the Watcher isn't loaded.
+
+- **Re-enable hot reloading**
+  - Edit `build.ini`, under `[Hot]`, set `reload="on"`.
+  - Do a clean build. `./build cleanbuild`
+  - Modify `project.godot` `Autoload` so the Watcher is loaded.  Select `_tscn/watcher.tscn` to load.
+
 
 ## Tips ##
  - Flags used with `./build`

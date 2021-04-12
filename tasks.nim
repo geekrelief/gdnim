@@ -100,6 +100,7 @@ version=""
 script="$1.gdns"
 
 """
+let does_reload = config.getSectionValue("Hot", "reload") == "on"
 
 let appDir = config.getSectionValue("Dir", "app")
 let compsDir = config.getSectionValue("Dir", "comps")
@@ -140,13 +141,20 @@ let dllExt = case gd_platform
                else: "unknown"
 
 proc genGdns(name:string, isTool:bool = false) =
+
   var comp = &"{compsDir}/{name}.nim"
   var gdns = &"{gdnsDir}/{name}.gdns"
   var gdnlib = &"{gdnlibDir}/{name}.gdnlib"
   if not fileExists(comp):
+    # might be a tool or watcher
     comp = &"{compsDir}/tools/{name}.nim"
-    gdns = &"{appDir}/addons/{name}/{name}.gdns"
-    gdnlib = &"{appDir}/addons/{name}/{name}.gdnlib"
+    if fileExists(comp):
+      gdns = &"{appDir}/addons/{name}/{name}.gdns"
+      gdnlib = &"{appDir}/addons/{name}/{name}.gdnlib"
+    else:
+      comp = &"gdnim/watcher.nim"
+      gdns = &"{gdnsDir}/watcher.gdns"
+      gdnlib = &"{gdnlibDir}/watcher.gdnlib"
 
   if fileExists(comp):
     if not fileExists(gdns):
@@ -160,6 +168,9 @@ proc genGdns(name:string, isTool:bool = false) =
       f.write(gdnlib_template % [name, name.pascal, relativePath(dllDir, appDir), $reloadable])
       f.close()
       echo &"generated {gdnlib}"
+  else:
+    echo &"genGdns could not find {comp}"
+    quit(QuitFailure)
 
 proc execOrQuit(command:string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
@@ -547,15 +558,29 @@ task cleanbuild, "Rebuild all":
   setFlag("move")
 
   var startTime = getTime()
-  # watcher task
-  genGdns("watcher")
-
   var res = newSeq[FlowVar[string]]()
 
-  echo "building watcher"
-  res.add(spawn buildWatcher())
+  # watcher task
+  var watcherFile = tscnDir / "watcher.tscn"
+  var watcherLineEditFile = tscnDir / "watcher_lineedit.tscn"
 
-  var compileCount = 1
+  var compileCount = 0
+  if does_reload:
+    compileCount = 1
+    echo "building watcher"
+    if not fileExists(watcherFile):
+      copyFile(depsDir / "watcher/watcher.tscn", tscnDir /  "watcher.tscn")
+    if not fileExists(watcherLineEditFile):
+      copyFile(depsDir / "watcher/watcher_lineedit.tscn", tscnDir / "watcher_lineedit.tscn")
+    genGdns("watcher")
+    res.add(spawn buildWatcher())
+  else: # remove the watcher
+    echo "removing watcher"
+    removeFile(watcherFile)
+    removeFile(watcherLineEditFile)
+    removeFile(gdnsDir / "watcher.gdns")
+    removeFile(gdnlibDir / "watcher.gdnlib")
+
   # comp task
   compileCount += buildAllComps(res, getBuildSettings())
   sync()

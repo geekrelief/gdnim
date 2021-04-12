@@ -292,7 +292,7 @@ macro gdnim*(ast:varargs[untyped]) =
                 godotPropertyNames.incl name
             elif isComponent(typName):
               # need to replace the type of the property with gd base class
-              # if defined(does_reload):
+              # when defined(does_reload):
               if filename notin importedCompModules:
                 importedCompModules.incl filename
                 compModules.add ^filename
@@ -318,7 +318,15 @@ macro gdnim*(ast:varargs[untyped]) =
         gdObjBodyRest.add(node)
 
   #generate
+  if readyNode.isNil:
+    readyNode = nnkMethodDef.newTree(^"ready", newEmptyNode(), newEmptyNode(),
+      nnkFormalParams.newTree(newEmptyNode()), newEmptyNode(), newEmptyNode(), newStmtList())
+
+  var readyBody = readyNode.body
+  gdObjBody.add readyNode
+
   when defined(does_reload):
+    # unload
     if unloadNode.isNil:
       unloadNode = newStmtlist()
 
@@ -341,61 +349,54 @@ macro gdnim*(ast:varargs[untyped]) =
     gdObjBody.add(newProc(name = ^"hot_unload", params = @[nnkBracketExpr.newTree(^"seq", ^"byte")],
                           body = unloadNode, pragmas = nnkPragma.newTree(^"gdExport")))
 
-  var dependenciesCompNames:seq[string]
-  if not dependenciesNode.isNil:
-    var depreloadBody = newStmtList()
-    var depreloadCase = nnkCaseStmt.newTree().add ^"compName"
-    depreloadBody.add depreloadCase
-    for section in dependenciesNode:
-      case section.kind
-        of nnkCall:
-          var compName = section[0].strVal
-          dependenciesCompNames.add compName
-          var sectionStmts = section[1]
-          var unloadStmts = newStmtList()
-          for stmt in sectionStmts:
-            if stmt.kind == nnkAsgn:
-              if stmt[0].kind == nnkDotExpr:
-                var propName = stmt[0][1].strVal
-                if propName in godotPropertyNames or propName in compPropertyNames:
-                  var propNameIdent = ^propName
-                  unloadStmts.add quote do: self.`propNameIdent` = nil
-            else:
-              discard
-          var ofBranch = nnkOfBranch.newTree().add newStrLitNode(compName)
-          ofBranch.add newStmtList(quote do:
-                        if isUnloading:
-                          `unloadStmts`
-                        else:
-                          `sectionStmts`)
-          depreloadCase.add ofBranch
-        else:
-          gdnimDefect(&"Unexpected {section.kind} in dependencies definition.")
-    depreloadCase.add nnkElse.newTree(nnkDiscardStmt.newTree(newEmptyNode()))
-    var hot_depreload = newProc(name = ^"hot_depreload",
-      params = @[newEmptyNode(), newIdentDefs(^"compName", ^"string"), newIdentDefs(^"isUnloading", ^"bool")],
-      body = depreloadBody, pragmas = nnkPragma.newTree(^"gdExport"))
-    gdObjBody.add(hot_depreload)
+    # dependencies
+    var dependenciesCompNames:seq[string]
+    if not dependenciesNode.isNil:
+      var depreloadBody = newStmtList()
+      var depreloadCase = nnkCaseStmt.newTree().add ^"compName"
+      depreloadBody.add depreloadCase
+      for section in dependenciesNode:
+        case section.kind
+          of nnkCall:
+            var depName = section[0].strVal
+            dependenciesCompNames.add depName
+            var sectionStmts = section[1]
+            var unloadStmts = newStmtList()
+            for stmt in sectionStmts:
+              if stmt.kind == nnkAsgn:
+                if stmt[0].kind == nnkDotExpr:
+                  var propName = stmt[0][1].strVal
+                  if propName in godotPropertyNames or propName in compPropertyNames:
+                    var propNameIdent = ^propName
+                    unloadStmts.add quote do: self.`propNameIdent` = nil
+              else:
+                discard
+            var ofBranch = nnkOfBranch.newTree().add newStrLitNode(depName)
+            ofBranch.add newStmtList(quote do:
+                          if isUnloading:
+                            `unloadStmts`
+                          else:
+                            `sectionStmts`)
+            depreloadCase.add ofBranch
+          else:
+            gdnimDefect(&"Unexpected {section.kind} in dependencies definition.")
+      depreloadCase.add nnkElse.newTree(nnkDiscardStmt.newTree(newEmptyNode()))
+      gdObjBody.add newProc(name = ^"hot_depreload",
+        params = @[newEmptyNode(), newIdentDefs(^"compName", ^"string"), newIdentDefs(^"isUnloading", ^"bool")],
+        body = depreloadBody, pragmas = nnkPragma.newTree(^"gdExport"))
 
-  when defined(does_reload):
+    # reload
     if reloadNode.isNil:
       reloadNode = newStmtList()
-
-    if readyNode.isNil:
-      readyNode = nnkMethodDef.newTree(^"ready", newEmptyNode(), newEmptyNode(),
-        nnkFormalParams.newTree(newEmptyNode()), newEmptyNode(), newEmptyNode(), newStmtList())
-
-    var readyBody = readyNode.body
-    gdObjBody.add readyNode
 
     var dependencies = newEmptyNode()
     if dependenciesCompNames.len > 0:
       var rdepCall = nnkCall.newTree(^"register_dependencies", ^compName)
       var reloadInit = newStmtList()
-      for dcompName in dependenciesCompNames:
-        rdepCall.add ^dcompName
+      for depName in dependenciesCompNames:
+        rdepCall.add ^depName
         reloadInit.add quote do:
-          self.hot_depreload(`dcompName`, false)
+          self.hot_depreload(`depName`, false)
       dependencies = quote do:
         `rdepCall`
         `reloadInit`
@@ -417,8 +418,32 @@ macro gdnim*(ast:varargs[untyped]) =
           else:
               reloadBody.add node
       readyBody.insert(0, reloadBody)
-  else:
-    gdnimDefect("need to implement when not reload, initializations")
+
+  else: # not does_reload
+    if not reloadNode.isNil and reloadNode.len > 0:
+      # ignore load call in reloadNode
+      # add everything else to ready method
+      var reloadBody = newStmtList()
+      for node in reloadNode:
+        case node.kind:
+          of nnkCall:
+            if node[0].eqIdent("load"):
+              discard
+            else:
+              reloadBody.add node
+          else:
+              reloadBody.add node
+      readyBody.insert(0, reloadBody)
+
+    # add dependencies loading code into readyBody
+    if not dependenciesNode.isNil:
+      for section in dependenciesNode:
+        case section.kind
+          of nnkCall:
+            for stmt in section[1]:
+              readyBody.add stmt
+          else:
+            gdnimDefect(&"Unexpected {section.kind} in dependencies definition.\n\t{section.repr}")
 
   for stmt in gdObjBodyRest:
     gdObjBody.add stmt

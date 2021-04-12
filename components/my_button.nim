@@ -1,11 +1,9 @@
 import gdnim
-import macros
 
 gdnim MyButton of Button:
   var count:int = 0
 
   unload:
-    self.queue_free()
     save(self.rectPosition, self.count)
 
   reload:
