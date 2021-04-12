@@ -398,7 +398,7 @@ proc buildComp(compName:string, buildSettings:BuildSettings):string =
       result &= execnim(&"{gdpathFlags} --skipParentCfg:on --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
 
     if fileExists(safe) and getLastModificationTime(nim) < getLastModificationTime(safe) and
-      (not fileExists(hot) or buildSettings.settingsTable["move"]) or buildSettings.settingsTable["noReload"]:
+      (not fileExists(hot) or buildSettings.settingsTable["move"]) or (fileExists(safe) and buildSettings.settingsTable["noReload"]):
       moveFile(safe, hot)
       result &= ">>> dll moved safe to hot <<<"
 

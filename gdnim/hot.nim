@@ -1,3 +1,4 @@
+{.push hint[XDeclaredButNotUsed]:off.} # compName and createVarArg are used in macros
 import macros, strformat, strutils, os, sets
 import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils

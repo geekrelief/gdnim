@@ -1,5 +1,5 @@
 import gdnim
-import tables, strformat, sequtils
+import tables
 
 gdnim Gun of Sprite:
   var bulletRes:PackedScene
