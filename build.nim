@@ -5,92 +5,94 @@ import os, osproc, times, tables, parseopt, strutils, strformat, parsecfg, termi
 #requires "godot >= 0.8.1"
 #requires "msgpack4nim"
 
-var buildini:string = "build.ini"
+var buildini: string = "build.ini"
 
 type
-  Task = tuple[task_name:string, description:string, task_proc: proc():void {.nimcall.}]
-  BuildSettings = tuple[sharedFlags:string, settingsTable:Table[string, bool]]
+  Task = tuple[task_name: string, description: string, task_proc: proc(): void {.nimcall.}]
+  BuildSettings = tuple[sharedFlags: string, settingsTable: Table[string, bool]]
 
-var tasks:seq[Task] = @[]
+var tasks: seq[Task] = @[]
 
-template task(name:untyped, desc:string, body:untyped):untyped =
+template task(name: untyped, desc: string, body: untyped): untyped =
   proc `name Task`() {.nimcall.} =
     echo ">>>> Task: ", astToStr(name), " <<<<"
     body
-  tasks.add((task_name: astToStr(name), description: desc, task_proc: `name Task`))
+  tasks.add((task_name: astToStr(name), description: desc,
+      task_proc: `name Task`))
 
 # special task that's executed after build finishes
-var innerFinalTask:proc()
+var innerFinalTask: proc()
 proc finalTask() =
   if not(innerFinalTask.isNil):
     innerFinalTask()
 
-tasks.add((task_name: "final", description: "executed after build finishes, specified with 'final:' instead of 'task:'", task_proc: finalTask))
+tasks.add((task_name: "final", description: "executed after build finishes, specified with 'final:' instead of 'task:'",
+    task_proc: finalTask))
 
-template final(body:untyped):untyped =
+template final(body: untyped): untyped =
   innerFinalTask = proc() {.nimcall.} =
     body
 
 let allCompilerFlagsTable = {
-  "force":"--forceBuild:on",
-  "lib":"--app:lib --noMain",
-  "mute":"--warning[LockLevel]:off --hint[Processing]:off",
-  "parallel":"--parallelBuild:0",
-  "incremental":"--incremental:on",
+  "force": "--forceBuild:on",
+  "lib": "--app:lib --noMain",
+  "mute": "--warning[LockLevel]:off --hint[Processing]:off",
+  "parallel": "--parallelBuild:0",
+  "incremental": "--incremental:on",
   # cc
-    "cc":"--cc:tcc", # doesn't work with threads:on
-    # compiles that fastest, clean compile output, does not work with threads:on
-    "tcc":"--cc:tcc",
-    # clean compile output, needs gcc dlls, produces large dlls by default, use strip
-    "gcc":"--cc:gcc --threads:on --tlsEmulation:off",
-    "gcc_strip": "--d:strip", # same as "--passL:\"-s\"", # removes debug symbols
-    "gcc_flto": "--passC:-flto", # https://gcc.gnu.org/wiki/LinkTimeOptimization
-    "mingw": "-d:mingw",
-    # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
-    "vcc":"--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
-    "clang":"--cc:clang --threads:on --tlsEmulation:off", # default toolchain for android
-  # gc
-    "arc":"--gc:arc", # using arc with async will cause memory leaks, async generates cycles arc cannot collect
-    "orc":"--gc:orc", #crashes with --d:useMalloc, will collect async cycles
-    "refc":"--gc:refc",
-  "useMalloc":"--d:useMalloc", # use C memory primitives
-  # build_kind
-    "danger":"--d:danger",
-    "release":"--d:release",
-    "debug":"--debugger:native --stackTrace:on",
-    "diagnostic":"--d:danger --debugger:native", #for dumpincludes
-  # hot
-    "reload":"--d:does_reload",
+  "cc": "--cc:tcc",                                   # doesn't work with threads:on
+                    # compiles that fastest, clean compile output, does not work with threads:on
+  "tcc": "--cc:tcc",
+  # clean compile output, needs gcc dlls, produces large dlls by default, use strip
+  "gcc": "--cc:gcc --threads:on --tlsEmulation:off",
+  "gcc_strip": "--d:strip",  # same as "--passL:\"-s\"", # removes debug symbols
+  "gcc_flto": "--passC:-flto",  # https://gcc.gnu.org/wiki/LinkTimeOptimization
+  "mingw": "-d:mingw",
+  # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
+  "vcc": "--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
+  "clang": "--cc:clang --threads:on --tlsEmulation:off", # default toolchain for android
+                                                      # gc
+  "arc": "--gc:arc",  # using arc with async will cause memory leaks, async generates cycles arc cannot collect
+  "orc": "--gc:orc",  #crashes with --d:useMalloc, will collect async cycles
+  "refc": "--gc:refc",
+  "useMalloc": "--d:useMalloc",                       # use C memory primitives
+                                                      # build_kind
+  "danger": "--d:danger",
+  "release": "--d:release",
+  "debug": "--debugger:native --stackTrace:on",
+  "diagnostic": "--d:danger --debugger:native",       #for dumpincludes
+                                                      # hot
+  "reload": "--d:does_reload",
   # android
-    "android":"--os:android -d:androidNDK",
+  "android": "--os:android -d:androidNDK",
   # cpu archedture
-    "arm64":"--cpu:arm64",
-    "x86_64":"--cpu:amd64",
+  "arm64": "--cpu:arm64",
+  "x86_64": "--cpu:amd64",
 }.toTable
 
 #stable gcc config
 var taskCompilerFlagsTable = {
-  "lib":"--app:lib --noMain",
-  "mute":"--warning[LockLevel]:off --hint[Processing]:off --hint[ConvFromXtoItselfNotNeeded]:off",
-  "parallel":"--parallelBuild:0",
-  "cc":"--cc:gcc",
-  "gc":"--gc:orc",
-  "build_kind":"--d:danger",
-  "reload":"--d:does_reload",
+  "lib": "--app:lib --noMain",
+  "mute": "--warning[LockLevel]:off --hint[Processing]:off --hint[ConvFromXtoItselfNotNeeded]:off",
+  "parallel": "--parallelBuild:0",
+  "cc": "--cc:gcc",
+  "gc": "--gc:orc",
+  "build_kind": "--d:danger",
+  "reload": "--d:does_reload",
 }.toTable
 
-var otherFlagsTable:Table[string, string]
+var otherFlagsTable: Table[string, string]
 
-proc configError(errMsg:string, prescription:string) =
+proc configError(errMsg: string, prescription: string) =
   stderr.setForegroundColor(fgRed, true)
   stderr.styledWrite(&"{buildini} error: ", fgRed, errMsg)
   stderr.styledWrite("\n  Expected: ", fgWhite, prescription)
   quit()
 
-proc setFlag(flag:string, val:string = "on")
+proc setFlag(flag: string, val: string = "on")
 var taskName = ""
 var compName = ""
-var args:seq[string]
+var args: seq[string]
 
 var p = initOptParser(commandLineParams().join(" "))
 for kind, key, val in p.getopt():
@@ -156,19 +158,21 @@ proc findNDK(target: string) =
   else:
     configError(&"NDK not found", &"set \"{env}\" to NDK root")
 
-  let ndkBin = ndkRoot / "toolchains" / "llvm" / "prebuilt" / &"linux-{hostCpuToAndroid(hostCPU)}" / "bin"
+  let ndkBin = ndkRoot / "toolchains" / "llvm" / "prebuilt" /
+      &"linux-{hostCpuToAndroid(hostCPU)}" / "bin"
   let clang = ndkBin / &"{target}-clang"
   try:
     if fpUserExec notin getFileInfo(clang).permissions:
       raise newException(OSError, "")
   except:
-    configError(&"no invalid NDK found", &"please check \"{clang}\" point to a valid NDK")
+    configError(&"no invalid NDK found",
+        &"please check \"{clang}\" point to a valid NDK")
 
   let sep = if hostOS == "windows": ";" else: ":"
   let path = getEnv("PATH")
   putEnv("PATH", &"{ndkBin}{sep}{path}")
 
-proc setFlag(flag:string, val:string) =
+proc setFlag(flag: string, val: string) =
   case flag:
     of "build_kind":
       if val in ["danger", "release", "debug", "diagnostic"]:
@@ -218,7 +222,7 @@ proc genNimCfg() =
   var depsDir = config.getSectionValue("Dir", "deps")
   var depsGodotDir = config.getSectionValue("Dir", "deps_godot")
   var nimCfg = open("nim.cfg", fmWrite)
-  nimCfg.write( """
+  nimCfg.write("""
 # This file is autogenerated by "build.nim" from build.ini's settings.
 # It's used by nimsuggest for autocompletion.
 """)
@@ -236,7 +240,7 @@ if not fileExists("nim.cfg"):
   genNimCfg()
 elif getLastModificationTime("build.ini") > getLastModificationTime("nim.cfg"):
   # check if we should regenerate
-  var paths:seq[string]
+  var paths: seq[string]
   paths.add config.getSectionValue("Dir", "deps")
   paths.add config.getSectionValue("Dir", "deps_godot")
 
@@ -254,13 +258,13 @@ elif getLastModificationTime("build.ini") > getLastModificationTime("nim.cfg"):
         discard
     else: discard
 
-proc getSharedFlags():string =
+proc getSharedFlags(): string =
   var sharedFlags = ""
   for key in taskCompilerFlagsTable.keys:
     sharedFlags &= taskCompilerFlagsTable[key] & " "
   sharedFlags
 
-proc customizeFormatFlags(projNim:string, sharedFlags:string):string =
+proc customizeFormatFlags(projNim: string, sharedFlags: string): string =
   var flags = sharedFlags
   if ("vcc" in flags) and ("debug" in flags):
     let vcc_pdbdir = config.getSectionValue("VCC", "pdbdir")
@@ -269,7 +273,8 @@ proc customizeFormatFlags(projNim:string, sharedFlags:string):string =
     flags &= &"--passC=\"/Fd{vcc_pdbdir}/{filename}.pdb\"" #https://docs.microsoft.com/en-us/cpp/build/reference/fd-program-database-file-name?view=vs-2019
   flags
 
-proc execnim(otherFlags:string, sharedFlags:string, outputPath:string, projNim:string):string =
+proc execnim(otherFlags: string, sharedFlags: string, outputPath: string,
+    projNim: string): string =
   var flags = customizeFormatFlags(projNim, sharedFlags)
   var projName = splitFile(projNim)[1]
   execProcess &"nim c {otherFlags} --nimcache:.nimcache/{projName} {flags} --o:{outputPath} {projNim}"

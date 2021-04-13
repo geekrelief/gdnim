@@ -1,7 +1,7 @@
 import gdnim
 
 gdnim MyButton of Button:
-  var count:int = 0
+  var count: int = 0
 
   unload:
     save(self.rectPosition, self.count)
@@ -14,7 +14,7 @@ gdnim MyButton of Button:
 
   proc clicked() {.gdExport.} =
     inc self.count
-    var msg =  case self.count:
+    var msg = case self.count:
       of 1: "once"
       of 2: "twice"
       of 3: "thrice"

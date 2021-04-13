@@ -1,5 +1,5 @@
 # nim says anycase is unused, but pascal and snake are from anycase
-{.push warning[UnusedImport]:off.}
+{.push warning[UnusedImport]: off.}
 from sequtils import toSeq, filter, mapIt
 import anycase, threadpool
 
@@ -124,23 +124,26 @@ let gd_branches = config.getSectionValue("Godot", "merge_branches").split(",")
 let gd_platform = config.getSectionValue("Godot", "platform")
 #let gd_arch = config.getSectionValue("Godot", "arch")
 let gd_bits = config.getSectionValue("Godot", "bits")
-let gd_tools_debug_bin = expandTilde(config.getSectionValue("Godot", "tools_debug_bin"))
-let gd_tools_release_bin = expandTilde(config.getSectionValue("Godot", "tools_release_bin"))
+let gd_tools_debug_bin = expandTilde(config.getSectionValue("Godot",
+    "tools_debug_bin"))
+let gd_tools_release_bin = expandTilde(config.getSectionValue("Godot",
+    "tools_release_bin"))
 
-var cwatch_interval = parseInt(config.getSectionValue("Build", "cwatch_interval"))
+var cwatch_interval = parseInt(config.getSectionValue("Build",
+    "cwatch_interval"))
 if cwatch_interval == 0: cwatch_interval = 300
 
 let dllPrefix = case gd_platform
-                  of "android", "linuxbsd", "x11": "lib"
-                  else: ""
+  of "android", "linuxbsd", "x11": "lib"
+  else: ""
 
 let dllExt = case gd_platform
-               of "windows": "dll"
-               of "android", "linuxbsd", "x11": "so"
-               of "macosx": "dylib"
-               else: "unknown"
+  of "windows": "dll"
+  of "android", "linuxbsd", "x11": "so"
+  of "macosx": "dylib"
+  else: "unknown"
 
-proc genGdns(name:string, isTool:bool = false) =
+proc genGdns(name: string, isTool: bool = false) =
 
   var comp = &"{compsDir}/{name}.nim"
   var gdns = &"{gdnsDir}/{name}.gdns"
@@ -159,20 +162,22 @@ proc genGdns(name:string, isTool:bool = false) =
   if fileExists(comp):
     if not fileExists(gdns):
       var f = open(gdns, fmWrite)
-      f.write(gdns_template % [name, name.pascal, relativePath(parentDir(gdnlib), appDir)])
+      f.write(gdns_template % [name, name.pascal, relativePath(parentDir(
+          gdnlib), appDir)])
       f.close()
       echo &"generated {gdns}"
     if not fileExists(gdnlib):
       var f = open(gdnlib, fmWrite)
       var reloadable = not isTool
-      f.write(gdnlib_template % [name, name.pascal, relativePath(dllDir, appDir), $reloadable])
+      f.write(gdnlib_template % [name, name.pascal, relativePath(dllDir,
+          appDir), $reloadable])
       f.close()
       echo &"generated {gdnlib}"
   else:
     echo &"genGdns could not find {comp}"
     quit(QuitFailure)
 
-proc execOrQuit(command:string) =
+proc execOrQuit(command: string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
 
 task gdengine_update, "update the 3.2 custom branch with changes from upstream":
@@ -214,7 +219,7 @@ task gdengine, "build the godot engine, default with debugging and tools args:\n
       info &= "debug"
   else:
     info &= "tools, "
-    if "debug" in args :
+    if "debug" in args:
       flags = "target=debug debug_symbols=yes"
       info &= "debug"
     else:
@@ -270,7 +275,7 @@ task play, "launches the project without editor, optionally pass in name of a sc
   echo &"{gdbin} --verbose --path {projDir} {scn}"
   discard execShellCmd &"{gdbin} --verbose --path {projDir} {scn}"
 
-proc checkPrereq(packageName, sourceName:string, verbose:bool = true) =
+proc checkPrereq(packageName, sourceName: string, verbose: bool = true) =
   var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
   if exitCode != 0:
     echo &"{packageName} is not installed. Installing."
@@ -281,7 +286,7 @@ proc checkPrereq(packageName, sourceName:string, verbose:bool = true) =
 
 task genapi, "generate the godot api bindings":
   execOrQuit(&"nim c -r {gdpathFlags} {depsDir}/genapi.nim")
-  var ext = if hostOS == "windows": ".exe" else : ""
+  var ext = if hostOS == "windows": ".exe" else: ""
   removeFile(&"{depsDir}/genapi{ext}")
 
 task prereqs, "Install prerequisites, and calls genapi task":
@@ -295,13 +300,15 @@ task prereqs, "Install prerequisites, and calls genapi task":
 
   genapiTask()
 
-proc buildWatcher():string =
+proc buildWatcher(): string =
   {.cast(gcsafe).}:
     var flags = getSharedFlags()
     let dllPath = &"{dllDir}/{dllPrefix}watcher.{dllExt}"
     let watcherPath = "gdnim/watcher.nim"
-    if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime(watcherPath) > getLastModificationTime(&"{dllPath}")):
-      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllExt:{dllExt}", flags, &"{dllPath}", watcherPath)
+    if ("force" in flags) or not fileExists(&"{dllPath}") or (
+        getLastModificationTime(watcherPath) > getLastModificationTime(&"{dllPath}")):
+      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllExt:{dllExt}",
+          flags, &"{dllPath}", watcherPath)
     else:
       result = "Watcher is unchanged"
 
@@ -330,7 +337,7 @@ final:
 
 
 task cleandll, "clean the dlls, arguments are component names, default all non-gcc dlls":
-  var dllPaths:seq[string]
+  var dllPaths: seq[string]
   if args.len > 1:
     var seqDllPaths = args.mapIt(toSeq(walkFiles(&"{dllDir}/{it}*.*")))
     for paths in seqDllPaths:
@@ -353,23 +360,23 @@ proc getBuildSettings(): BuildSettings =
   settingsTable["noReload"] = "reload" notin result.sharedFlags
   result.settingsTable = settingsTable
 
-proc safeDllFilePath(compName:string): string =
+proc safeDllFilePath(compName: string): string =
   &"{dllDir}/{dllPrefix}{compName}_safe.{dllExt}"
-proc hotDllFilePath(compName:string): string =
+proc hotDllFilePath(compName: string): string =
   &"{dllDir}/{dllPrefix}{compName}.{dllExt}"
-proc nimFilePath(compName:string): string =
+proc nimFilePath(compName: string): string =
   var nimFilePath = &"{compsDir}/{compName}.nim"
   if not fileExists(nimFilePath):
     nimFilePath = &"{compsDir}/tools/{compName}.nim"
   nimFilePath
-proc gdnsFilePath(compName:string): string =
+proc gdnsFilePath(compName: string): string =
   &"{gdnsDir}/{compName}.gdns"
-proc gdnlibFilePath(compName:string): string =
+proc gdnlibFilePath(compName: string): string =
   &"{gdnlibDir}/{compName}.gdnlib"
-proc tscnFilePath(compName:string): string =
+proc tscnFilePath(compName: string): string =
   &"{tscnDir}/{compName}.tscn"
 
-proc shouldBuild(compName:string, buildSettings:BuildSettings ):bool =
+proc shouldBuild(compName: string, buildSettings: BuildSettings): bool =
   let safe = safeDllFilePath(compName)
   let hot = hotDllFilePath(compName)
   let nim = nimFilePath(compName)
@@ -377,11 +384,13 @@ proc shouldBuild(compName:string, buildSettings:BuildSettings ):bool =
     (not buildSettings.settingsTable["newOnly"]) or
     (buildSettings.settingsTable["newOnly"] and (
       (not fileExists(hot) and not fileExists(safe)) or
-      (fileExists(safe) and getLastModificationTime(nim) > getLastModificationTime(safe)) or
-      (fileExists(hot) and not fileExists(safe) and getLastModificationTime(nim) > getLastModificationTime(hot))
+      (fileExists(safe) and getLastModificationTime(nim) >
+          getLastModificationTime(safe)) or
+      (fileExists(hot) and not fileExists(safe) and getLastModificationTime(
+          nim) > getLastModificationTime(hot))
     ))
 
-proc buildComp(compName:string, buildSettings:BuildSettings):string =
+proc buildComp(compName: string, buildSettings: BuildSettings): string =
   {.cast(gcsafe).}:
     let safe = safeDllFilePath(compName)
     let hot = hotDllFilePath(compName)
@@ -395,14 +404,18 @@ proc buildComp(compName:string, buildSettings:BuildSettings):string =
 
     if shouldBuild(compName, buildSettings):
       result &= &">>> Build {compName} <<<\n"
-      result &= execnim(&"{gdpathFlags} --skipParentCfg:on --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
+      result &= execnim(&"{gdpathFlags} --skipParentCfg:on --path:.",
+          buildSettings.sharedFlags, &"{safe}", &"{nim}")
 
-    if fileExists(safe) and getLastModificationTime(nim) < getLastModificationTime(safe) and
-      (not fileExists(hot) or buildSettings.settingsTable["move"]) or (fileExists(safe) and buildSettings.settingsTable["noReload"]):
+    if fileExists(safe) and getLastModificationTime(nim) <
+        getLastModificationTime(safe) and
+      (not fileExists(hot) or buildSettings.settingsTable["move"]) or (
+          fileExists(safe) and buildSettings.settingsTable["noReload"]):
       moveFile(safe, hot)
       result &= ">>> dll moved safe to hot <<<"
 
-proc buildAllComps(res:var seq[FlowVar[string]], buildSettings:BuildSettings):int =
+proc buildAllComps(res: var seq[FlowVar[string]],
+    buildSettings: BuildSettings): int =
   var count = 0
   echo "building components: "
   for compPath in walkFiles(&"{compsDir}/*.nim"):
@@ -422,8 +435,8 @@ proc buildAllComps(res:var seq[FlowVar[string]], buildSettings:BuildSettings):in
 
 task gencomp, "generate a component template (nim, gdns, gdnlib, tscn files), pass in the component name and  base class name in snake case\n\tUsage: ./build gencomp [notscn] comp_name base_node":
 
-  var compName:string
-  var baseClassModuleName:string
+  var compName: string
+  var baseClassModuleName: string
   case args.len:
     of 2:
       compName = args[0]
@@ -454,7 +467,8 @@ task gencomp, "generate a component template (nim, gdns, gdnlib, tscn files), pa
   let nim = &"{compsDir}/{compName}.nim"
   if not fileExists(nim):
     var f = open(nim, fmWrite)
-    f.write(script_nim_template % [baseClassModuleName, compClassName, baseClassName])
+    f.write(script_nim_template % [baseClassModuleName, compClassName,
+        baseClassName])
     f.close()
     echo &"generated {nim}"
   else:
@@ -464,7 +478,8 @@ task gencomp, "generate a component template (nim, gdns, gdnlib, tscn files), pa
     let tscn = &"{tscnDir}/{compName}.tscn"
     if not fileExists(tscn):
       var f = open(tscn, fmWrite)
-      f.write(tscn_template % [compName, compClassName, relativePath(gdnsDir, appDir), baseClassName])
+      f.write(tscn_template % [compName, compClassName, relativePath(gdnsDir,
+          appDir), baseClassName])
       f.close()
       echo &"generated {tscn}"
     else:
@@ -569,7 +584,7 @@ task cleanbuild, "Rebuild all":
     compileCount = 1
     echo "building watcher"
     if not fileExists(watcherFile):
-      copyFile(depsDir / "watcher/watcher.tscn", tscnDir /  "watcher.tscn")
+      copyFile(depsDir / "watcher/watcher.tscn", tscnDir / "watcher.tscn")
     if not fileExists(watcherLineEditFile):
       copyFile(depsDir / "watcher/watcher_lineedit.tscn", tscnDir / "watcher_lineedit.tscn")
     genGdns("watcher")
@@ -586,7 +601,7 @@ task cleanbuild, "Rebuild all":
   sync()
 
   var successes = 0
-  var failures:seq[string]
+  var failures: seq[string]
   for f in res:
     var output = ^f
     if "[SuccessX]" in output:
@@ -598,7 +613,8 @@ task cleanbuild, "Rebuild all":
     var parts = toParts(getTime() - startTime)
     var timeStr = ""
     timeStr &= (if parts[Minutes] > 0: $parts[Minutes] & " minutes " else: "")
-    timeStr &= (if parts[Seconds] > 0: $parts[Seconds] & "." & $parts[Milliseconds] & " seconds " else: "")
+    timeStr &= (if parts[Seconds] > 0: $parts[Seconds] & "." & $parts[
+        Milliseconds] & " seconds " else: "")
     echo "=== Build OK! === ", timeStr
   else:
     echo "=== >>> Build Failed >>> ==="
@@ -627,8 +643,8 @@ task cwatch, "Monitors the components folder for changes to recompile.":
 task diagnostic, "Displays code that contributes to your dll size. Pass in the comp name as an argument: ./build diagnostic comp_name":
   checkPrereq("dumpincludes", "https://github.com/treeform/dumpincludes", false)
   if config.getSectionValue("Compiler", "build_kind") != "diagnostic":
-   echo "Dlls must be compiled with Compiler.build_kind == \"diagnostic\""
-   quit()
+    echo "Dlls must be compiled with Compiler.build_kind == \"diagnostic\""
+    quit()
   execOrQuit(&"dumpincludes -f:{dllDir}/{args[0]}.{dllExt}")
 
 task help, "display list of tasks":

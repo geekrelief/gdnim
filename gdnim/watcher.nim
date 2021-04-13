@@ -1,5 +1,6 @@
 import gdnim
-import godotapi / [node, resource_loader, canvas_layer, v_box_container, line_edit, theme]
+import godotapi / [node, resource_loader, canvas_layer, v_box_container,
+    line_edit, theme]
 import os, strformat, times
 from sequtils import keepItIf
 import tables, sets, hashes
@@ -11,7 +12,7 @@ to the resource that uses the dll and reload the resource.
 Components need to register with the Watcher, so they can be reloaded.
 During a reload phase, the components data can be save and restored upon reload.
 ]#
-const dllDir {.strdefine.}:string = "_dlls"
+const dllDir {.strdefine.}: string = "_dlls"
 const dllPrefix = when hostOS == "linux": "lib"
                 else: ""
 const dllExt = when hostOS == "windows": "dll"
@@ -24,15 +25,15 @@ const UnloadProcname = "hot_unload"
 const DependencyReloadProcname = "hot_depreload"
 const AddChild = "add_child"
 
-func safeDllPath(compName:string):string =
+func safeDllPath(compName: string): string =
   &"{dllDir}/{dllPrefix}{compName}_safe.{dllExt}"
-func hotDllPath(compName:string):string =
+func hotDllPath(compName: string): string =
   &"{dllDir}/{dllPrefix}{compname}.{dllExt}"
 
 gdobj WatcherUnregisterHelper of Reference:
   # helper to store callback on node tree_exited
   # to unregister component instances from Watcher
-  var callback*:proc () {.closure, gcsafe.}
+  var callback*: proc () {.closure, gcsafe.}
   proc onExit() {.gdExport.} =
     self.callback()
 
@@ -40,59 +41,60 @@ type
   InstanceID = distinct int64
 
   InstanceData = ref object
-    compName:string
-    id:InstanceID
-    saverPath:string
-    loaderPath:string
-    data:Variant # seq[byte]
-    helper:WatcherUnRegisterHelper
+    compName: string
+    id: InstanceID
+    saverPath: string
+    loaderPath: string
+    data: Variant # seq[byte]
+    helper: WatcherUnRegisterHelper
 
   ComponentMeta = object
-    resourcePath:string
-    saverProc:string
-    loaderProc:string
+    resourcePath: string
+    saverProc: string
+    loaderProc: string
 
   ReloadNotification = ref object
-    elapsedTime:float
-    gdLine:LineEdit
+    elapsedTime: float
+    gdLine: LineEdit
 
-proc inc(x:var InstanceID, y = 1) {.borrow.}
-proc `==`(x, y: InstanceID):bool {.borrow.}
-proc `$`(x:InstanceID):string {.borrow.}
+proc inc(x: var InstanceID, y = 1) {.borrow.}
+proc `==`(x, y: InstanceID): bool {.borrow.}
+proc `$`(x: InstanceID): string {.borrow.}
 
-func lerp(a, b, t:float32):float32 =
-  (b - a ) * t + a
+func lerp(a, b, t: float32): float32 =
+  (b - a) * t + a
 
 
 when defined(does_reload):
   gdobj Watcher of CanvasLayer:
 
-    signal notice(code:int, msg:string)
+    signal notice(code: int, msg: string)
 
-    var enableWatch {.gdExport.}:bool = true
-    var watchIntervalSeconds {.gdExport.}:float = 0.3
-    var reloadIntervalSeconds {.gdExport.}:float = 0.3
-    var watchElapsedSeconds:float
-    var reloadElapsedSeconds:float
+    var enableWatch {.gdExport.}: bool = true
+    var watchIntervalSeconds {.gdExport.}: float = 0.3
+    var reloadIntervalSeconds {.gdExport.}: float = 0.3
+    var watchElapsedSeconds: float
+    var reloadElapsedSeconds: float
 
-    var compMetaTable:Table[string, ComponentMeta]
-    var NextInstanceID:InstanceID = InstanceID(0)
-    var instancesByCompNameTable:Table[string, seq[InstanceData]]
-    var instanceByIDTable:Table[InstanceID, InstanceData]
-    var dependencies:Table[string, HashSet[string]] # if A instances B, then dependencies["A"].contains "B"
-    var rdependencies:Table[string, HashSet[string]] # and rdependencies["B"].contains "A"
-    var reloadingComps:seq[string]
+    var compMetaTable: Table[string, ComponentMeta]
+    var NextInstanceID: InstanceID = InstanceID(0)
+    var instancesByCompNameTable: Table[string, seq[InstanceData]]
+    var instanceByIDTable: Table[InstanceID, InstanceData]
+    var dependencies: Table[string, HashSet[
+        string]] # if A instances B, then dependencies["A"].contains "B"
+    var rdependencies: Table[string, HashSet[string]] # and rdependencies["B"].contains "A"
+    var reloadingComps: seq[string]
 
-    var enableNotifications {.gdExport.}:bool = true
-    var notification_duration {.gdExport.}:float  = 10.0
-    var notification_time_to_fade {.gdExport.}:float = 2.0
+    var enableNotifications {.gdExport.}: bool = true
+    var notification_duration {.gdExport.}: float = 10.0
+    var notification_time_to_fade {.gdExport.}: float = 2.0
 
-    var notifications:seq[ReloadNotification]
+    var notifications: seq[ReloadNotification]
 
-    var lineEditPacked:PackedScene
-    var vbox:VBoxContainer
+    var lineEditPacked: PackedScene
+    var vbox: VBoxContainer
 
-    proc getSaveOrder(compName:string):seq[string] =
+    proc getSaveOrder(compName: string): seq[string] =
       if not self.dependencies.hasKey(compName):
         result.add compName
         return
@@ -101,7 +103,8 @@ when defined(does_reload):
       result.add compName
 
     method init() =
-      self.lineEditPacked = resource_loader.load("res://_tscn/watcher_lineedit.tscn") as PackedScene
+      self.lineEditPacked = resource_loader.load(
+          "res://_tscn/watcher_lineedit.tscn") as PackedScene
       self.pause_mode = PAUSE_MODE_PROCESS
 
     method enter_tree() =
@@ -119,7 +122,9 @@ when defined(does_reload):
         var n = self.notifications[i]
         n.elapsedTime += delta
         if n.elapsedTime > self.notification_time_to_fade:
-          var alpha = lerp(1.0, 0.0, (n.elapsedTime - self.notification_time_to_fade)/(self.notification_duration - self.notification_time_to_fade))
+          var alpha = lerp(1.0, 0.0, (n.elapsedTime -
+              self.notification_time_to_fade)/(self.notification_duration -
+              self.notification_time_to_fade))
           n.gdLine.modulate = initColor(1.0, 1.0, 1.0, alpha)
 
         if n.elapsedTime > self.notification_duration:
@@ -134,7 +139,7 @@ when defined(does_reload):
           return
         self.reloadElapsedSeconds = 0.0
 
-        var finReloadingComps:seq[string]
+        var finReloadingComps: seq[string]
 
         for compName in self.reloadingComps:
           var cmeta = self.compMetaTable[compName]
@@ -160,7 +165,8 @@ when defined(does_reload):
               for rdcompName in self.rdependencies[compName]:
                 for rinstData in self.instancesByCompNameTable[rdcompName]:
                   var rnode = self.get_node(rinstData.saverPath)
-                  rnode.call_deferred(DependencyReloadProcname, compName.toVariant, false.toVariant)
+                  rnode.call_deferred(DependencyReloadProcname,
+                      compName.toVariant, false.toVariant)
 
             finReloadingComps.add(compName)
           else:
@@ -178,8 +184,10 @@ when defined(does_reload):
         self.watchElapsedSeconds = 0.0
 
         for compName in self.compMetaTable.keys:
-          if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and
-            getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath) and
+          if (not (compName in self.reloadingComps)) and fileExists(
+              compName.safeDllPath) and
+            getLastModificationTime(compName.safeDllPath) >
+                getLastModificationTime(compName.hotDllPath) and
             getFileSize(compName.safeDllPath) > 0:
             self.get_tree().paused = true
             self.notify(wncUnloading, &"Watcher unloading: {compName}")
@@ -199,23 +207,26 @@ when defined(does_reload):
               for rdep in self.rdependencies[compName]:
                 for rinstData in self.instancesByCompNameTable[rdep]:
                   var node = self.get_node(rinstData.saverPath)
-                  discard node.call(DependencyReloadProcname, compName.toVariant, true.toVariant)
+                  discard node.call(DependencyReloadProcname,
+                      compName.toVariant, true.toVariant)
 
     # registers the instance and its component for Watcher monitoring
-    proc register_instance(compName:string, saverPath:string, loaderPath:string,
-                            saverProc=UnloadProcname, loaderProc=AddChild):seq[byte] {.gdExport.} =
+    proc register_instance(compName: string, saverPath: string, loaderPath: string,
+                            saverProc = UnloadProcname,
+                                loaderProc = AddChild): seq[byte] {.gdExport.} =
       if not fileExists(compName.hotDllPath):
         printError &"Watcher failed to register {compName}. No dll with this name."
         return
       try:
         if not self.compMetaTable.hasKey(compName):
           self.notify(wncRegisterComp, &"Watcher registering {compName}")
-          self.compMetaTable[compName] = ComponentMeta(resourcePath: findScene(compName), saverProc: saverProc, loaderProc: loaderProc)
+          self.compMetaTable[compName] = ComponentMeta(resourcePath: findScene(
+              compName), saverProc: saverProc, loaderProc: loaderProc)
           self.instancesByCompNameTable[compName] = @[]
 
         var instNode = self.get_node(saverPath)
-        var instData:InstanceData
-        var instID:InstanceID
+        var instData: InstanceData
+        var instID: InstanceID
         if not instNode.has_meta(MetaInstanceId):
           # first instance
           instData = new(InstanceData)
@@ -248,7 +259,7 @@ when defined(does_reload):
         printError e.msg
 
     # register direct dependencies of comp
-    proc register_dependencies(compName:string, dependencies:seq[string]) {.gdExport.} =
+    proc register_dependencies(compName: string, dependencies: seq[string]) {.gdExport.} =
       if not self.dependencies.hasKey(compName):
         self.dependencies[compName] = initHashSet[string]()
       for d in dependencies:
@@ -258,7 +269,7 @@ when defined(does_reload):
         self.rdependencies[d].incl(compName)
 
     # unregister comp instances that are not reloading
-    proc unregisterInstance(instID:InstanceID) =
+    proc unregisterInstance(instID: InstanceID) =
       var instData = self.instanceByIDTable[instID]
       if not (instData.compName in self.reloadingComps):
         #printWarning &"unregister {instData.id = } @ {instData.saverPath = }"
@@ -266,7 +277,7 @@ when defined(does_reload):
         let index = self.instancesByCompNameTable[instData.compName].find(instData)
         self.instancesByCompNameTable[instData.compName].del(index)
 
-    proc notify(code:WatcherNoticeCode, msg:string) =
+    proc notify(code: WatcherNoticeCode, msg: string) =
       if not self.enableNotifications: return
       printWarning &"{msg}"
 
@@ -279,13 +290,16 @@ when defined(does_reload):
 
 else:
   gdobj Watcher of Control:
-    var enableWatch {.gdExport.}:bool = true
-    var watchIntervalSeconds {.gdExport.}:float = 0.3
-    var reloadIntervalSeconds {.gdExport.}:float = 0.3
+    var enableWatch {.gdExport.}: bool = true
+    var watchIntervalSeconds {.gdExport.}: float = 0.3
+    var reloadIntervalSeconds {.gdExport.}: float = 0.3
 
-    var enableNotifications {.gdExport.}:bool = true
-    var notification_duration {.gdExport.}:float  = 10.0
-    var notification_time_to_fade {.gdExport.}:float = 2.0
-    proc register_dependencies(compName:string, dependencies:seq[string]) {.gdExport.} = discard
-    proc register_instance(compName:string, saverPath:string, loaderPath:string,
-                            saverProc=UnloadProcname, loaderProc=AddChild):seq[byte] {.gdExport.} = discard
+    var enableNotifications {.gdExport.}: bool = true
+    var notification_duration {.gdExport.}: float = 10.0
+    var notification_time_to_fade {.gdExport.}: float = 2.0
+    proc register_dependencies(compName: string, dependencies: seq[string]) {.
+        gdExport.} = discard
+    proc register_instance(compName: string, saverPath: string, loaderPath: string,
+                            saverProc = UnloadProcname,
+                                loaderProc = AddChild): seq[byte] {.
+                                gdExport.} = discard

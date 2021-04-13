@@ -1,4 +1,4 @@
-{.push hint[XDeclaredButNotUsed]:off.} # compName and createVarArg are used in macros
+{.push hint[XDeclaredButNotUsed]: off.} # compName and createVarArg are used in macros
 import macros, strformat, strutils, os, sets
 import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils
@@ -6,7 +6,7 @@ export msgpack4nim, options, optionsutils
 const does_reload* {.booldefine.}: bool = true
 const is_tool* {.booldefine.}: bool = false
 
-proc `^`(s:string):NimNode {.inline.} =
+proc `^`(s: string): NimNode {.inline.} =
   ident(s)
 
 type
@@ -21,7 +21,7 @@ type
 
 # packs arguments pass as a seq[byte]
 # save(self.i, self.f, self.s)
-macro save*(args: varargs[typed]):untyped =
+macro save*(args: varargs[typed]): untyped =
   #[
     var b = MsgStream.init()
     b.pack(self.i)
@@ -36,33 +36,35 @@ macro save*(args: varargs[typed]):untyped =
     for arg in args:
       stmts.add newCall(newDotExpr(buffer, ^"pack"), arg)
     stmts.add newAssignment(^"result",
-      nnkCast.newTree(nnkBracketExpr.newTree(^"seq", ^"byte"), newDotExpr(buffer, ^"data")))
+      nnkCast.newTree(nnkBracketExpr.newTree(^"seq", ^"byte"), newDotExpr(
+          buffer, ^"data")))
 
     result = stmts
   else:
     discard
 
 # used by load to get type information on arg
-macro createArgVar(unpackVar:untyped, arg:typed) =
+macro createArgVar(unpackVar: untyped, arg: typed) =
   var typInst = arg.getTypeInst
   if typeKind(getType(arg)) == ntyRef:
     raise newException(HotReloadDefect, &"load({arg.repr}) is ref type: {typInst}. Only primitives and object types allowed.")
   result = quote do:
-    var `unpackVar`:`typInst`
+    var `unpackVar`: `typInst`
 
 #load takes a MsgStream or seq[byte] for loading
 # symbol with '!' in front are loaded from the buffer, but not asssigned
 # implementation note: takes in untyped args, but we need type information to create a variable
 #   pass untyped to a macro that takes typed createArgVar
-macro load*(data:typed, args: varargs[untyped]):untyped =
+macro load*(data: typed, args: varargs[untyped]): untyped =
   # load(buffer, self.speed, !self.direction)
   when defined(does_reload):
     result = newStmtList()
     for arg in args:
-      let isAssign = if arg.kind == nnkPrefix and arg[0].repr == "!": false else: true
+      let isAssign = if arg.kind == nnkPrefix and arg[0].repr ==
+          "!": false else: true
       var isAssignNode = newLit(isAssign)
-      var argNode:NimNode = if isAssign: arg else: arg[1]
-      var unpackVar:NimNode = genSym(nskVar)
+      var argNode: NimNode = if isAssign: arg else: arg[1]
+      var unpackVar: NimNode = genSym(nskVar)
 
       result.add quote do:
         createArgVar(`unpackVar`, `argNode`)
@@ -73,7 +75,7 @@ macro load*(data:typed, args: varargs[untyped]):untyped =
     discard
 
 # simple register, pass in the compName as a symbol, returns Option[MsgStream]
-macro register*(compName:untyped):untyped =
+macro register*(compName: untyped): untyped =
   when defined(does_reload):
     var compNameStr = newLit(compName.repr)
     result = quote do:
@@ -86,7 +88,7 @@ macro register*(compName:untyped):untyped =
         ($(self.get_path())).toVariant,
         ($(self.get_parent().get_path())).toVariant
       )
-      var data:seq[byte]
+      var data: seq[byte]
       discard fromVariant(data, bv)
       if data.len != 0:
         some(MsgStream.init(cast[string](data)))
@@ -98,7 +100,8 @@ macro register*(compName:untyped):untyped =
 
 #register with the watcher and returns an Option[MsgStream]
 # compName, saverProc, loaderProc are symbols, converted to strings
-macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loaderProc:untyped):untyped =
+macro register*(compName: untyped, reloaderPath: string, saverProc: untyped,
+    loaderProc: untyped): untyped =
   # var path = $self.get_path()
   #var stream = register_instance(bullet, path, save_bullets, setup_bullets) # returns Option[MsgStream]
   when defined(does_reload):
@@ -118,7 +121,7 @@ macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loader
         `saverProcStr`.toVariant,
         `loaderProcStr`.toVariant
       )
-      var data:seq[byte]
+      var data: seq[byte]
       discard fromVariant(data, bv)
       if data.len != 0:
         some(MsgStream.init(cast[string](data)))
@@ -133,7 +136,8 @@ macro register*(compName:untyped, reloaderPath:string, saverProc:untyped, loader
 # A must register B as a dependency if it holds a reference to B
 # component A must have a proc:
 #   proc hot_dep_unload*(compName:string, isUnloading:bool) {.gdExport.}
-macro register_dependencies*(compName:untyped, dependencies:varargs[untyped]):untyped =
+macro register_dependencies*(compName: untyped, dependencies: varargs[
+    untyped]): untyped =
   when defined(does_reload):
     var compNameStr = newLit(compName.repr)
 
@@ -157,12 +161,12 @@ macro register_dependencies*(compName:untyped, dependencies:varargs[untyped]):un
 ## gdnim macro
 # parses for hot reloading,
 # produces a gdobj for godot-nim to parse
-const compsDir {.strdefine.}:string  = "components"
-const depsDir {.strdefine.}:string  = "deps"
-var godotapiDir {.compileTime.}:string = depsDir & "/godotapi"
+const compsDir {.strdefine.}: string = "components"
+const depsDir {.strdefine.}: string = "deps"
+var godotapiDir {.compileTime.}: string = depsDir & "/godotapi"
 
 proc classStyleToCompStyle(className: string): string =
-  var s:string = className
+  var s: string = className
   if s[^2].isDigit() and s.endsWith("D"):
     s[^1] = 'd'
 
@@ -179,7 +183,7 @@ proc classStyleToCompStyle(className: string): string =
   if result == "os": # to avoid clash with stdlib
     result = "gd_os"
 
-proc gdnimDefect(msg:string) =
+proc gdnimDefect(msg: string) =
   raise newException(GDNimDefect, msg)
 
 # from godotapigen.nim
@@ -192,11 +196,11 @@ const standardTypes = toHashSet(
    "PoolByteArray", "PoolIntArray", "PoolRealArray", "PoolStringArray",
    "PoolVector2Array", "PoolVector3Array", "PoolColorArray"])
 
-proc isGodotApi(name:string):bool =
+proc isGodotApi(name: string): bool =
   var classFilePath = godotapiDir&"/"&classStyleToCompStyle(name)&".nim"
   return fileExists(classFilePath)
 
-proc isComponent(name:string):bool =
+proc isComponent(name: string): bool =
   var classFilePath = compsDir&"/"&classStyleToCompStyle(name)&".nim"
   return fileExists(classFilePath)
 
@@ -211,7 +215,7 @@ proc findComponentGDSuperClass(className:string):string =
   result = baseClassName
 ]#
 
-macro gdnim*(ast:varargs[untyped]) =
+macro gdnim*(ast: varargs[untyped]) =
   result = newStmtList()
   var astInfix = ast[0]
   var compName = classStyleToCompStyle(astInfix[1].strVal)
@@ -244,10 +248,10 @@ macro gdnim*(ast:varargs[untyped]) =
   var compPropertyNames = initHashSet[string]()
   var compModules = newNimNode(nnkImportStmt)
 
-  var unloadNode:NimNode
-  var reloadNode:NimNode
-  var dependenciesNode:NimNode
-  var readyNode:NimNode
+  var unloadNode: NimNode
+  var reloadNode: NimNode
+  var dependenciesNode: NimNode
+  var readyNode: NimNode
 
   var astBody = ast[^1]
   # parse
@@ -265,7 +269,7 @@ macro gdnim*(ast:varargs[untyped]) =
       of nnkVarSection:
         gdObjBody.add(node)
         for identDef in node:
-          var name:string
+          var name: string
           case identDef[0].kind
             of nnkIdent:
               name = identDef[0].strVal
@@ -274,7 +278,7 @@ macro gdnim*(ast:varargs[untyped]) =
             else:
               gdnimDefect(&"Unhandled node kind {identDef[0].kind}: {lineInfo(identDef)}\n{node.astGenRepr}")
 
-          var typName:string
+          var typName: string
           if not (identDef[1].kind == nnkEmpty):
             typName = identDef[1].repr
           else:
@@ -321,7 +325,8 @@ macro gdnim*(ast:varargs[untyped]) =
   #generate
   if readyNode.isNil:
     readyNode = nnkMethodDef.newTree(^"ready", newEmptyNode(), newEmptyNode(),
-      nnkFormalParams.newTree(newEmptyNode()), newEmptyNode(), newEmptyNode(), newStmtList())
+      nnkFormalParams.newTree(newEmptyNode()), newEmptyNode(), newEmptyNode(),
+          newStmtList())
 
   var readyBody = readyNode.body
   gdObjBody.add readyNode
@@ -338,20 +343,20 @@ macro gdnim*(ast:varargs[untyped]) =
       var propIdent = ^prop
       unloadNode.add(
         quote do:
-          self.`propIdent` = nil
+        self.`propIdent` = nil
       )
     for prop in typeUnknownPropertyNames:
       var propIdent = ^prop
       unloadNode.add(
         quote do:
-          nilRef(self.`propIdent`)
+        nilRef(self.`propIdent`)
       )
 
     gdObjBody.add(newProc(name = ^"hot_unload", params = @[nnkBracketExpr.newTree(^"seq", ^"byte")],
                           body = unloadNode, pragmas = nnkPragma.newTree(^"gdExport")))
 
     # dependencies
-    var dependenciesCompNames:seq[string]
+    var dependenciesCompNames: seq[string]
     if not dependenciesNode.isNil:
       var depreloadBody = newStmtList()
       var depreloadCase = nnkCaseStmt.newTree().add ^"compName"
@@ -374,16 +379,17 @@ macro gdnim*(ast:varargs[untyped]) =
                 discard
             var ofBranch = nnkOfBranch.newTree().add newStrLitNode(depName)
             ofBranch.add newStmtList(quote do:
-                          if isUnloading:
-                            `unloadStmts`
-                          else:
-                            `sectionStmts`)
+              if isUnloading:
+                `unloadStmts`
+              else:
+                `sectionStmts`)
             depreloadCase.add ofBranch
           else:
             gdnimDefect(&"Unexpected {section.kind} in dependencies definition.")
       depreloadCase.add nnkElse.newTree(nnkDiscardStmt.newTree(newEmptyNode()))
       gdObjBody.add newProc(name = ^"hot_depreload",
-        params = @[newEmptyNode(), newIdentDefs(^"compName", ^"string"), newIdentDefs(^"isUnloading", ^"bool")],
+        params = @[newEmptyNode(), newIdentDefs(^"compName", ^"string"),
+            newIdentDefs(^"isUnloading", ^"bool")],
         body = depreloadBody, pragmas = nnkPragma.newTree(^"gdExport"))
 
     # reload
@@ -417,7 +423,7 @@ macro gdnim*(ast:varargs[untyped]) =
             else:
               reloadBody.add node
           else:
-              reloadBody.add node
+            reloadBody.add node
       readyBody.insert(0, reloadBody)
 
   else: # not does_reload
@@ -433,7 +439,7 @@ macro gdnim*(ast:varargs[untyped]) =
             else:
               reloadBody.add node
           else:
-              reloadBody.add node
+            reloadBody.add node
       readyBody.insert(0, reloadBody)
 
     # add dependencies loading code into readyBody

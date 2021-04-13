@@ -8,16 +8,16 @@ gdnim SpriteComp of Sprite:
   #same as: import godotapi / [class1, class2]
   godotapi InputEventMouseButton # same as: godotapi input_event_mouse_button
 
-  var startPos:Vector2
-  var radius:float = 50.0
-  var speed:float = 0.11
-  var elapsedTime:float
-  var timer:Timer
-  var fireState:FireAsyncState = A
+  var startPos: Vector2
+  var radius: float = 50.0
+  var speed: float = 0.11
+  var elapsedTime: float
+  var timer: Timer
+  var fireState: FireAsyncState = A
 
   signal click()
-  signal bclick(button_idx:int)
-  signal bsclick(button_idx:int, shape_idx:int)
+  signal bclick(button_idx: int)
+  signal bsclick(button_idx: int, shape_idx: int)
 
   unload:
     self.queue_free()
@@ -40,7 +40,8 @@ gdnim SpriteComp of Sprite:
     startPolling()
     asyncCheck self.fireTimer()
 
-  proc on_area2d_input_event(viewport:Node, event:InputEvent, shape_idx:int) {.gdExport.} =
+  proc on_area2d_input_event(viewport: Node, event: InputEvent,
+      shape_idx: int) {.gdExport.} =
     ifis(event, InputEventMouseButton):
       if it.pressed:
         self.emit_signal("click")
@@ -49,10 +50,10 @@ gdnim SpriteComp of Sprite:
         toV self.emit_signal("bsclick", [it.button_index, shape_idx])
         self.get_tree().set_input_as_handled()
 
-  proc on_bsclick(button_idx:int, shape_idx:int) {.gdExport.} =
+  proc on_bsclick(button_idx: int, shape_idx: int) {.gdExport.} =
     print &"bsclick {button_idx = } {shape_idx = }"
 
-  method process(delta:float64) =
+  method process(delta: float64) =
     self.elapsedTime += delta
     var angle = self.elapsedTime * TAU * self.speed
     self.position = self.startPos + self.radius * vec2(cos(angle), sin(angle))
@@ -75,7 +76,8 @@ gdnim SpriteComp of Sprite:
         self.fireState = C
         continue
       of C:
-        var vals = await on_signal(self, "bsclick", tuple[button_idx:int, shape_idx:int])
+        var vals = await on_signal(self, "bsclick", tuple[button_idx: int,
+            shape_idx: int])
         print &"bsclick {vals.button_idx = } {vals.shape_idx = }"
         self.rotate45()
         self.fireState = D
@@ -113,7 +115,8 @@ gdnim SpriteComp of Sprite:
         continue
       of G:
         print "waiting for timeout 2 seconds AND click"
-        await on_signal(self.get_tree().createTimer(2), "timeout") and on_signal(self, "click")
+        await on_signal(self.get_tree().createTimer(2), "timeout") and
+            on_signal(self, "click")
         print "timeout scene tree timer and click"
         self.rotate45()
         self.fireState = H

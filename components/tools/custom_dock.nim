@@ -14,7 +14,7 @@ changes, close the editor and reopen after compilation.
 ]#
 
 gdobj(CustomDock of EditorPlugin, tool):
-  var dock:Control
+  var dock: Control
 
   method enter_tree() =
     self.dock = ((load("res://addons/custom_dock/custom_dock.tscn") as PackedScene).instance()) as Control
