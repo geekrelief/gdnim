@@ -40,28 +40,28 @@ let allCompilerFlagsTable = {
   "parallel": "--parallelBuild:0",
   "incremental": "--incremental:on",
   # cc
-  "cc": "--cc:tcc",                                   # doesn't work with threads:on
-                    # compiles that fastest, clean compile output, does not work with threads:on
+  "cc": "--cc:tcc", # doesn't work with threads:on
+  # compiles that fastest, clean compile output, does not work with threads:on
   "tcc": "--cc:tcc",
   # clean compile output, needs gcc dlls, produces large dlls by default, use strip
   "gcc": "--cc:gcc --threads:on --tlsEmulation:off",
-  "gcc_strip": "--d:strip",  # same as "--passL:\"-s\"", # removes debug symbols
+  "gcc_strip": "--d:strip",     # same as "--passL:\"-s\"", # removes debug symbols
   "gcc_flto": "--passC:-flto",  # https://gcc.gnu.org/wiki/LinkTimeOptimization
   "mingw": "-d:mingw",
   # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
   "vcc": "--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
   "clang": "--cc:clang --threads:on --tlsEmulation:off", # default toolchain for android
-                                                      # gc
+  # gc
   "arc": "--gc:arc",  # using arc with async will cause memory leaks, async generates cycles arc cannot collect
   "orc": "--gc:orc",  #crashes with --d:useMalloc, will collect async cycles
   "refc": "--gc:refc",
-  "useMalloc": "--d:useMalloc",                       # use C memory primitives
-                                                      # build_kind
+  "useMalloc": "--d:useMalloc", # use C memory primitives
+  # build_kind
   "danger": "--d:danger",
   "release": "--d:release",
   "debug": "--debugger:native --stackTrace:on",
-  "diagnostic": "--d:danger --debugger:native",       #for dumpincludes
-                                                      # hot
+  "diagnostic": "--d:danger --debugger:native", #for dumpincludes
+  # hot
   "reload": "--d:does_reload",
   # android
   "android": "--os:android -d:androidNDK",
