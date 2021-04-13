@@ -2,12 +2,12 @@ import gdnim
 import tables
 
 gdnim Gun of Sprite:
-  var bulletRes:PackedScene
-  var bulletSpawnPoint:Node2D
+  var bulletRes: PackedScene
+  var bulletSpawnPoint: Node2D
 
-  var nextBulletId:int64
-  var fireTime:float64
-  var fireInterval:float64 = 0.3
+  var nextBulletId: int64
+  var fireTime: float64
+  var fireInterval: float64 = 0.3
 
   unload:
     self.queue_free()
@@ -26,7 +26,7 @@ gdnim Gun of Sprite:
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
     discard button_fireSingle.connect("pressed", self, "fire_single")
 
-  proc createBullet(v:Vector2, p:Vector2) =
+  proc createBullet(v: Vector2, p: Vector2) =
     if self.bulletRes == nil: return
     var id = self.nextBulletId
     inc self.nextBulletId
@@ -36,12 +36,12 @@ gdnim Gun of Sprite:
 
   proc fire_single() {.gdExport.} =
     for i in 0..10:
-      self.createBullet(vec2(120.0 + i.toFloat * 6.0,0.0), self.bulletSpawnPoint.global_position)
+      self.createBullet(vec2(120.0 + i.toFloat * 6.0, 0.0), self.bulletSpawnPoint.global_position)
 
     self.createBullet(vec2(120.0, 0.0), self.bulletSpawnPoint.global_position)
     self.createBullet(vec2(100.0, 0.0), self.bulletSpawnPoint.global_position)
 
-  method process(delta:float64) =
+  method process(delta: float64) =
     self.fireTime += delta
     if self.fireTime > self.fireInterval:
       self.createBullet(vec2(70.0, 0.0), self.bulletSpawnPoint.global_position)
