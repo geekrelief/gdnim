@@ -10,7 +10,7 @@ gdnim SpriteComp of Sprite:
 
   var startPos: Vector2
   var radius: float = 50.0
-  var speed: float = 0.11
+  var speed: float = 0.31
   var elapsedTime: float
   var timer: Timer
   var fireState: FireAsyncState = A

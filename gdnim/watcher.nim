@@ -68,6 +68,8 @@ when defined(does_reload):
   gdobj Watcher of CanvasLayer:
 
     signal notice(code: int, msg: string)
+    signal instance_unloaded(nodePath: string)
+    signal instance_loaded(nodePath: string)
 
     var enableWatch {.gdExport.}: bool = true
     var watchIntervalSeconds {.gdExport.}: float = 0.3
@@ -192,6 +194,8 @@ when defined(does_reload):
                 #printWarning &"saving {instData.saverPath}"
                 var node = self.get_node(instData.saverPath)
                 instData.data = node.call(cmeta.saverProc)
+                toV self.emit_signal("instance_unloaded", [instData.saverPath])
+
               except CallError as e:
                 printError &"Watcher reloading: {compName}, Error '{e.err.error}'. From {compName}.{cmeta.saverProc} @ {instData.saverPath}"
                 raise
@@ -237,6 +241,8 @@ when defined(does_reload):
           instData.saverPath = saverPath
           discard result.fromVariant(instData.data)
           instData.data = nil
+
+        toV self.emit_signal("instance_loaded", [instData.saverPath])
 
         proc callback() =
           self.unregisterInstance(instID)

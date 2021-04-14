@@ -378,7 +378,8 @@ proc shouldBuild(compName: string, buildSettings: BuildSettings): bool =
     (buildSettings.settingsTable["newOnly"] and (
       (not fileExists(hot) and not fileExists(safe)) or
       (fileExists(safe) and getLastModificationTime(nim) > getLastModificationTime(safe)) or
-      (fileExists(hot) and not fileExists(safe) and getLastModificationTime(nim) > getLastModificationTime(hot))
+      (fileExists(hot) and not fileExists(safe) and getLastModificationTime(nim) > getLastModificationTime(hot)) or
+      (fileExists(safe) and buildSettings.settingsTable["move"])
     ))
 
 proc buildComp(compName: string, buildSettings: BuildSettings): string =
