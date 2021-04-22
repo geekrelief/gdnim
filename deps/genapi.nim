@@ -1,6 +1,7 @@
-import parsecfg, os, strformat, godotapigen
+import parsecfg, os, strformat, godotapigen, strutils
 
-var config = loadConfig("build.ini")
+var buildini = commandLineParams()[0].split("--ini:")[1]
+var config = loadConfig(buildini)
 let depsDir = config.getSectionValue("Dir", "deps")
 let gd_bin = config.getSectionValue("Godot", "tools_release_bin")
 

@@ -280,7 +280,7 @@ proc checkPrereq(packageName, sourceName: string, verbose: bool = true) =
       echo &"{packageName} installed @ {output}"
 
 task genapi, "generate the godot api bindings":
-  execOrQuit(&"nim c -r {gdpathFlags} {depsDir}/genapi.nim")
+  execOrQuit(&"nim c -r {gdpathFlags} {depsDir}/genapi.nim --ini:{buildini}")
   var ext = if hostOS == "windows": ".exe" else: ""
   removeFile(&"{depsDir}/genapi{ext}")
 
