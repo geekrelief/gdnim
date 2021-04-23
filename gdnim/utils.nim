@@ -39,7 +39,7 @@ template startPolling*() =
 type
   VariantDefect* = object of Defect
  # converts bracket surrounded parameters of a method call to Variants
- # toV self.call("myfunc", 123, true, idx) -> self.call("myfunc", newVariant(123), newVariant(true), newVariant(idx))
+ # toV self.call("myfunc", [123, true, idx]) -> self.call("myfunc", newVariant(123), newVariant(true), newVariant(idx))
 macro toV*(callNode: untyped): untyped =
   result = callNode
   template errOut =

@@ -122,6 +122,11 @@ let gd_base_branch = config.getSectionValue("Godot", "base_branch")
 let gd_build_branch = config.getSectionValue("Godot", "build_branch")
 let gd_branches = config.getSectionValue("Godot", "merge_branches").split(",")
 let gd_platform = config.getSectionValue("Godot", "platform")
+
+case gd_platform:
+  of "windows", "android", "linuxbsd", "x11", "macosx": discard
+  else: quit(&"Invalid build.ini: platform =\"{gd_platform}\"", QuitFailure)
+
 #let gd_arch = config.getSectionValue("Godot", "arch")
 let gd_bits = config.getSectionValue("Godot", "bits")
 let gd_tools_debug_bin = expandTilde(config.getSectionValue("Godot", "tools_debug_bin"))
@@ -138,7 +143,7 @@ let dllExt = case gd_platform
   of "windows": "dll"
   of "android", "linuxbsd", "x11": "so"
   of "macosx": "dylib"
-  else: "unknown"
+  else: "unknown platform"
 
 proc genGdns(name: string, isTool: bool = false) =
 
@@ -175,7 +180,7 @@ proc genGdns(name: string, isTool: bool = false) =
 proc execOrQuit(command: string) =
   if execShellCmd(command) != 0: quit(QuitFailure)
 
-task gdengine_update, "update the 3.2 custom branch with changes from upstream":
+task gdengine_update, "update the 3.x custom branch with changes from upstream":
 
   var projDir = getCurrentDir()
   setCurrentDir(gd_src)
@@ -198,7 +203,7 @@ task gdengine_update, "update the 3.2 custom branch with changes from upstream":
 
   setCurrentDir(projDir)
 
-task gdengine, "build the godot engine, default with debugging and tools args:\n\tupdate: updates the branch with branches in gdengine_upstream task\n\tclean: clean build\n\texport export build without tools\n\trelease: relead build without debugging":
+task gdengine, "build the godot engine, default does release build with tools. args:\n\tupdate: updates the branch with branches in gdengine_upstream task\n\tclean: clean build\n\texport: export build without tools\n\tdebug: generates debug build":
   if "update" in args: gdengineUpdateTask()
 
   # run scons --help to see godot flags
@@ -206,12 +211,12 @@ task gdengine, "build the godot engine, default with debugging and tools args:\n
   var info = ""
   if "export" in args:
     info &= "export, "
-    if "release" in args:
-      flags = "tools=no target=release"
-      info &= "release"
-    else:
+    if "debug" in args:
       flags = "tools=no target=debug"
       info &= "debug"
+    else:
+      flags = "tools=no target=release"
+      info &= "release"
   else:
     info &= "tools, "
     if "debug" in args:
@@ -301,7 +306,7 @@ proc buildWatcher(): string =
     let dllPath = &"{dllDir}/{dllPrefix}watcher.{dllExt}"
     let watcherPath = "gdnim/watcher.nim"
     if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime(watcherPath) > getLastModificationTime(&"{dllPath}")):
-      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllExt:{dllExt}", flags, &"{dllPath}", watcherPath)
+      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllPrefix:{dllPrefix} --define:dllExt:{dllExt}", flags, &"{dllPath}", watcherPath)
     else:
       result = "Watcher is unchanged"
 
@@ -570,9 +575,9 @@ task cleanbuild, "Rebuild all":
     compileCount = 1
     echo "building watcher"
     if not fileExists(watcherFile):
-      copyFile(depsDir / "watcher/watcher.tscn", tscnDir / "watcher.tscn")
+      copyFile(depsDir / "watcher/watcher.tscn", watcherFile)
     if not fileExists(watcherLineEditFile):
-      copyFile(depsDir / "watcher/watcher_lineedit.tscn", tscnDir / "watcher_lineedit.tscn")
+      copyFile(depsDir / "watcher/watcher_lineedit.tscn", watcherLineEditFile)
     genGdns("watcher")
     res.add(spawn buildWatcher())
   else: # remove the watcher
