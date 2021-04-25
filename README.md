@@ -211,7 +211,7 @@ In `unload`, we call `save()` which is a macro for saving special data that can'
 
 `reload` contains code that is run each time the component is loaded. It is placed in the `ready` method. If we wanted we could access the `self.bulletRes` reference safely here since `dependencies` runs its code first.
 
-The last reloading section is `once`. Code in this section only runs in the very first load of component **instance**. In other words, when a node is instanced `once` is run. If the node's component code needs to reload, `once` is skipped. If another node is created for the component again, `once` will run for the instance.
+The last reloading section is `once`. Code in this section only runs in the very first load of a component **instance**. In other words, when a node is instanced `once` is run. If the node's component code needs to reload, `once` is skipped. If another node is created for the component again, `once` will run for the instance.
 
 Here we have code from `bullet.nim`.
 
@@ -234,7 +234,7 @@ When `bullet` is instanced we initialize `self.startTime`.  If it reloads we wan
 
 Returning to `gun.nim`:
 
-```
+```nim
   proc createBullet(v: Vector2, p: Vector2) =
     if self.bulletRes == nil: return
     var id = self.nextBulletId
@@ -261,7 +261,7 @@ Notice `fire_single` has the `{.gdExport.}` pragma so we can `connect` to it. Wh
 
 So while `{.gdExport.}` will automatically convert CamelCase to snake_case, we stick with snake_case to avoid accidentally making the method name invisible to Godot.
 
-```
+```nim
   method process(delta: float64) =
     self.fireTime += delta
     if self.fireTime > self.fireInterval:
