@@ -2,25 +2,24 @@ import gdnim
 import math, times, std/monotimes
 
 gdnim Bullet of Sprite:
-  # gun will spawn
-  var id: int64
-  var velocity = vec2()
+  # gun will spawn bullets
+  var id {.gdExport.}: int64
+  var velocity {.gdExport.} = vec2()
   var maxlifeTime: float64 = 20.0
   var startTime: MonoTime
-  var startPosition: Vector2
+  var startPosition {.gdExport.}: Vector2
   var radius: float = 43.0
 
   signal dead(id: int)
 
+  once:
+    self.startTime = getMonoTime()
+
   unload:
-    self.queue_free()
-    save(self.id, self.startTime, self.velocity, self.startPosition)
+    save(self.startTime)
 
   reload:
-    load(self.id, self.startTime, self.velocity, self.startPosition)
-
-  method ready() =
-    self.startTime = getMonoTime()
+    load(self.startTime)
 
   proc set_data(id: int64, v: Vector2, p: Vector2) {.gdExport.} =
     self.id = id

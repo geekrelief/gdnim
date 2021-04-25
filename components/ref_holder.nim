@@ -7,13 +7,11 @@ gdnim RefHolder of Node:
   var spriteCompNode: Node
 
   unload:
-    save()
+    discard
 
   reload:
-    load()
-
-  method ready() =
     var watcher = self.get_node("/root/Watcher")
+    if watcher.isNil: return
     discard watcher.connect("instance_unloaded", self, "sprite_unloaded")
     discard watcher.connect("instance_loaded", self, "sprite_loaded")
     self.spriteCompNode = self.getNode(SpriteCompPath)

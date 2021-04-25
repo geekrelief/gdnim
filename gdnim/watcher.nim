@@ -12,12 +12,8 @@ Components need to register with the Watcher, so they can be reloaded.
 During a reload phase, the components data can be save and restored upon reload.
 ]#
 const dllDir {.strdefine.}: string = "_dlls"
-const dllPrefix = when hostOS == "linux": "lib"
-                else: ""
-const dllExt = when hostOS == "windows": "dll"
-             elif hostOS == "linux": "so"
-             elif hostOS == "macosx": "dylib"
-             else: "unknown"
+const dllPrefix {.strdefine.}: string = ""
+const dllExt {.strdefine.}: string = "unknown"
 
 const MetaInstanceId = "hot_meta_instance_id"
 const UnloadProcname = "hot_unload"
@@ -39,12 +35,17 @@ gdobj WatcherUnregisterHelper of Reference:
 type
   InstanceID = distinct int64
 
+  InstanceProperty = object
+    name: string
+    val: Variant
+
   InstanceData = ref object
     compName: string
     id: InstanceID
     saverPath: string
     loaderPath: string
-    data: Variant # seq[byte]
+    autoData: seq[InstanceProperty] #  used by Watcher to serialize the object
+    customData: Variant             # seq[byte]
     helper: WatcherUnRegisterHelper
 
   ComponentMeta = object
@@ -102,6 +103,22 @@ when defined(does_reload):
         result.add self.getSaveOrder(c)
       result.add compName
 
+    proc serializeData(node: Node): seq[InstanceProperty] =
+      var propList = node.get_property_list_impl()
+      var props: seq[InstanceProperty]
+      for vprop in propList:
+        var d = vprop.asDictionary
+        var name = d["name"].asString
+        var typ = cast[VariantType](d["type"].asInt())
+        var val = node.get_impl(name)
+        if not (typ == VariantType.Object):
+          props.add InstanceProperty(name: name, val: val)
+      result = props
+
+    proc deserializeData(node: Node, autoData: seq[InstanceProperty]) =
+      for prop in autoData:
+        node.set_impl(prop.name, prop.val)
+
     method init() =
       self.lineEditPacked = resource_loader.load("res://_tscn/watcher_lineedit.tscn") as PackedScene
       self.pause_mode = PAUSE_MODE_PROCESS
@@ -154,6 +171,7 @@ when defined(does_reload):
                 var loaderNode = self.get_node(instData.loaderPath)
                 var instNode = pscene.instance()
                 instNode.set_meta(MetaInstanceId, int64(instData.id).toVariant())
+                self.deserializeData(instNode, instData.autoData)
                 loaderNode.call_deferred(AddChild, instNode.toVariant())
               except:
                 printError &"!!! Could not reinstance \"{instData.saverPath }\" @ \"{instData.loaderPath}\""
@@ -193,7 +211,8 @@ when defined(does_reload):
               try:
                 #printWarning &"saving {instData.saverPath}"
                 var node = self.get_node(instData.saverPath)
-                instData.data = node.call(cmeta.saverProc)
+                instData.autoData = self.serializeData(node)
+                instData.customData = node.call(cmeta.saverProc)
                 toV self.emit_signal("instance_unloaded", [instData.saverPath])
 
               except CallError as e:
@@ -205,9 +224,13 @@ when defined(does_reload):
                   var node = self.get_node(rinstData.saverPath)
                   discard node.call(DependencyReloadProcname, compName.toVariant, true.toVariant)
 
+    proc is_new_instance(path: string): bool {.gdExport.} =
+      var instNode = self.get_node(path)
+      return not instNode.has_meta(MetaInstanceId)
+
     # registers the instance and its component for Watcher monitoring
     proc register_instance(compName: string, saverPath: string, loaderPath: string,
-                            saverProc = UnloadProcname, loaderProc = AddChild): seq[byte] {.gdExport.} =
+                                saverProc = UnloadProcname, loaderProc = AddChild): seq[byte] {.gdExport.} =
       if not fileExists(compName.hotDllPath):
         printError &"Watcher failed to register {compName}. No dll with this name."
         return
@@ -239,8 +262,7 @@ when defined(does_reload):
           #printWarning &"reloaded {instID} @ {saverPath}"
           instData = self.instanceByIDTable[instID]
           instData.saverPath = saverPath
-          discard result.fromVariant(instData.data)
-          instData.data = nil
+          discard result.fromVariant(instData.customData)
 
         toV self.emit_signal("instance_loaded", [instData.saverPath])
 

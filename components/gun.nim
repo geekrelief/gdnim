@@ -1,26 +1,21 @@
 import gdnim
-import tables
 
 gdnim Gun of Sprite:
-  var bulletRes: PackedScene
-  var bulletSpawnPoint: Node2D
-
-  var nextBulletId: int64
-  var fireTime: float64
-  var fireInterval: float64 = 0.3
+  var
+    bulletRes: PackedScene
+    bulletSpawnPoint: Node2D
+    nextBulletId {.gdExport.}: int64
+    fireTime: float64
+    fireInterval: float64 = 0.3
 
   unload:
-    self.queue_free()
-    save(self.nextBulletId, self.position)
-
-  reload:
-    load(self.nextBulletId, self.position)
+    save()
 
   dependencies:
     bullet:
       self.bulletRes = load("res://_tscn/bullet.tscn") as PackedScene
 
-  method ready() =
+  reload:
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
 
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")

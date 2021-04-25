@@ -8,7 +8,7 @@ gdnim SpriteComp of Sprite:
   #same as: import godotapi / [class1, class2]
   godotapi InputEventMouseButton # same as: godotapi input_event_mouse_button
 
-  var startPos: Vector2
+  var startPos {.gdExport.}: Vector2
   var radius: float = 50.0
   var speed: float = 0.31
   var elapsedTime: float
@@ -19,16 +19,15 @@ gdnim SpriteComp of Sprite:
   signal bclick(button_idx: int)
   signal bsclick(button_idx: int, shape_idx: int)
 
+  once:
+    self.startPos = self.position
+
   unload:
-    self.queue_free()
-    save(self.startPos, self.fireState, self.rotation_degrees)
+    save(self.fireState)
 
   reload:
-    self.startPos = self.position
-    # ! in front of a symbol reads the symbol's type from the buffer but doesn't assign
-    load(self.startPos, !self.fireState, !self.rotation_degrees)
+    load(self.fireState)
 
-  method ready() =
     self.timer = gdnew[Timer]()
     self.timer.one_shot = true
     self.add_child(self.timer)

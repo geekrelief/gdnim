@@ -7,11 +7,10 @@ gdnim HealthUi of Control:
   var hearts: TextureRect
 
   unload:
-    self.queue_free()
-    save(self.rect_position)
+    save()
 
   reload:
-    load(self.rect_position)
+    load()
 
   proc set_health(value: int) =
     self.health = max(0, value)

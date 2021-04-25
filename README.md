@@ -12,7 +12,11 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
   - [Quick Setup Guide](#quick-setup-guide)
   - [Quick Dev Guide](#quick-dev-guide)
   - [Prerequisites](#prerequisites)
-  - [Hot Reloading](#hot-reloading)
+  - [Hot Reloading Switch](#hot-reloading-switch)
+  - [Component Setup](#component-setup)
+    - [Component Walkthrough](#component-walkthrough)
+    - [Hot Reloading Sections](#hot-reloading-sections)
+    - [Component Methods](#component-methods)
   - [Tips](#tips)
   - [Sample Projects](#sample-projects)
   - [Project Structure](#project-structure)
@@ -60,7 +64,7 @@ The goal is to streamline and speed up the process of development for [godot-nim
 
 ## Prerequisites ##
 
-  - [godot engine 3.2.4+]: commit [311ca0c6 or newer](https://github.com/godotengine/godot/commit/311ca0c6f23784dfa831d8f058a335f698dcc5ea) has my patch merged for dll unloading or my custom repo [godot 3.2 custom]
+  - [godot engine 3.x]: or my custom repo [godot 3.x custom]
   - [nim](https://github.com/nim-lang/Nim) use stable or devel 3b963a81,
     - the commit after breaks godot-nim. [bug report](https://github.com/pragmagic/godot-nim/issues/81)
   - Nim Libraries (downloaded with `./build prereqs`)
@@ -68,14 +72,14 @@ The goal is to streamline and speed up the process of development for [godot-nim
     - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
     - [anycase](https://nimble.directory/pkg/anycase)
     - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
-  - gcc is the recommended compiler for most cases
+  - gcc is the default
     - gcc, vcc, and tcc are supported
     - (see [Compiler notes](#compiler-notes) below for details on differences)
   - Windows only: https://github.com/microsoft/terminal used to launch the godot editor.
 
 
-## Hot Reloading ##
-A top level `gdnim` macro is implemented to replace the use of `gdobj`. See below for [implemenation details](#implementation-details)
+## Hot Reloading Switch ##
+A top level `gdnim` macro is implemented to replace the use of `gdobj`. See below for [implementation details](#implementation-details)
 
 - **Hot reloading** makes use of components as sub-scenes.  A component is a unit that has a `.tscn` scene file, with the root node containing the `.gdns` nativescript attached, pointing to the `.nim` code file generated dynamic library. The correct setup for reloading is a hierarchy of scenes. See `/app/scenes/main.tscn` and how it references the other component scenes from `/app/_tscn`.
 - In the autoload settings, the Watcher scene is loaded which monitors the `/app/_dlls` folder for changes.
@@ -93,6 +97,181 @@ See `components` for samples on how to set things up for reloading.
   - Do a clean build. `./build cleanbuild`
   - Modify `project.godot` `Autoload` so the Watcher is loaded.  Select `_tscn/watcher.tscn` to load.
 
+## Component Setup ##
+Create a component by running `./build gencomp [name] [godot_class]`.  `name` is the name of your component, and `godot_class` is the class from which it derives. Both should be in snake_case.
+
+For example `./build gencomp my_node node2d` generates a `my_node.nim` file in `/components`. And a matching tscn, gdns, and gdnlib file in the directories specified in `build.ini`.
+
+To delete a component run: `./build delcomp [name]`.
+
+New components are generated from template strings defined in `tasks.nim`. Customize it for your needs. Remember to recompile `./build` with `nim c build` with any change to `tasks.nim`.
+
+
+## Component Walkthrough ##
+
+By default, the `gdnim` macro is used to make hot reloading more convenient. `gdnim` is layered on top of the godot-nim `gdobj` macro. Let's examine an example component `gun.nim` to understand its parts.
+
+```nim
+import gdnim
+
+gdnim Gun of Sprite:
+  var
+    bulletRes: PackedScene
+    bulletSpawnPoint: Node2D
+    nextBulletId {.gdExport.}: int64
+    fireTime: float64
+    fireInterval: float64 = 0.3
+
+  unload:
+    save()
+
+  dependencies:
+    bullet:
+      self.bulletRes = load("res://_tscn/bullet.tscn") as PackedScene
+
+  reload:
+    self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
+
+    var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
+    discard button_fireSingle.connect("pressed", self, "fire_single")
+
+  proc createBullet(v: Vector2, p: Vector2) =
+    if self.bulletRes == nil: return
+    var id = self.nextBulletId
+    inc self.nextBulletId
+    var b = self.bulletRes.instance()
+    discard toV b.call("set_data", [id, v, p])
+    self.get_tree().root.add_child(b)
+
+  proc fire_single() {.gdExport.} =
+    for i in 0..10:
+      self.createBullet(vec2(120.0 + i.toFloat * 6.0, 0.0), self.bulletSpawnPoint.global_position)
+
+    self.createBullet(vec2(120.0, 0.0), self.bulletSpawnPoint.global_position)
+    self.createBullet(vec2(100.0, 0.0), self.bulletSpawnPoint.global_position)
+
+  method process(delta: float64) =
+    self.fireTime += delta
+    if self.fireTime > self.fireInterval:
+      self.createBullet(vec2(70.0, 0.0), self.bulletSpawnPoint.global_position)
+      self.fireTime = 0
+
+```
+
+`gun.nim` was generated with `./build gencomp gun sprite`
+
+```nim
+import gdnim
+gdnim Gun of Sprite:
+```
+
+Here we import `gdnim` which pulls in the `godot`, `hot`, and `utils` modules. The `godot` module comes from `godot-nim`, `hot` is gdnim's hot reloading code that works with `watcher.nim` in the Watcher node, `utils` has convenience procs for working with `godot-nim`.
+
+The `gdnim` macro like `gdobj` implements a DSL with OO like features. Here `Gun` is a type that derives from `Sprite`.
+
+```nim
+  var
+    bulletRes: PackedScene
+    bulletSpawnPoint: Node2D
+    nextBulletId {.gdExport.}: int64
+    fireTime: float64
+    fireInterval: float64 = 0.3
+```
+
+We define our variables here. Notice that `PackedScene` and `Node2D` are referenced here without an `import` statement. The `gdnim` macro processes variables to see if they are part of the godot api in `deps/godotapi` and generates an `import` statement for them automatically. If you use the `gdobj` macro you'll have to import the modules with an import statement like `import godotapi / [packed_scene, node2d]`.
+
+`{.gdExport.}` not only makes a variable accessible in the godot editor, but will also be save and restored by `Watcher` during reload. All properties of an `Object` are saved if they appear in `getPropertyListImpl()`.
+
+Any variable compatible with Variant, except for those of VariantType.Object, are automatically saved.  If you need to save data that references Objects use the `save()/load()` macros.
+
+
+### Hot Reloading Sections ###
+
+Here we have sections that define our reloading behavior.
+
+```nim
+
+  unload:
+    save()
+
+  dependencies:
+    bullet:
+      self.bulletRes = load("res://_tscn/bullet.tscn") as PackedScene
+
+  reload:
+    self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
+
+    var button_fireSingle = self.get_parent().get_node("Button_FireSingle")
+    discard button_fireSingle.connect("pressed", self, "fire_single")
+```
+
+In `unload`, we call `save()` which is a macro for saving special data that can't be automatically saved by Watcher . In this case, we don't do anything here, we could replace `save()` with `discard`. Behind the scenes, `unload` calls `self.queue_free()` to free the node and nils any references to objects like `bulletRes` automatically. If we wanted, we could pass any non-"ref object" data `save()`. See the example from `bullet.nim` below.
+
+`dependencies` references other components that `gun` depends on to work.  Here `bullet` is another component and we need to load a reference to its scene to instantiate it. If the `bullet` component reloads, `gun` must free its reference to `self.bulletRes`. This is done automatically for you via the `gdnim` macro. The code in `dependencies` for all dependent components is run in the `ready` method before code in `reload` so any references are accessible.
+
+`reload` contains code that is run each time the component is loaded. It is placed in the `ready` method. If we wanted we could access the `self.bulletRes` reference safely here since `dependencies` runs its code first.
+
+The last reloading section is `once`. Code in this section only runs in the very first load of component **instance**. In other words, when a node is instanced `once` is run. If the node's component code needs to reload, `once` is skipped. If another node is created for the component again, `once` will run for the instance.
+
+Here we have code from `bullet.nim`.
+
+```nim
+  var startTime: MonoTime
+
+  once:
+    self.startTime = getMonoTime()
+
+  unload:
+    save(self.startTime)
+
+  reload:
+    load(self.startTime)
+```
+
+When `bullet` is instanced we initialize `self.startTime`.  If it reloads we want to save its `startTime`, so it appears in roughly the same position it left off before the reload.
+
+### Component Methods ###
+
+Returning to `gun.nim`:
+
+```
+  proc createBullet(v: Vector2, p: Vector2) =
+    if self.bulletRes == nil: return
+    var id = self.nextBulletId
+    inc self.nextBulletId
+    var b = self.bulletRes.instance()
+    discard toV b.call("set_data", [id, v, p])
+    self.get_tree().root.add_child(b)
+
+  proc fire_single() {.gdExport.} =
+    for i in 0..10:
+      self.createBullet(vec2(120.0 + i.toFloat * 6.0, 0.0), self.bulletSpawnPoint.global_position)
+
+    self.createBullet(vec2(120.0, 0.0), self.bulletSpawnPoint.global_position)
+    self.createBullet(vec2(100.0, 0.0), self.bulletSpawnPoint.global_position)
+```
+
+The `createBullet` proc creates a bullet using the `self.bulletRes` reference. We use `call` to access `bullet`'s `set_data` proc.  The `toV` is a helper macro in `utils.nim` that makes it cleaner to call a function with Variant arguments.
+
+Notice `fire_single` has the `{.gdExport.}` pragma so we can `connect` to it. When calling `connect` Godot uses snake_case for its function names.
+
+```nim
+    discard button_fireSingle.connect("pressed", self, "fire_single")
+```
+
+So while `{.gdExport.}` will automatically convert CamelCase to snake_case, we stick with snake_case to avoid accidentally making the method name invisible to Godot.
+
+```
+  method process(delta: float64) =
+    self.fireTime += delta
+    if self.fireTime > self.fireInterval:
+      self.createBullet(vec2(70.0, 0.0), self.bulletSpawnPoint.global_position)
+      self.fireTime = 0
+```
+
+Finally, we have the `process` method. In Godot's Node class we have virtual functions https://docs.godotengine.org/en/stable/classes/class_node.html, like `_ready`, `_process`, `_input`, etc which a `godot-nim` processes using `method`. Since nim does not allow underscores in front of identifiers, `godot-nim` automatically assumes methods are for virtual functions and binds the function with a prefixed underscore.
+
+Unfortunately, Godot is not consistent with its virtual function names, and sometimes you'll find a virtual function without a prefixed underscore. To export the method name "as is", add a `{.gdExport.}` pragma to the method. See `components/tools/main_screen.nim` for an example.
 
 ## Tips ##
  - Flags used with `./build`
@@ -112,7 +291,7 @@ See `components` for samples on how to set things up for reloading.
 
 
 ## Project Structure ##
-Gdnim uses a customized build script and [godot engine 3.2.4+] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
+Gdnim uses a customized build script and [godot engine 3.x] which unloads gdnative libraries when their resource is no longer referenced. It removes the dependency on nake and nimscript. Nimscript doesn't allow the use of exportc functions to check for file modification times. Gdnim also uses a custom version of the godot-nim bindings in the deps/godot directory, to begin future-proofing it for modern versions of nim (using GC ORC).
 
 ### Files and Folders ###
  - `app`: This is the godot project folder.
@@ -213,7 +392,7 @@ Copyright (c) 2018 Xored Software, Inc.
 
 Copyright (c) 2020 Don-Duong Quach
 
-[godot engine 3.2.4+]:https://github.com/godotengine/godot
+[godot engine 3.x]:https://github.com/godotengine/godot/tree/3.x
 [godot-nim]:https://github.com/pragmagic/godot-nim
 [godot-nim-stub]:https://github.com/pragmagic/godot-nim-stub
-[godot 3.2 custom]:https://github.com/geekrelief/godot/tree/3.2_custom
+[godot 3.x custom]:https://github.com/geekrelief/godot/tree/3.x_custom

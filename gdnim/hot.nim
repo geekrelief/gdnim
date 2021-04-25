@@ -132,7 +132,7 @@ macro register*(compName: untyped, reloaderPath: string, saverProc: untyped, loa
 # if component A instances component B,
 # A must register B as a dependency if it holds a reference to B
 # component A must have a proc:
-#   proc hot_dep_unload*(compName:string, isUnloading:bool) {.gdExport.}
+#   proc hot_depreload*(compName:string, isUnloading:bool) {.gdExport.}
 macro register_dependencies*(compName: untyped, dependencies: varargs[untyped]): untyped =
   when defined(does_reload):
     var compNameStr = newLit(compName.repr)
@@ -154,9 +154,10 @@ macro register_dependencies*(compName: untyped, dependencies: varargs[untyped]):
   else:
     discard
 
+
 ## gdnim macro
-# parses for hot reloading,
-# produces a gdobj for godot-nim to parse
+  # parses for hot reloading,
+  # produces a gdobj for godot-nim to parse
 const compsDir {.strdefine.}: string = "components"
 const depsDir {.strdefine.}: string = "deps"
 var godotapiDir {.compileTime.}: string = depsDir & "/godotapi"
@@ -244,6 +245,7 @@ macro gdnim*(ast: varargs[untyped]) =
   var compPropertyNames = initHashSet[string]()
   var compModules = newNimNode(nnkImportStmt)
 
+  var onceNode: NimNode # wraps contents in a check to see if hasn't been reloaded
   var unloadNode: NimNode
   var reloadNode: NimNode
   var dependenciesNode: NimNode
@@ -302,7 +304,9 @@ macro gdnim*(ast: varargs[untyped]) =
               typeUnknownPropertyNames.incl name
       of nnkCall:
         var callName = node[0]
-        if callName.eqIdent("unload"):
+        if callName.eqIdent("once"):
+          onceNode = node[^1]
+        elif callName.eqIdent("unload"):
           unloadNode = node[^1]
         elif callName.eqIdent("reload"):
           reloadNode = node[^1]
@@ -420,6 +424,22 @@ macro gdnim*(ast: varargs[untyped]) =
             reloadBody.add node
       readyBody.insert(0, reloadBody)
 
+    # once
+    if onceNode.isNil:
+      onceNode = quote do:
+        discard
+
+    var isNewInstanceNode = quote do:
+      var watcher = self.get_node("/root/Watcher")
+      if watcher.isNil:
+        raise newException(Defect, "Watcher not found")
+
+      var is_new_instance = watcher.call("is_new_instance", ($(self.get_path())).toVariant).asBool()
+      if is_new_instance:
+        `onceNode`
+
+    readyBody.insert(0, isNewInstanceNode)
+
   else: # not does_reload
     if not reloadNode.isNil and reloadNode.len > 0:
       # ignore load call in reloadNode
@@ -435,6 +455,13 @@ macro gdnim*(ast: varargs[untyped]) =
           else:
             reloadBody.add node
       readyBody.insert(0, reloadBody)
+
+    # once
+    if onceNode.isNil:
+      onceNode = quote do:
+        discard
+
+    readyBody.insert(0, onceNode)
 
     # add dependencies loading code into readyBody
     if not dependenciesNode.isNil:

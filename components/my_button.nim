@@ -1,15 +1,14 @@
 import gdnim
 
 gdnim MyButton of Button:
-  var count: int = 0
+  var count {.gdExport.}: int = 0
+  var clickPrefix: string = "My Button clicked "
 
   unload:
-    save(self.rectPosition, self.count)
+    save()
 
   reload:
-    load(self.rectPosition, self.count)
-
-  method ready() =
+    load()
     discard self.connect("pressed", self, "clicked")
 
   proc clicked() {.gdExport.} =
@@ -19,4 +18,4 @@ gdnim MyButton of Button:
       of 2: "twice"
       of 3: "thrice"
       else: $self.count & " times"
-    print "You clicked MyButton " & msg & "!"
+    print self.clickPrefix & msg & "!"
