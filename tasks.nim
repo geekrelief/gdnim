@@ -306,7 +306,7 @@ proc buildWatcher(): string =
     let dllPath = &"{dllDir}/{dllPrefix}watcher.{dllExt}"
     let watcherPath = "gdnim/watcher.nim"
     if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime(watcherPath) > getLastModificationTime(&"{dllPath}")):
-      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllPrefix:{dllPrefix} --define:dllExt:{dllExt}", flags, &"{dllPath}", watcherPath)
+      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllPrefix:{dllPrefix} --define:dllExt:{dllExt} --define:tscnDir:{tscnDir}", flags, &"{dllPath}", watcherPath)
     else:
       result = "Watcher is unchanged"
 

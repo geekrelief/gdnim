@@ -180,7 +180,7 @@ The `gdnim` macro like `gdobj` implements a DSL with OO like features. Here `Gun
 
 We define our variables here. Notice that `PackedScene` and `Node2D` are referenced here without an `import` statement. The `gdnim` macro processes variables to see if they are part of the godot api in `deps/godotapi` and generates an `import` statement for them automatically. If you use the `gdobj` macro you'll have to import the modules with an import statement like `import godotapi / [packed_scene, node2d]`.
 
-`{.gdExport.}` not only makes a variable accessible in the godot editor, but will also be save and restored by `Watcher` during reload. All properties of an `Object` are saved if they appear in `getPropertyListImpl()`.
+`{.gdExport.}` not only makes a variable accessible in the godot editor, but will also be saved and restored by `Watcher` during reload. All properties of an `Object` are saved if they appear in `getPropertyListImpl()`.
 
 Any variable compatible with Variant, except for those of VariantType.Object, are automatically saved.  If you need to save data that references Objects use the `save()/load()` macros.
 
@@ -205,7 +205,7 @@ Here we have sections that define our reloading behavior.
     discard button_fireSingle.connect("pressed", self, "fire_single")
 ```
 
-In `unload`, we call `save()` which is a macro for saving special data that can't be automatically saved by Watcher . In this case, we don't do anything here, we could replace `save()` with `discard`. Behind the scenes, `unload` calls `self.queue_free()` to free the node and nils any references to objects like `bulletRes` automatically. If we wanted, we could pass any non-"ref object" data `save()`. See the example from `bullet.nim` below.
+In `unload`, we call `save()` which is a macro for saving special data that can't be automatically saved by Watcher . In this case, we don't do anything here, we could replace `save()` with `discard`. Behind the scenes, `unload` calls `self.queue_free()` to free the node and nils any references to objects like `bulletRes` automatically. If we wanted, we could pass any non-"ref object" data to `save()`. See the example from `bullet.nim` below.
 
 `dependencies` references other components that `gun` depends on to work.  Here `bullet` is another component and we need to load a reference to its scene to instantiate it. If the `bullet` component reloads, `gun` must free its reference to `self.bulletRes`. This is done automatically for you via the `gdnim` macro. The code in `dependencies` for all dependent components is run in the `ready` method before code in `reload` so any references are accessible.
 
@@ -228,7 +228,29 @@ Here we have code from `bullet.nim`.
     load(self.startTime)
 ```
 
-When `bullet` is instanced we initialize `self.startTime`.  If it reloads we want to save its `startTime`, so it appears in roughly the same position it left off before the reload.
+When `bullet` is instanced we initialize `self.startTime` in `once`.  If it reloads we want to save its `startTime`, so it appears in roughly the same position it left off before the reload. In `unload` we call `save()` and pass in the identifier for the data we want to save `self.startTime`. The macro serializes the data using msgpack4nim as a string and returns it to Watcher for storage. In `reload`, when the component is reloaded the automatically serialized data is restored first before ready, then `load(self.startTime)` retrieves the data from Watcher, deserializes it and stores the value into `self.startTime`.
+
+Generally, the identifiers you pass to `save()` and `load()` should match. If for some reason you want to reload to and not restore some piece of data you can prefix the identifier with `!`.
+
+For example:
+
+```nim
+
+  var
+    startTime: MonoTime
+    endTime: MonoTime
+
+  once:
+    self.startTime = getMonoTime()
+
+  unload:
+    save(self.startTime, self.endTime)
+
+  reload:
+    load(self.startTime, !self.endTime)
+```
+
+Here we added another variable `endTime`, but we don't want to restore the `endTime` on reload. If you have properties saved by Watcher you don't want restored, you'll have to manually reinitialize the value of the property.
 
 ### Component Methods ###
 
@@ -269,7 +291,7 @@ So while `{.gdExport.}` will automatically convert CamelCase to snake_case, we s
       self.fireTime = 0
 ```
 
-Finally, we have the `process` method. In Godot's Node class we have virtual functions https://docs.godotengine.org/en/stable/classes/class_node.html, like `_ready`, `_process`, `_input`, etc which a `godot-nim` processes using `method`. Since nim does not allow underscores in front of identifiers, `godot-nim` automatically assumes methods are for virtual functions and binds the function with a prefixed underscore.
+Finally, we have the `process` method. In Godot's Node class we have virtual functions https://docs.godotengine.org/en/stable/classes/class_node.html, like `_ready`, `_process`, `_input`, etc which `godot-nim` processes using `method`. Since nim does not allow underscores in front of identifiers, `godot-nim` automatically assumes methods are for virtual functions and binds the function with a prefixed underscore.
 
 Unfortunately, Godot is not consistent with its virtual function names, and sometimes you'll find a virtual function without a prefixed underscore. To export the method name "as is", add a `{.gdExport.}` pragma to the method. See `components/tools/main_screen.nim` for an example.
 
@@ -284,7 +306,7 @@ Unfortunately, Godot is not consistent with its virtual function names, and some
  - If the app is crashing when trying to reload, try force rebuilding the component `./build -f comp_name` or deleting the dll and rebuilding.
 - If all else fails, `./build cleanbuild` to rebuild the dlls from scratch.
 - If you get some type of crash when running your game, you probably have a `NilAccess` error in your code.
-
+- Another cause of crashes could be from calling Godot's virtual functions by accident.  For example, you might try calling `get` or `get_property_list`. This might cause a crash because `_get` and `_get_property_list` are virtual functions in Godot. In godot-nim, Godot's `_get` is mapped to godot-nim's `method get`, and Godot's `get` is mapped to godot-nim's `getImpl`.  See `deps/godotapi/objects.nim` for examples.
 
 ## Sample Projects ##
  - [HeartBeast's Action RPG](https://github.com/geekrelief/gdnim_hb_arpg)

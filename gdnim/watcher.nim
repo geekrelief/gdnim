@@ -14,6 +14,7 @@ During a reload phase, the components data can be save and restored upon reload.
 const dllDir {.strdefine.}: string = "_dlls"
 const dllPrefix {.strdefine.}: string = ""
 const dllExt {.strdefine.}: string = "unknown"
+const tscnDir {.strdefine.}: string = "_tscn"
 
 const MetaInstanceId = "hot_meta_instance_id"
 const UnloadProcname = "hot_unload"
@@ -120,7 +121,7 @@ when defined(does_reload):
         node.set_impl(prop.name, prop.val)
 
     method init() =
-      self.lineEditPacked = resource_loader.load("res://_tscn/watcher_lineedit.tscn") as PackedScene
+      self.lineEditPacked = resource_loader.load(&"res://{tscnDir}/watcher_lineedit.tscn") as PackedScene
       self.pause_mode = PAUSE_MODE_PROCESS
 
     method enter_tree() =
