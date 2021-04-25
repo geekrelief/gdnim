@@ -230,7 +230,7 @@ Here we have code from `bullet.nim`.
 
 When `bullet` is instanced we initialize `self.startTime` in `once`.  If it reloads we want to save its `startTime`, so it appears in roughly the same position it left off before the reload. In `unload` we call `save()` and pass in the identifier for the data we want to save `self.startTime`. The macro serializes the data using msgpack4nim as a string and returns it to Watcher for storage. In `reload`, when the component is reloaded the automatically serialized data is restored first before ready, then `load(self.startTime)` retrieves the data from Watcher, deserializes it and stores the value into `self.startTime`.
 
-Generally, the identifiers you pass to `save()` and `load()` should match. If for some reason you want to reload to and not restore some piece of data you can prefix the identifier with `!`.
+Generally, the identifiers you pass to `save()` and `load()` should match. If for some reason you want to reload and not restore some data you can prefix the identifier with `!`.
 
 For example:
 
@@ -250,7 +250,7 @@ For example:
     load(self.startTime, !self.endTime)
 ```
 
-Here we added another variable `endTime`, but we don't want to restore the `endTime` on reload. If you have properties saved by Watcher you don't want restored, you'll have to manually reinitialize the value of the property.
+Here we added another variable `endTime`, but we don't want to restore the `endTime` on reload. If you have auto saved properties you don't want restored, you'll have to manually reinitialize the value of the property on `reload`.
 
 ### Component Methods ###
 
