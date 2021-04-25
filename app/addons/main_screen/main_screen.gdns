@@ -1,8 +1,0 @@
-[gd_resource type="NativeScript" load_steps=2 format=2]
-
-[ext_resource path="res://addons/main_screen/main_screen.gdnlib" type="GDNativeLibrary" id=1]
-
-[resource]
-resource_name = "MainScreen"
-class_name = "MainScreen"
-library = ExtResource( 1 )
