@@ -113,7 +113,8 @@ let baseDllDir = config.getSectionValue("App", "dll")
 let dllDir = appDir / baseDllDir
 let gdnsDir = appDir / config.getSectionValue("App", "gdns")
 let gdnlibDir = appDir / config.getSectionValue("App", "gdnlib")
-let tscnDir = appDir / config.getSectionValue("App", "tscn")
+let baseTscnDir = config.getSectionValue("App", "tscn")
+let tscnDir = appDir / baseTscnDir
 
 let gd_scons_flags = config.getSectionValue("Godot", "scons_flags")
 
@@ -299,7 +300,7 @@ proc buildWatcher(): string =
     let dllPath = &"{dllDir}/{dllPrefix}watcher.{dllExt}"
     let watcherPath = "gdnim/watcher.nim"
     if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime(watcherPath) > getLastModificationTime(&"{dllPath}")):
-      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllPrefix:{dllPrefix} --define:dllExt:{dllExt} --define:tscnDir:{tscnDir}", flags, &"{dllPath}", watcherPath)
+      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllPrefix:{dllPrefix} --define:dllExt:{dllExt} --define:baseTscnDir:{baseTscnDir}", flags, &"{dllPath}", watcherPath)
     else:
       result = "Watcher is unchanged"
 
