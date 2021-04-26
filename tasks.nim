@@ -606,6 +606,42 @@ task cleanbuild, "Rebuild all":
       echo f
     echo "=== <<< Build Failed <<< ==="
 
+
+task init, "creates a new clean branch from master for a new project, pass in the new branch name as an argument":
+  if args.len != 1:
+    echo "Usage: ./build init branch_name"
+    quit()
+  var branch_name = args[0]
+  execOrQuit(&"git checkout -b {branch_name} master")
+
+  for dir in [compsDir, gdnsDir, gdnlibDir, tscnDir, appDir / "addons", appDir / "gdscripts"]:
+    execOrQuit(&"git rm {dir}/*")
+
+  execOrQuit(&"git rm {appDir}/scenes/main.tscn")
+
+  for f in walkFiles(&"{appDir}/*.png.*"):
+    if "icon.png" notin f:
+      execOrQuit(&"git rm {f}")
+
+  removeDir(dllDir)
+  for dir in [dllDir, compsDir, gdnsDir, gdnlibDir, tscnDir]:
+    createDir(dir)
+
+  # setup watcher
+  var watcherFile = tscnDir / "watcher.tscn"
+  var watcherLineEditFile = tscnDir / "watcher_lineedit.tscn"
+  if not fileExists(watcherFile):
+    copyFile(depsDir / "watcher/watcher.tscn", watcherFile)
+  if not fileExists(watcherLineEditFile):
+    copyFile(depsDir / "watcher/watcher_lineedit.tscn", watcherLineEditFile)
+  genGdns("watcher")
+
+  copyFile(depsDir / "app/project.godot", appDir / "project.godot")
+
+  execOrQuit(&"git add app/")
+  execOrQuit(&"git commit -m \"init {branch_name}\"")
+
+
 task cwatch, "Monitors the components folder for changes to recompile.":
   echo "Monitoring components for changes.  Ctrl+C to stop"
   var lastTimes = newTable[string, Time]()

@@ -49,6 +49,8 @@ The goal is to streamline and speed up the process of development for [godot-nim
  - Download Nim prerequisite libraries and generate the godot-nim bindings: `./build prereqs`
  - Build watcher and components: `./build cleanbuild`
 
+For a new project (sample code removed), branching from `master`: `./build init [branch_name]`
+
 
 ## Quick Dev Guide ##
  - To **make a new nim component** run: `./build gencomp my_comp node_2d`. The nim file is created for you in `components` See [Setup](#setup) for details.
