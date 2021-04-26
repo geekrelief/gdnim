@@ -164,16 +164,17 @@ var godotapiDir {.compileTime.}: string = depsDir & "/godotapi"
 
 proc classStyleToCompStyle(className: string): string =
   var s: string = className
-  if s[^2].isDigit() and s.endsWith("D"):
+  if s.len > 2 and s[^2].isDigit() and s.endsWith("D"):
     s[^1] = 'd'
 
   result = $(s[0].toLowerAscii())
-  for c in s[1..^1]:
-    if c.isUpperAscii() or c.isDigit():
-      result.add('_')
-      result.add(c.toLowerAscii())
-    else:
-      result.add(c)
+  if s.len > 1:
+    for c in s[1..^1]:
+      if c.isUpperAscii() or c.isDigit():
+        result.add('_')
+        result.add(c.toLowerAscii())
+      else:
+        result.add(c)
 
   if result == "object": # keyword
     result = "objects"

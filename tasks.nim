@@ -254,26 +254,19 @@ task term, "launches the terminal with cwatch, pass in another arg for second pa
   else:
     echo &"not implemented on {hostOS}"
 
-task gd, "launches terminal with godot project\n\toptional argument for scene to open":
-  var gdbin = if "debug" in getSharedFlags(): gd_tools_debug_bin else: gd_tools_release_bin
-  var scn = ""
-  if args.len == 1:
-    scn = args[0] & ".tscn"
+task gd, "launches terminal with godot project\n\toptional argument 'debug' to launch debug godot editor":
+  var gdbin = if "debug" in args: gd_tools_debug_bin else: gd_tools_release_bin
 
-  echo &"{gdbin} --verbose -e --path {appDir} {scn}"
-  discard execShellCmd &"{gdbin} --verbose -e --path {appDir} {scn}"
+  echo &"{gdbin} --verbose -e --path {appDir}"
+  discard execShellCmd &"{gdbin} --verbose -e --path {appDir}"
 
-task play, "launches the project without editor, optionally pass in name of a scene to run":
-  var gdbin = if "debug" in getSharedFlags(): gd_tools_debug_bin else: gd_tools_release_bin
+task play, "launches the project without editor\n\toptional argument 'debug' to launch debug godot editor":
+  var gdbin = if "debug" in args: gd_tools_debug_bin else: gd_tools_release_bin
 
   var projDir = "app"
 
-  var scn = ""
-  if args.len == 1:
-    scn = args[0] & ".tscn"
-
-  echo &"{gdbin} --verbose --path {projDir} {scn}"
-  discard execShellCmd &"{gdbin} --verbose --path {projDir} {scn}"
+  echo &"{gdbin} --verbose --path {projDir}"
+  discard execShellCmd &"{gdbin} --verbose --path {projDir}"
 
 proc checkPrereq(packageName, sourceName: string, verbose: bool = true) =
   var (output, exitCode) = execCmdEx(&"nimble path {packageName}")
