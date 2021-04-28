@@ -12,7 +12,7 @@ gdnim Bullet of Sprite:
 
   signal dead(id: int)
 
-  once:
+  first:
     self.startTime = getMonoTime()
 
   unload:

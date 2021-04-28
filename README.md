@@ -102,7 +102,7 @@ See `components` for samples on how to set things up for reloading.
 ## Component Setup ##
 Create a component by running `./build gencomp [name] [godot_class]`.  `name` is the name of your component, and `godot_class` is the class from which it derives. Both should be in snake_case.
 
-For example `./build gencomp my_node node2d` generates a `my_node.nim` file in `/components`. And a matching tscn, gdns, and gdnlib file in the directories specified in `build.ini`.
+For example `./build gencomp my_node node_2d` generates a `my_node.nim` file in `/components`. And a matching tscn, gdns, and gdnlib file in the directories specified in `build.ini`.
 
 To delete a component run: `./build delcomp [name]`.
 
@@ -180,7 +180,7 @@ The `gdnim` macro like `gdobj` implements a DSL with OO like features. Here `Gun
     fireInterval: float64 = 0.3
 ```
 
-We define our variables here. Notice that `PackedScene` and `Node2D` are referenced here without an `import` statement. The `gdnim` macro processes variables to see if they are part of the godot api in `deps/godotapi` and generates an `import` statement for them automatically. If you use the `gdobj` macro you'll have to import the modules with an import statement like `import godotapi / [packed_scene, node2d]`.
+We define our variables here. Notice that `PackedScene` and `Node2D` are referenced here without an `import` statement. The `gdnim` macro processes variables to see if they are part of the godot api in `deps/godotapi` and generates an `import` statement for them automatically. If you use the `gdobj` macro you'll have to import the modules with an import statement like `import godotapi / [packed_scene, node_2d]`.
 
 `{.gdExport.}` not only makes a variable accessible in the godot editor, but will also be saved and restored by `Watcher` during reload. All properties of an `Object` are saved if they appear in `getPropertyListImpl()`.
 
@@ -209,18 +209,18 @@ Here we have sections that define our reloading behavior.
 
 In `unload`, we call `save()` which is a macro for saving special data that can't be automatically saved by Watcher . In this case, we don't do anything here, we could replace `save()` with `discard`. Behind the scenes, `unload` calls `self.queue_free()` to free the node and nils any references to objects like `bulletRes` automatically. If we wanted, we could pass any non-"ref object" data to `save()`. See the example from `bullet.nim` below.
 
-`dependencies` references other components that `gun` depends on to work.  Here `bullet` is another component and we need to load a reference to its scene to instantiate it. If the `bullet` component reloads, `gun` must free its reference to `self.bulletRes`. This is done automatically for you via the `gdnim` macro. The code in `dependencies` for all dependent components is run in the `ready` method before code in `reload` so any references are accessible.
+`dependencies` references other components that `gun` depends on to work.  Here `bullet` is another component and we need to load a reference to its scene to instantiate it. If the `bullet` component reloads, `gun` must free its reference to `self.bulletRes`. This is done automatically for you via the `gdnim` macro. The code in `dependencies` for all dependent components is run in the `ready` method before code in `reload` so any references are accessible. This section allows you to write component specific initialization code versus putting that code in `reload` or the `ready` method. Use the `dependencies` section to initialize references to component scenes or instances, connecting signals to component instances, etc.
 
 `reload` contains code that is run each time the component is loaded. It is placed in the `ready` method. If we wanted we could access the `self.bulletRes` reference safely here since `dependencies` runs its code first.
 
-The last reloading section is `once`. Code in this section only runs in the very first load of a component **instance**. In other words, when a node is instanced `once` is run. If the node's component code needs to reload, `once` is skipped. If another node is created for the component again, `once` will run for the instance.
+The last reloading section is `first`. Code in this section only runs in the very first (incarnation) load of a component **instance**. In other words, when a node is instanced `first` is run. If the node's component code needs to reload, `first` is skipped. If another node is created for the component again, `first` will run for the instance. Typically, you'll put initialization code in here setting initial conditions for simulation like position and time. If you're instantiating nodes, and calling `addChild` you should probably put that in `depedencies` or `reload`.
 
 Here we have code from `bullet.nim`.
 
 ```nim
   var startTime: MonoTime
 
-  once:
+  first:
     self.startTime = getMonoTime()
 
   unload:
@@ -230,7 +230,7 @@ Here we have code from `bullet.nim`.
     load(self.startTime)
 ```
 
-When `bullet` is instanced we initialize `self.startTime` in `once`.  If it reloads we want to save its `startTime`, so it appears in roughly the same position it left off before the reload. In `unload` we call `save()` and pass in the identifier for the data we want to save `self.startTime`. The macro serializes the data using msgpack4nim as a string and returns it to Watcher for storage. In `reload`, when the component is reloaded the automatically serialized data is restored first before ready, then `load(self.startTime)` retrieves the data from Watcher, deserializes it and stores the value into `self.startTime`.
+When `bullet` is instanced we initialize `self.startTime` in `first`.  If it reloads we want to save its `startTime`, so it appears in roughly the same position it left off before the reload. In `unload` we call `save()` and pass in the identifier for the data we want to save `self.startTime`. The macro serializes the data using msgpack4nim as a string and returns it to Watcher for storage. In `reload`, when the component is reloaded the automatically serialized data is restored first before ready, then `load(self.startTime)` retrieves the data from Watcher, deserializes it and stores the value into `self.startTime`.
 
 Generally, the identifiers you pass to `save()` and `load()` should match. If for some reason you want to reload and not restore some data you can prefix the identifier with `!`.
 
@@ -242,7 +242,7 @@ For example:
     startTime: MonoTime
     endTime: MonoTime
 
-  once:
+  first:
     self.startTime = getMonoTime()
 
   unload:

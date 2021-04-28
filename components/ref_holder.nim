@@ -7,21 +7,25 @@ gdnim RefHolder of Node:
   var spriteCompNode: Node
 
   unload:
-    discard
+    save()
 
   reload:
-    var watcher = self.get_node("/root/Watcher")
-    if watcher.isNil: return
-    discard watcher.connect("instance_unloaded", self, "sprite_unloaded")
-    discard watcher.connect("instance_loaded", self, "sprite_loaded")
+    load()
+
+  method enter_tree() =
+    when defined(does_reload):
+      var watcher = self.get_node("/root/Watcher")
+      if watcher.isNil: return
+      discard watcher.connect("instance_unloaded", self, "sprite_unloaded")
+      discard watcher.connect("instance_loaded", self, "sprite_loaded")
     self.spriteCompNode = self.getNode(SpriteCompPath)
 
   proc sprite_unloaded(nodePath: string) {.gdExport.} =
     if nodePath == SpriteCompPath:
-      printWarning &"{nodePath} unloaded, freeing ref"
+      printWarning &"RefHolder: {nodePath} unloaded, freeing ref"
       self.spriteCompNode = nil
 
   proc sprite_loaded(nodePath: string) {.gdExport.} =
     if nodePath == SpriteCompPath:
-      printWarning &"{nodePath} loaded, storing ref"
+      printWarning &"RefHolder: {nodePath} loaded, storing ref"
       self.spriteCompNode = self.getNode(SpriteCompPath)

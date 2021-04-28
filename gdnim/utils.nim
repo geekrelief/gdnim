@@ -1,6 +1,6 @@
 import godot, godotapi/[resource_loader, packed_scene],
   os, asyncdispatch, macros, strformat
-from strutils import contains
+import globals
 export asyncdispatch,
   resource_loader, packed_scene
 
@@ -8,9 +8,11 @@ export asyncdispatch,
 proc findScene*(sceneName: string): string =
   var tscnFilename = &"{sceneName}.tscn"
   var matches: seq[string]
-  for f in walkDirRec("."):
-    if f.contains(tscnFilename):
-      matches.add move(&"res://{f}")
+  for f in walkDirRec("."): # walk from app dir
+    var (path, name, ext) = f.splitFile
+    var filename = name & ext
+    if filename == tscnFilename:
+      matches.add &"res://{f}"
   if matches.len == 1:
     return matches[0]
   if matches.len == 0:
@@ -29,6 +31,7 @@ template ifis*(a: typed, T: typed, body: untyped): untyped =
     body
 
 # starts polling for asyncdispatch
+# call this in reload or ready
 template startPolling*() =
   registerFrameCallback(
     proc() =
@@ -57,3 +60,19 @@ macro toV*(callNode: untyped): untyped =
   callNode.del(vargsIdx)
   for i in 0..<vargs.len:
     callNode.add newCall("newVariant", vargs[i])
+
+proc isNewInstance*(n: Node): bool =
+  if not n.is_inside_tree():
+    once:
+      printWarning "isNotReloading: is not reliable in init because meta variables aren't guaranteed to be set."
+  return not n.has_meta(HotMetaInstanceId)
+
+proc isNotReloading*(n: Node): bool =
+  if not n.isInsideTree():
+    once:
+      printWarning "isNotReloading: is not reliable in init because meta variables aren't guaranteed to be set."
+
+  if n.has_meta(HotMetaIsReloading):
+    not (n.get_meta(HotMetaIsReloading).asBool())
+  else:
+    true

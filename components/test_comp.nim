@@ -14,6 +14,9 @@ gdnim TestComp of Label:
     discard
 
   reload:
+    discard
+
+  method ready() =
     self.text = "TestComp enter_tree"
     discard self.connect("test_sig", self, "on_test_sig")
     toV self.emit_signal("test_sig", [true, 123, "hello"])

@@ -1,7 +1,8 @@
-{.push hint[XDeclaredButNotUsed]: off.} # compName and createVarArg are used in macros
-import macros, strformat, strutils, os, sets
+{.push hint[XDeclaredButNotUsed]: off.} # compName and createArgVar are used in macros
+#{.push warning[UnreachableCode]: off.}
+import macros, globals, strformat, strutils, os, sets, sequtils
 import msgpack4nim, options, optionsutils
-export msgpack4nim, options, optionsutils
+export msgpack4nim, options, optionsutils, sequtils
 
 const does_reload* {.booldefine.}: bool = true
 const is_tool* {.booldefine.}: bool = false
@@ -11,13 +12,19 @@ proc `^`(s: string): NimNode {.inline.} =
 
 type
   GDNimDefect = object of Defect
-  HotReloadDefect = object of Defect
-
   #emitted by Watcher notice
   WatcherNoticeCode* = enum
     wncUnloading,
     wncReloaded,
+    wncFailedReloading,
     wncRegisterComp
+
+func lineInfoMsg(p: NimNode, msg: string): string =
+  var linfo = p.lineInfoObj()
+  return &"{linfo.filename}({linfo.line},{linfo.column}) {msg}"
+
+template gdnimDefect(msg: string) =
+  raise newException(GDNimDefect, msg)
 
 # packs arguments pass as a seq[byte]
 # save(self.i, self.f, self.s)
@@ -46,7 +53,7 @@ macro save*(args: varargs[typed]): untyped =
 macro createArgVar(unpackVar: untyped, arg: typed) =
   var typInst = arg.getTypeInst
   if typeKind(getType(arg)) == ntyRef:
-    raise newException(HotReloadDefect, &"load({arg.repr}) is ref type: {typInst}. Only primitives and object types allowed.")
+    gdnimDefect(lineInfoMsg(unpackVar, &"load({arg.repr}) is ref type: {typInst}. Only primitives and object types allowed."))
   result = quote do:
     var `unpackVar`: `typInst`
 
@@ -72,14 +79,14 @@ macro load*(data: typed, args: varargs[untyped]): untyped =
   else:
     discard
 
-# simple register, pass in the compName as a symbol, returns Option[MsgStream]
-macro register*(compName: untyped): untyped =
+# simple register_instance, pass in the compName as a symbol, returns Option[MsgStream]
+macro register_instance*(compName: untyped): untyped =
   when defined(does_reload):
     var compNameStr = newLit(compName.repr)
     result = quote do:
       var watcher = self.get_node("/root/Watcher")
       if watcher.isNil:
-        raise newException(Defect, "Watcher not found")
+        raise newException(GDNimDefect, "Watcher not found")
 
       var bv = watcher.call("register_instance",
         `compNameStr`.toVariant,
@@ -98,7 +105,7 @@ macro register*(compName: untyped): untyped =
 
 #register with the watcher and returns an Option[MsgStream]
 # compName, saverProc, loaderProc are symbols, converted to strings
-macro register*(compName: untyped, reloaderPath: string, saverProc: untyped, loaderProc: untyped): untyped =
+macro register_instance*(compName: untyped, reloaderPath: string, saverProc: untyped, loaderProc: untyped): untyped =
   # var path = $self.get_path()
   #var stream = register_instance(bullet, path, save_bullets, setup_bullets) # returns Option[MsgStream]
   when defined(does_reload):
@@ -131,8 +138,6 @@ macro register*(compName: untyped, reloaderPath: string, saverProc: untyped, loa
 
 # if component A instances component B,
 # A must register B as a dependency if it holds a reference to B
-# component A must have a proc:
-#   proc hot_depreload*(compName:string, isUnloading:bool) {.gdExport.}
 macro register_dependencies*(compName: untyped, dependencies: varargs[untyped]): untyped =
   when defined(does_reload):
     var compNameStr = newLit(compName.repr)
@@ -181,9 +186,6 @@ proc classStyleToCompStyle(className: string): string =
   if result == "os": # to avoid clash with stdlib
     result = "gd_os"
 
-proc gdnimDefect(msg: string) =
-  raise newException(GDNimDefect, msg)
-
 # from godotapigen.nim
 const standardTypes = toHashSet(
   ["bool", "cint", "int", "uint8", "int8", "uint16", "int16", "uint32", "int32",
@@ -201,6 +203,61 @@ proc isGodotApi(name: string): bool =
 proc isComponent(name: string): bool =
   var classFilePath = compsDir&"/"&classStyleToCompStyle(name)&".nim"
   return fileExists(classFilePath)
+
+# checks if properties are not nil
+# if properties are not nil, then run the body, else print a message of what properties failed nil.
+# e.g. ifValid a, b, c, d: print "ok"
+macro ifValid*(ps: varargs[typed], body: untyped): untyped =
+  result = quote do: discard
+
+  if ps.len > 1:
+    for p in ps:
+      var t = getType(p)
+      var k = typekind(t)
+      var linfo = p.lineInfoObj()
+
+      if not (k == ntyRef):
+        gdnimDefect(lineInfoMsg(p, &"notnil {p.repr}: used on non-ref type: {t}"))
+
+    var b = nnkBracket.newNimNode()
+    for p in ps:
+      b.add nnkPar.newTree(newStrLitNode(p.repr), newCall(^"isNil", p))
+
+    var lmsg = lineInfoMsg(ps, "not ifValid")
+    result = when defined(verbose_nil_check):
+      quote do:
+        var np = filterIt(`b`, it[1] == true)
+        if np.len == 0:
+          `body`
+        elif self.isInsideTree():
+          once: # stop flooding
+            print `lmsg` & " " & (unzip(np)[0].join(", "))
+    else:
+      quote do:
+        var np = filterIt(`b`, it[1] == true)
+        if np.len == 0:
+          `body`
+  else:
+    var p = ps[0]
+    var t = getType(p)
+    var k = typekind(t)
+    var linfo = p.lineInfoObj()
+
+    if not (k == ntyRef):
+      gdnimDefect(lineInfoMsg(p, &"notnil {p.repr}: used on non-ref type: {t}"))
+
+    var lMsg = lineInfoMsg(p, &"not ifValid {p.repr}")
+    result = when defined(verbose_nil_check):
+      quote do:
+        if not `p`.isNil:
+          `body`
+        elif self.isInsideTree():
+          once: # stop flooding
+            print `lMsg`
+    else:
+      quote do:
+        if not `p`.isNil:
+          `body`
 
 #[
 proc findComponentGDSuperClass(className:string):string =
@@ -229,7 +286,7 @@ macro gdnim*(ast: varargs[untyped]) =
     gdobj.add gdObjBody
     result.add gdobj
   else:
-    gdnimDefect(&"Expected Godot class {baseClassName} at {baseClassFilePath}.")
+    gdnimDefect(lineInfoMsg(ast, &"Expected Godot class {baseClassName} at {baseClassFilePath}."))
 
 
   var typeUnknownPropertyNames = initHashSet[string]()
@@ -246,10 +303,11 @@ macro gdnim*(ast: varargs[untyped]) =
   var compPropertyNames = initHashSet[string]()
   var compModules = newNimNode(nnkImportStmt)
 
-  var onceNode: NimNode # wraps contents in a check to see if hasn't been reloaded
+  var firstNode: NimNode # first incarnation. wraps contents in a check to see if hasn't been reloaded
   var unloadNode: NimNode
   var reloadNode: NimNode
   var dependenciesNode: NimNode
+  var enterTreeNode: NimNode
   var readyNode: NimNode
 
   var astBody = ast[^1]
@@ -305,18 +363,20 @@ macro gdnim*(ast: varargs[untyped]) =
               typeUnknownPropertyNames.incl name
       of nnkCall:
         var callName = node[0]
-        if callName.eqIdent("once"):
-          onceNode = node[^1]
+        if callName.eqIdent("first"):
+          firstNode = node[^1]
         elif callName.eqIdent("unload"):
           unloadNode = node[^1]
         elif callName.eqIdent("reload"):
           reloadNode = node[^1]
-        elif callName.eqIdent(^"dependencies"):
+        elif callName.eqIdent("dependencies"):
           dependenciesNode = node[^1]
         else:
           gdObjBodyRest.add(node)
       of nnkMethodDef:
-        if node[0].eqIdent("ready"):
+        if node[0].eqIdent("enter_tree"):
+          enterTreeNode = node
+        elif node[0].eqIdent("ready"):
           readyNode = node
         else:
           gdObjBodyRest.add(node)
@@ -324,6 +384,13 @@ macro gdnim*(ast: varargs[untyped]) =
         gdObjBodyRest.add(node)
 
   #generate
+  if enterTreeNode.isNil:
+    enterTreeNode = nnkMethodDef.newTree(^"enter_tree", newEmptyNode(), newEmptyNode(),
+      nnkFormalParams.newTree(newEmptyNode()), newEmptyNode(), newEmptyNode(), newStmtList())
+
+  var enterTreeBody = enterTreeNode.body
+  gdObjBody.add enterTreeNode
+
   if readyNode.isNil:
     readyNode = nnkMethodDef.newTree(^"ready", newEmptyNode(), newEmptyNode(),
       nnkFormalParams.newTree(newEmptyNode()), newEmptyNode(), newEmptyNode(), newStmtList())
@@ -331,26 +398,21 @@ macro gdnim*(ast: varargs[untyped]) =
   var readyBody = readyNode.body
   gdObjBody.add readyNode
 
+  readyBody.add quote do:
+    if self.hasMeta(HotMetaPositionInParent):
+      var positionInParent = self.getMeta(HotMetaPositionInParent).asInt()
+      toV self.getParent().callDeferred("move_child", [self, positionInParent])
+    self.setMeta(HotMetaIsReloading, false.toVariant())
+
+
   when defined(does_reload):
     # unload
     if unloadNode.isNil:
       unloadNode = newStmtlist()
 
     unloadNode.add quote do:
-      self.queue_free()
-
-    for prop in godotPropertyNames:
-      var propIdent = ^prop
-      unloadNode.add(
-        quote do:
-        self.`propIdent` = nil
-      )
-    for prop in typeUnknownPropertyNames:
-      var propIdent = ^prop
-      unloadNode.add(
-        quote do:
-        nilRef(self.`propIdent`)
-      )
+      self.setMeta(HotMetaIsReloading, true.toVariant())
+      self.setMeta(HotMetaPositionInParent, self.getPositionInParent().toVariant())
 
     gdObjBody.add(newProc(name = ^"hot_unload", params = @[nnkBracketExpr.newTree(^"seq", ^"byte")],
                           body = unloadNode, pragmas = nnkPragma.newTree(^"gdExport")))
@@ -358,38 +420,12 @@ macro gdnim*(ast: varargs[untyped]) =
     # dependencies
     var dependenciesCompNames: seq[string]
     if not dependenciesNode.isNil:
-      var depreloadBody = newStmtList()
-      var depreloadCase = nnkCaseStmt.newTree().add ^"compName"
-      depreloadBody.add depreloadCase
       for section in dependenciesNode:
         case section.kind
-          of nnkCall:
-            var depName = section[0].strVal
-            dependenciesCompNames.add depName
-            var sectionStmts = section[1]
-            var unloadStmts = newStmtList()
-            for stmt in sectionStmts:
-              if stmt.kind == nnkAsgn:
-                if stmt[0].kind == nnkDotExpr:
-                  var propName = stmt[0][1].strVal
-                  if propName in godotPropertyNames or propName in compPropertyNames:
-                    var propNameIdent = ^propName
-                    unloadStmts.add quote do: self.`propNameIdent` = nil
-              else:
-                discard
-            var ofBranch = nnkOfBranch.newTree().add newStrLitNode(depName)
-            ofBranch.add newStmtList(quote do:
-              if isUnloading:
-                `unloadStmts`
-              else:
-                `sectionStmts`)
-            depreloadCase.add ofBranch
+          of nnkIdent:
+            dependenciesCompNames.add section.strVal
           else:
             gdnimDefect(&"Unexpected {section.kind} in dependencies definition.")
-      depreloadCase.add nnkElse.newTree(nnkDiscardStmt.newTree(newEmptyNode()))
-      gdObjBody.add newProc(name = ^"hot_depreload",
-        params = @[newEmptyNode(), newIdentDefs(^"compName", ^"string"), newIdentDefs(^"isUnloading", ^"bool")],
-        body = depreloadBody, pragmas = nnkPragma.newTree(^"gdExport"))
 
     # reload
     if reloadNode.isNil:
@@ -398,21 +434,17 @@ macro gdnim*(ast: varargs[untyped]) =
     var dependencies = newEmptyNode()
     if dependenciesCompNames.len > 0:
       var rdepCall = nnkCall.newTree(^"register_dependencies", ^compName)
-      var reloadInit = newStmtList()
       for depName in dependenciesCompNames:
         rdepCall.add ^depName
-        reloadInit.add quote do:
-          self.hot_depreload(`depName`, false)
       dependencies = quote do:
         `rdepCall`
-        `reloadInit`
 
     if reloadNode.len > 0:
       # find load call in reloadNode
       var dataIdent = genSym(nskVar, "data")
       var compNameIdent = ^compName
       var reloadBody = quote do:
-        var `dataIdent` = register(`compNameIdent`)
+        var `dataIdent` = register_instance(`compNameIdent`)
         `dependencies`
       for node in reloadNode:
         case node.kind:
@@ -423,28 +455,23 @@ macro gdnim*(ast: varargs[untyped]) =
               reloadBody.add node
           else:
             reloadBody.add node
-      readyBody.insert(0, reloadBody)
+      enterTreeBody.insert(0, reloadBody)
 
-    # once
-    if onceNode.isNil:
-      onceNode = quote do:
+    # first
+    if firstNode.isNil:
+      firstNode = quote do:
         discard
 
     var isNewInstanceNode = quote do:
-      var watcher = self.get_node("/root/Watcher")
-      if watcher.isNil:
-        raise newException(Defect, "Watcher not found")
+      if isNewInstance(self):
+        `firstNode`
 
-      var is_new_instance = watcher.call("is_new_instance", ($(self.get_path())).toVariant).asBool()
-      if is_new_instance:
-        `onceNode`
-
-    readyBody.insert(0, isNewInstanceNode)
+    enterTreeBody.insert(0, isNewInstanceNode)
 
   else: # not does_reload
     if not reloadNode.isNil and reloadNode.len > 0:
       # ignore load call in reloadNode
-      # add everything else to ready method
+      # add everything else to enter_tree method
       var reloadBody = newStmtList()
       for node in reloadNode:
         case node.kind:
@@ -455,24 +482,16 @@ macro gdnim*(ast: varargs[untyped]) =
               reloadBody.add node
           else:
             reloadBody.add node
-      readyBody.insert(0, reloadBody)
+      enterTreeBody.insert(0, reloadBody)
 
-    # once
-    if onceNode.isNil:
-      onceNode = quote do:
+    # first
+    if firstNode.isNil:
+      firstNode = quote do:
         discard
 
-    readyBody.insert(0, onceNode)
+    enterTreeBody.insert(0, firstNode)
 
-    # add dependencies loading code into readyBody
-    if not dependenciesNode.isNil:
-      for section in dependenciesNode:
-        case section.kind
-          of nnkCall:
-            for stmt in section[1]:
-              readyBody.add stmt
-          else:
-            gdnimDefect(&"Unexpected {section.kind} in dependencies definition.\n\t{section.repr}")
+    # ignore dependencies section, when not reloading
 
   for stmt in gdObjBodyRest:
     gdObjBody.add stmt

@@ -8,14 +8,17 @@ gdnim Gun of Sprite:
     fireTime: float64
     fireInterval: float64 = 0.3
 
+  dependencies:
+    bullet
+
   unload:
     save()
 
-  dependencies:
-    bullet:
-      self.bulletRes = load("res://_tscn/bullet.tscn") as PackedScene
-
   reload:
+    load()
+
+  method ready() =
+    self.bulletRes = load("res://_tscn/bullet.tscn") as PackedScene
     self.bulletSpawnPoint = self.get_node("BulletSpawnPoint") as Node2D
 
     var button_fireSingle = self.get_parent().get_node("Button_FireSingle")

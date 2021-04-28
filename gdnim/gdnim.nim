@@ -1,2 +1,2 @@
-import godot, hot, utils
-export godot, hot, utils
+import godot, globals, hot, utils
+export godot, globals, hot, utils

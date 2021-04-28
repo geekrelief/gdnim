@@ -8,11 +8,16 @@ import gdnim, godotapi / [$1]
 
 gdnim $2 of $3:
 
+  #first: # runs when instanced, ignored on reload
+
   unload:
     save()
 
-  reload:
+  #dependencies: # handle initialization of dependencies.
+
+  reload: # runs on every load
     load()
+
 """
 
 const tool_nim_template = """

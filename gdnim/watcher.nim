@@ -1,8 +1,8 @@
 import gdnim
-import godotapi / [node, resource_loader, canvas_layer, v_box_container, line_edit, theme]
+import godotapi / [node, resource_loader, resource_saver, directory,
+  canvas_layer, v_box_container, line_edit, theme]
 import os, strformat, times
-from sequtils import keepItIf
-import tables, sets, hashes
+import tables, sets, hashes, sequtils
 
 #[
 Watcher monitors the dll files for component changes.
@@ -16,10 +16,10 @@ const dllPrefix {.strdefine.}: string = ""
 const dllExt {.strdefine.}: string = "unknown"
 const baseTscnDir {.strdefine.}: string = ""
 
-const MetaInstanceId = "hot_meta_instance_id"
 const UnloadProcname = "hot_unload"
-const DependencyReloadProcname = "hot_depreload"
 const AddChild = "add_child"
+
+const ReloadScenePath = "user://gdnim_hot_reload.tscn"
 
 func safeDllPath(compName: string): string =
   &"{dllDir}/{dllPrefix}{compName}_safe.{dllExt}"
@@ -34,19 +34,15 @@ gdobj WatcherUnregisterHelper of Reference:
     self.callback()
 
 type
-  InstanceID = distinct int64
-
-  InstanceProperty = object
-    name: string
-    val: Variant
+  InstanceId = distinct int64
 
   InstanceData = ref object
     compName: string
-    id: InstanceID
+    id: InstanceId
     saverPath: string
     loaderPath: string
-    autoData: seq[InstanceProperty] #  used by Watcher to serialize the object
-    customData: Variant             # seq[byte]
+    customData: Variant # seq[byte]
+    positionInParent: int64
     helper: WatcherUnRegisterHelper
 
   ComponentMeta = object
@@ -58,13 +54,13 @@ type
     elapsedTime: float
     gdLine: LineEdit
 
-proc inc(x: var InstanceID, y = 1) {.borrow.}
-proc `==`(x, y: InstanceID): bool {.borrow.}
-proc `$`(x: InstanceID): string {.borrow.}
+  PackedSceneMetaData = ref object
+    filePath: string
+    parentNodePath: string
 
-func lerp(a, b, t: float32): float32 =
-  (b - a) * t + a
-
+proc inc(x: var InstanceId, y = 1) {.borrow.}
+proc `==`(x, y: InstanceId): bool {.borrow.}
+proc `$`(x: InstanceId): string {.borrow.}
 
 when defined(does_reload):
   gdobj Watcher of CanvasLayer:
@@ -80,12 +76,15 @@ when defined(does_reload):
     var reloadElapsedSeconds: float
 
     var compMetaTable: Table[string, ComponentMeta]
-    var NextInstanceID: InstanceID = InstanceID(0)
+    var NextInstanceId: InstanceID = InstanceID(0)
     var instancesByCompNameTable: Table[string, seq[InstanceData]]
-    var instanceByIDTable: Table[InstanceID, InstanceData]
+    var instanceByIDTable: Table[InstanceId, InstanceData]
     var dependencies: Table[string, HashSet[string]] # if A instances B, then dependencies["A"].contains "B"
     var rdependencies: Table[string, HashSet[string]] # and rdependencies["B"].contains "A"
+    var startReloadingCompName: string
     var reloadingComps: seq[string]
+
+    var hasFailedReloading: bool
 
     var enableNotifications {.gdExport.}: bool = true
     var notification_duration {.gdExport.}: float = 10.0
@@ -104,21 +103,83 @@ when defined(does_reload):
         result.add self.getSaveOrder(c)
       result.add compName
 
-    proc serializeData(node: Node): seq[InstanceProperty] =
-      var propList = node.get_property_list_impl()
-      var props: seq[InstanceProperty]
-      for vprop in propList:
-        var d = vprop.asDictionary
-        var name = d["name"].asString
-        var typ = cast[VariantType](d["type"].asInt())
-        var val = node.get_impl(name)
-        if not (typ == VariantType.Object):
-          props.add InstanceProperty(name: name, val: val)
-      result = props
+    proc setOwner(owner: Node, n: Node) =
+      # if we don't check for filename, we'll get duplicates in the PackedScene
+      if not (n == owner) and n.filename.len > 0:
+        n.owner = owner
 
-    proc deserializeData(node: Node, autoData: seq[InstanceProperty]) =
-      for prop in autoData:
-        node.set_impl(prop.name, prop.val)
+      #print &"set owner {n.name} {n.filename} "
+      for i in 0..<n.getChildCount:
+        self.setOwner(owner, n.getChild(i))
+
+    proc packScenes() =
+
+      # self.reloadingComps points to all components that are affected by reloading, this is set by saveInstanceData()
+      # for each instance, get the path as key, store the node
+      # merge the paths if they are on the same branch
+      # create a new node and move each of the branches to it
+      # set the owner of the nodes
+      # pack the new node, and free
+
+      var pathToInstancesTable: Table[string, seq[Node]]
+      for compName in self.reloadingComps:
+        var compInstancesData = self.instancesByCompNameTable[compName]
+        for instData in compInstancesData:
+          var n = self.getNode(instData.saverPath)
+          var path = $n.getPath()
+          if pathToInstancesTable.hasKey(path):
+            pathToInstancesTable[path].add n
+          else:
+            pathToInstancesTable[path] = @[n]
+
+      # pare down branches
+      var paths = toSeq(pathToInstancesTable.keys)
+      for i in 0..<paths.len:
+        var ni_is_child = false
+        var ni = self.getNode(paths[i])
+        for j in 0..<paths.len:
+          if i == j: continue
+          var nj = self.getNode(paths[j])
+          if nj.isAParentOf(ni):
+            ni_is_child = true
+            break
+        if ni_is_child:
+          pathToInstancesTable.del(paths[i])
+
+      # create a new node to contain the instances for packing
+      var reloadRoot = gdnew[Node]()
+      for path, children in pathToInstancesTable:
+        for instance in children:
+          instance.getParent().removeChild(instance)
+          reloadRoot.addChild instance
+
+      self.setOwner(reloadRoot, reloadRoot)
+
+      var reloadScene = gdnew[PackedScene]()
+      if Error.OK == reloadScene.pack(reloadRoot):
+        var d = gdnew[Directory]()
+        if d.fileExists(ReloadScenePath):
+          discard d.remove(ReloadScenePath)
+
+        if Error.OK == resource_saver.save(ReloadScenePath, reloadScene):
+          #printWarning &"Watcher: Saved state to {ReloadScenePath}"
+          reloadRoot.queue_free()
+        else:
+          raise newException(Defect, &"Watcher: Failed to save state to {ReloadScenePath}")
+      else:
+        raise newException(Defect, &"Watcher: Failed to pack state for reload")
+
+    proc unpackScenes() =
+      #printWarning &"Watcher: Unpacking hot reload state"
+      var reloadInstance = (resource_loader.load(ReloadScenePath) as PackedScene).instance()
+      var children = reloadInstance.getChildren()
+      for vn in children:
+        var n = vn.asObject(Node)
+        reloadInstance.removeChild(n)
+        var instId = InstanceId(n.get_meta(HotMetaInstanceId).asInt())
+        var parentNode = self.get_node(self.instanceByIdTable[instId].loaderPath)
+        parentNode.addChild(n)
+      reloadInstance.queue_free()
 
     method init() =
       self.lineEditPacked = resource_loader.load(&"res://{baseTscnDir}/watcher_lineedit.tscn") as PackedScene
@@ -131,10 +192,7 @@ when defined(does_reload):
       self.lineEditPacked = nil
       self.vbox = nil
 
-    method process(delta: float64) =
-      if not self.enableWatch: return
-
-      # fade out notifications
+    proc fadeNotifications(delta: float64) =
       for i in countDown(self.notifications.len-1, 0):
         var n = self.notifications[i]
         n.elapsedTime += delta
@@ -147,50 +205,60 @@ when defined(does_reload):
           n.gdLine = nil
           self.notifications.del i
 
-      # reload comp dlls and reinstantiate instances
-      if self.reloadingComps.len > 0:
+    proc saveInstanceData(compName: string) =
+      if self.reloadingComps.contains(compName):
+        return
+      self.reloadingComps.add(compName)
+
+      var cmeta = self.compMetaTable[compName]
+      var instancesData = self.instancesByCompNameTable[compName]
+      for instData in instancesData:
+        try:
+          #printWarning &"saving {instData.saverPath}"
+          var node = self.get_node(instData.saverPath)
+          instData.customData = node.call(cmeta.saverProc)
+          toV self.emit_signal("instance_unloaded", [instData.saverPath])
+        except CallError as e:
+          printError &"Watcher reloading: {compName}, Error '{e.err.error}'. From {compName}.{cmeta.saverProc} @ {instData.saverPath}"
+          raise
+
+      if self.dependencies.hasKey(compName):
+        for dep in self.dependencies[compName]:
+          self.saveInstanceData(dep)
+
+      if self.rdependencies.hasKey(compName):
+        for rdep in self.rdependencies[compName]:
+          self.saveInstanceData(rdep)
+
+    method process(delta: float64) =
+      if not self.enableWatch: return
+      if self.hasFailedReloading: return
+
+      self.fadeNotifications(delta)
+
+      if self.startReloadingCompName != "":
         if self.reloadElapsedSeconds < self.reloadIntervalSeconds:
           self.reloadElapsedSeconds += delta
           return
         self.reloadElapsedSeconds = 0.0
 
-        var finReloadingComps: seq[string]
+        var compName = self.startReloadingCompName
+        var cmeta = self.compMetaTable[compName]
+        if not resource_loader.has_cached(cmeta.resourcePath):
+          try:
+            moveFile(compName.safeDllPath, compName.hotDllPath)
+          except:
+            self.hasFailedReloading = true
+            self.notify(wncFailedReloading, &"!!! Could not moveFile {compName.safeDllPath} to {compName.hotDllPath}")
+        else:
+          printError &"Watcher: {compName} still cached"
 
-        for compName in self.reloadingComps:
-          var cmeta = self.compMetaTable[compName]
-          if not resource_loader.has_cached(cmeta.resourcePath):
-            try:
-              moveFile(compName.safeDllPath, compName.hotDllPath)
-            except:
-              printError &"!!! Could not moveFile {compName.safeDllPath} to {compName.hotDllPath}"
-
-            #reload the scene instances
-            var pscene = resource_loader.load(cmeta.resourcePath) as PackedScene
-            var instancesData = self.instancesByCompNameTable[compName]
-            for instData in instancesData:
-              try:
-                var loaderNode = self.get_node(instData.loaderPath)
-                var instNode = pscene.instance()
-                instNode.set_meta(MetaInstanceId, int64(instData.id).toVariant())
-                self.deserializeData(instNode, instData.autoData)
-                loaderNode.call_deferred(AddChild, instNode.toVariant())
-              except:
-                printError &"!!! Could not reinstance \"{instData.saverPath }\" @ \"{instData.loaderPath}\""
-
-            if self.rdependencies.hasKey(compName):
-              for rdcompName in self.rdependencies[compName]:
-                for rinstData in self.instancesByCompNameTable[rdcompName]:
-                  var rnode = self.get_node(rinstData.saverPath)
-                  rnode.call_deferred(DependencyReloadProcname, compName.toVariant, false.toVariant)
-
-            finReloadingComps.add(compName)
-          else:
-            printError &"Watcher: {compName} still cached"
-
-        self.reloadingComps.keepItIf(not (it in finReloadingComps))
+        self.startReloadingCompName = ""
+        self.reloadingComps.setLen(0)
 
         self.get_tree().paused = false
-        self.notify(wncReloaded, &"Watcher reload complete")
+        self.unpackScenes()
+        self.notify(wncReloaded, &"Watcher: reload complete")
         return
 
       #check for new dlls
@@ -202,64 +270,47 @@ when defined(does_reload):
           if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and
             getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath) and
             getFileSize(compName.safeDllPath) > 0:
+            printWarning &"Watcher: Reloading for {compName}"
             self.get_tree().paused = true
-            self.notify(wncUnloading, &"Watcher unloading: {compName}")
-            self.reloadingComps.add(compName)
-
-            var cmeta = self.compMetaTable[compName]
-            var instancesData = self.instancesByCompNameTable[compName]
-            for instData in instancesData:
-              try:
-                #printWarning &"saving {instData.saverPath}"
-                var node = self.get_node(instData.saverPath)
-                instData.autoData = self.serializeData(node)
-                instData.customData = node.call(cmeta.saverProc)
-                toV self.emit_signal("instance_unloaded", [instData.saverPath])
-
-              except CallError as e:
-                printError &"Watcher reloading: {compName}, Error '{e.err.error}'. From {compName}.{cmeta.saverProc} @ {instData.saverPath}"
-                raise
-            if self.rdependencies.hasKey(compName):
-              for rdep in self.rdependencies[compName]:
-                for rinstData in self.instancesByCompNameTable[rdep]:
-                  var node = self.get_node(rinstData.saverPath)
-                  discard node.call(DependencyReloadProcname, compName.toVariant, true.toVariant)
-
-    proc is_new_instance(path: string): bool {.gdExport.} =
-      var instNode = self.get_node(path)
-      return not instNode.has_meta(MetaInstanceId)
+            self.startReloadingCompName = compName
+            self.saveInstanceData(compName)
+            self.packScenes()
+            break
 
     # registers the instance and its component for Watcher monitoring
     proc register_instance(compName: string, saverPath: string, loaderPath: string,
-                                saverProc = UnloadProcname, loaderProc = AddChild): seq[byte] {.gdExport.} =
+                                  saverProc = UnloadProcname, loaderProc = AddChild): seq[byte] {.gdExport.} =
       if not fileExists(compName.hotDllPath):
         printError &"Watcher failed to register {compName}. No dll with this name."
-        return
+        raise newException(Defect, &"Watcher failed to register {compName}. No dll with this name.")
+
       try:
         if not self.compMetaTable.hasKey(compName):
           self.notify(wncRegisterComp, &"Watcher registering {compName}")
-          self.compMetaTable[compName] = ComponentMeta(resourcePath: findScene(compName), saverProc: saverProc, loaderProc: loaderProc)
+          var scenePath = findScene(compName)
+          self.compMetaTable[compName] = ComponentMeta(resourcePath: scenePath, saverProc: saverProc, loaderProc: loaderProc)
           self.instancesByCompNameTable[compName] = @[]
 
         var instNode = self.get_node(saverPath)
         var instData: InstanceData
-        var instID: InstanceID
-        if not instNode.has_meta(MetaInstanceId):
+        var instID: InstanceId
+        if not instNode.has_meta(HotMetaInstanceId):
           # first instance
           instData = new(InstanceData)
-          inc self.NextInstanceID
-          instID = self.NextInstanceID
+          inc self.NextInstanceId
+          instID = self.NextInstanceId
           instData.id = instID
-          instNode.set_meta(MetaInstanceId, int64(instID).toVariant)
+          instNode.set_meta(HotMetaInstanceId, int64(instID).toVariant)
           instData.compName = compName
           instData.saverPath = saverPath
           instData.loaderPath = loaderPath
 
+          #printWarning &"new {compName} instance with id {instID}"
           self.instanceByIDTable[instID] = instData
           self.instancesByCompNameTable[compName].add instData
         else:
           # reloaded
-          instID = InstanceID(instNode.get_meta(MetaInstanceId).asInt())
+          instID = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
           #printWarning &"reloaded {instID} @ {saverPath}"
           instData = self.instanceByIDTable[instID]
           instData.saverPath = saverPath
@@ -287,13 +338,17 @@ when defined(does_reload):
         self.rdependencies[d].incl(compName)
 
     # unregister comp instances that are not reloading
-    proc unregisterInstance(instID: InstanceID) =
+    proc unregisterInstance(instID: InstanceId) =
       var instData = self.instanceByIDTable[instID]
       if not (instData.compName in self.reloadingComps):
         #printWarning &"unregister {instData.id = } @ {instData.saverPath = }"
         self.instanceByIDTable.del(instID)
         let index = self.instancesByCompNameTable[instData.compName].find(instData)
         self.instancesByCompNameTable[instData.compName].del(index)
+      #[
+      else:
+        printWarning &"unregisterInstance: reloading {instData.compName} {instData.id = }"
+      ]#
 
     proc notify(code: WatcherNoticeCode, msg: string) =
       if not self.enableNotifications: return

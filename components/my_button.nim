@@ -9,6 +9,8 @@ gdnim MyButton of Button:
 
   reload:
     load()
+
+  method ready() =
     discard self.connect("pressed", self, "clicked")
 
   proc clicked() {.gdExport.} =

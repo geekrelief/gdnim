@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://_gdns/color_palette_slot.gdns" type="Script" id=1]
+[ext_resource path="res://palette_arrow.png" type="Texture" id=2]
+
+[node name="ColorPaletteSlot" type="VBoxContainer"]
+margin_right = 20.0
+margin_bottom = 25.0
+rect_min_size = Vector2( 20, 25 )
+mouse_filter = 0
+size_flags_vertical = 2
+custom_constants/separation = 0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+margin_right = 20.0
+margin_bottom = 5.0
+rect_min_size = Vector2( 20, 5 )
+mouse_filter = 2
+
+[node name="SelectedArrow" type="TextureRect" parent="CenterContainer"]
+margin_left = 5.0
+margin_right = 14.0
+margin_bottom = 5.0
+mouse_filter = 2
+texture = ExtResource( 2 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_top = 5.0
+margin_right = 20.0
+margin_bottom = 25.0
+rect_min_size = Vector2( 20, 20 )
+rect_pivot_offset = Vector2( 10, 10 )
+mouse_filter = 2
+mouse_default_cursor_shape = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Tween" type="Tween" parent="."]

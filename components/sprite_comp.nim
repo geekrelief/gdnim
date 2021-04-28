@@ -19,7 +19,7 @@ gdnim SpriteComp of Sprite:
   signal bclick(button_idx: int)
   signal bsclick(button_idx: int, shape_idx: int)
 
-  once:
+  first:
     self.startPos = self.position
 
   unload:
@@ -28,6 +28,7 @@ gdnim SpriteComp of Sprite:
   reload:
     load(self.fireState)
 
+  method ready() =
     self.timer = gdnew[Timer]()
     self.timer.one_shot = true
     self.add_child(self.timer)
@@ -74,8 +75,8 @@ gdnim SpriteComp of Sprite:
         self.fireState = C
         continue
       of C:
-        var vals = await on_signal(self, "bsclick", tuple[button_idx: int, shape_idx: int])
-        print &"bsclick {vals.button_idx = } {vals.shape_idx = }"
+        var (button_idx, shape_idx) = await on_signal(self, "bsclick", tuple[button_idx: int, shape_idx: int])
+        print &"bsclick {button_idx = } {shape_idx = }"
         self.rotate45()
         self.fireState = D
         continue
