@@ -38,7 +38,7 @@ gdnim ColorPaletteSlot of VBoxContainer:
   proc set_color(c: Color) =
     self.color = c
     ifValid self.colorRect, self.tween:
-      discard self.tween.seek(2.0)
+      discard self.tween.seek(self.tween.getRunTime())
       discard self.tween.interpolateProperty(self.colorRect, "color", self.colorRect.color.toVariant(), self.color.toVariant(), self.colorTweenTime, TRANS_CUBIC, EASE_OUT)
       discard self.tween.interpolateProperty(self.colorRect, "rect_rotation", self.colorRect.rect_rotation.toVariant(),
         (self.colorRect.rect_rotation + 180.0).toVariant(), self.colorTweenTime, TRANS_CUBIC, EASE_OUT)
@@ -52,7 +52,7 @@ gdnim ColorPaletteSlot of VBoxContainer:
       self.selectedArrow.visible = state
 
     ifValid self.tween:
-      discard self.tween.seek(self.selectTweenTime*3)
+      discard self.tween.seek(self.tween.getRunTime())
 
       if self.isSelected:
         var tPos = vec2(self.colorRect.rectPosition.x, self.colorRect.rectPosition.y+5)

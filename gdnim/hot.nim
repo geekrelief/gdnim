@@ -4,20 +4,11 @@ import macros, globals, strformat, strutils, os, sets, sequtils
 import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils, sequtils
 
-const does_reload* {.booldefine.}: bool = true
-const is_tool* {.booldefine.}: bool = false
-
 proc `^`(s: string): NimNode {.inline.} =
   ident(s)
 
 type
   GDNimDefect = object of Defect
-  #emitted by Watcher notice
-  WatcherNoticeCode* = enum
-    wncUnloading,
-    wncReloaded,
-    wncFailedReloading,
-    wncRegisterComp
 
 func lineInfoMsg(p: NimNode, msg: string): string =
   var linfo = p.lineInfoObj()
@@ -103,38 +94,6 @@ macro register_instance*(compName: untyped): untyped =
     result = quote do:
       none(MsgStream)
 
-#register with the watcher and returns an Option[MsgStream]
-# compName, saverProc, loaderProc are symbols, converted to strings
-macro register_instance*(compName: untyped, reloaderPath: string, saverProc: untyped, loaderProc: untyped): untyped =
-  # var path = $self.get_path()
-  #var stream = register_instance(bullet, path, save_bullets, setup_bullets) # returns Option[MsgStream]
-  when defined(does_reload):
-    var compNameStr = newLit(compName.repr)
-    var saverProcStr = newLit(saverProc.repr)
-    var loaderProcStr = newLit(loaderProc.repr)
-
-    result = quote do:
-      var watcher = self.get_node("/root/Watcher")
-      if watcher.isNil:
-        raise newException(Defect, "Watcher not found")
-
-      var bv = watcher.call("register_instance",
-        `compNameStr`.toVariant,
-        `reloaderPath`.toVariant, #saver path
-        `reloaderPath`.toVariant, #loader path
-        `saverProcStr`.toVariant,
-        `loaderProcStr`.toVariant
-      )
-      var data: seq[byte]
-      discard fromVariant(data, bv)
-      if data.len != 0:
-        some(MsgStream.init(cast[string](data)))
-      else:
-        none(MsgStream)
-  else:
-    result = quote do:
-      none(MsgStream)
-
 
 # if component A instances component B,
 # A must register B as a dependency if it holds a reference to B
@@ -158,7 +117,6 @@ macro register_dependencies*(compName: untyped, dependencies: varargs[untyped]):
       )
   else:
     discard
-
 
 ## gdnim macro
   # parses for hot reloading,
@@ -414,7 +372,7 @@ macro gdnim*(ast: varargs[untyped]) =
       self.setMeta(HotMetaIsReloading, true.toVariant())
       self.setMeta(HotMetaPositionInParent, self.getPositionInParent().toVariant())
 
-    gdObjBody.add(newProc(name = ^"hot_unload", params = @[nnkBracketExpr.newTree(^"seq", ^"byte")],
+    gdObjBody.add(newProc(name = ^HotUnload, params = @[nnkBracketExpr.newTree(^"seq", ^"byte")],
                           body = unloadNode, pragmas = nnkPragma.newTree(^"gdExport")))
 
     # dependencies

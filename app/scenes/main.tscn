@@ -54,10 +54,11 @@ margin_bottom = 399.395
 
 [node name="ColorPicker" type="ColorPicker" parent="."]
 visible = false
-margin_left = 247.129
-margin_top = 452.496
-margin_right = 555.129
-margin_bottom = 914.496
+margin_left = 287.129
+margin_top = 492.496
+margin_right = 595.129
+margin_bottom = 954.496
+deferred_mode = true
 __meta__ = {
 "_edit_use_anchors_": false
 }

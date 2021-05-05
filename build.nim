@@ -59,9 +59,6 @@ let allCompilerFlagsTable = {
   "release": "--d:release",
   "debug": "--debugger:native --stackTrace:on",
   "diagnostic": "--d:danger --debugger:native",          #for dumpincludes
-                                                         # hot
-  "reload": "--d:does_reload",
-  "verbose_nil_check": "--d:verbose_nil_check",
   # android
   "android": "--os:android -d:androidNDK",
   # cpu archedture
@@ -76,9 +73,7 @@ var taskCompilerFlagsTable = {
   "parallel": "--parallelBuild:0",
   "cc": "--cc:gcc",
   "gc": "--gc:orc",
-  "build_kind": "--d:danger",
-  "reload": "--d:does_reload",
-  "verbose_nil_check": "--d:verbose_nil_check",
+  "build_kind": "--d:danger"
 }.toTable
 
 var otherFlagsTable: Table[string, string]
@@ -117,8 +112,6 @@ for kind, key, val in p.getopt():
 echo &"config file: {buildini}"
 var config = loadConfig(buildini)
 
-setFlag("reload", config.getSectionValue("Hot", "reload"))
-setFlag("verbose_nil_check", config.getSectionValue("Hot", "verbose_nil_check"))
 setFlag("build_kind", config.getSectionValue("Compiler", "build_kind"))
 
 if config.getSectionValue("Godot", "platform") == "android":

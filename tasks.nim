@@ -10,12 +10,12 @@ gdnim $2 of $3:
 
   #first: # runs when instanced, ignored on reload
 
+  #dependencies: # specify names of components referenced by this component
+
   unload:
     save()
 
-  #dependencies: # handle initialization of dependencies.
-
-  reload: # runs on every load
+  reload: # definition required for hot reloading, inserted at top of method enter_tree
     load()
 
 """
@@ -105,7 +105,6 @@ version=""
 script="$1.gdns"
 
 """
-let does_reload = config.getSectionValue("Hot", "reload") == "on"
 
 let appDir = config.getSectionValue("Dir", "app")
 let compsDir = config.getSectionValue("Dir", "comps")
@@ -150,6 +149,20 @@ let dllExt = case gd_platform
   of "android", "linuxbsd", "x11": "so"
   of "macosx": "dylib"
   else: "unknown platform"
+
+var compilerDefines = &"{gdpathFlags}" &
+                         &" --define:baseDllDir:{baseDllDir} --define:dllPrefix:{dllPrefix} " &
+                         &" --define:dllExt:{dllExt} --define:baseTscnDir:{baseTscnDir} " &
+                         &" --define:compsDir:{compsDir} --define:depsDir:{depsDir} "
+
+
+let does_reload = config.getSectionValue("Hot", "reload") == "on"
+if does_reload:
+  compilerDefines &= &" --define:does_reload:true "
+
+if config.getSectionValue("Hot", "verbose_nil_check") == "on":
+  compilerDefines &= &" --define:verbose_nil_check:true "
+
 
 proc genGdns(name: string, isTool: bool = false) =
 
@@ -305,7 +318,7 @@ proc buildWatcher(): string =
     let dllPath = &"{dllDir}/{dllPrefix}watcher.{dllExt}"
     let watcherPath = "gdnim/watcher.nim"
     if ("force" in flags) or not fileExists(&"{dllPath}") or (getLastModificationTime(watcherPath) > getLastModificationTime(&"{dllPath}")):
-      result = execnim(&"{gdpathFlags} --define:dllDir:{baseDllDir} --define:dllPrefix:{dllPrefix} --define:dllExt:{dllExt} --define:baseTscnDir:{baseTscnDir}", flags, &"{dllPath}", watcherPath)
+      result = execnim(compilerDefines, flags, &"{dllPath}", watcherPath)
     else:
       result = "Watcher is unchanged"
 
@@ -354,7 +367,6 @@ proc getBuildSettings(): BuildSettings =
   settingsTable["move"] = "move" in otherFlagsTable
   settingsTable["newOnly"] = "force" notin result.sharedFlags
   settingsTable["noCheck"] = "nocheck" in otherFlagsTable
-  settingsTable["noReload"] = "reload" notin result.sharedFlags
   result.settingsTable = settingsTable
 
 proc safeDllFilePath(compName: string): string =
@@ -400,10 +412,10 @@ proc buildComp(compName: string, buildSettings: BuildSettings): string =
 
     if shouldBuild(compName, buildSettings):
       result &= &">>> Build {compName} <<<\n"
-      result &= execnim(&"{gdpathFlags} --skipParentCfg:on --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
+      result &= execnim(&"{compilerDefines} --skipParentCfg:on --path:.", buildSettings.sharedFlags, &"{safe}", &"{nim}")
 
     if fileExists(safe) and getLastModificationTime(nim) < getLastModificationTime(safe) and
-      (not fileExists(hot) or buildSettings.settingsTable["move"]) or (fileExists(safe) and buildSettings.settingsTable["noReload"]):
+      (not fileExists(hot) or buildSettings.settingsTable["move"]) or (fileExists(safe) and not does_reload):
       moveFile(safe, hot)
       result &= ">>> dll moved safe to hot <<<"
 
@@ -554,6 +566,8 @@ task flags, "display the flags used for compiling components":
   echo ">>> Other flags <<<"
   for flag in otherFlagsTable.keys:
     echo &"\t{flag} {otherFlagsTable[flag]}"
+  echo ">>> Defined Symbols <<<"
+  echo &"\t{compilerDefines}"
 
 task cleanbuild, "Rebuild all":
   cleandllTask()

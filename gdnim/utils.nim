@@ -9,10 +9,9 @@ proc findScene*(sceneName: string): string =
   var tscnFilename = &"{sceneName}.tscn"
   var matches: seq[string]
   for f in walkDirRec("."): # walk from app dir
-    var (path, name, ext) = f.splitFile
-    var filename = name & ext
-    if filename == tscnFilename:
-      matches.add &"res://{f}"
+    let t = f.splitFile
+    if t.name & t.ext == tscnFilename:
+      matches.add("res://"&f)
   if matches.len == 1:
     return matches[0]
   if matches.len == 0:
