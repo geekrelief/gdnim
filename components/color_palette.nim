@@ -23,7 +23,7 @@ gdnim ColorPalette of HBoxContainer:
     load()
 
   method enter_tree() =
-    if self.isNotReloading():
+    if self.isNewInstance():
       var colorPaletteSlotRes = loadScene("color_palette_slot")
       ifValid colorPaletteSlotRes:
         for c in self.colors:

@@ -61,15 +61,9 @@ macro toV*(callNode: untyped): untyped =
     callNode.add newCall("newVariant", vargs[i])
 
 proc isNewInstance*(n: Node): bool =
-  if not n.is_inside_tree():
+  if not n.isInsideTree(): #check if called in init
     once:
-      printWarning "isNotReloading: is not reliable in init because meta variables aren't guaranteed to be set."
-  return not n.has_meta(HotMetaInstanceId)
-
-proc isNotReloading*(n: Node): bool =
-  if not n.isInsideTree():
-    once:
-      printWarning "isNotReloading: is not reliable in init because meta variables aren't guaranteed to be set."
+      printWarning "isNewInstance: is not reliable in init because meta variables aren't guaranteed to be set."
 
   if n.has_meta(HotMetaIsReloading):
     not (n.get_meta(HotMetaIsReloading).asBool())
