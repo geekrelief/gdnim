@@ -57,5 +57,5 @@ gdnim ColorPaletteSlot of VBoxContainer:
       if self.isSelected:
         var tPos = vec2(self.colorRect.rectPosition.x, self.colorRect.rectPosition.y+5)
         discard self.tween.interpolateProperty(self.colorRect, "rect_position", self.colorRect.rectPosition.toVariant(), tPos.toVariant(), self.selectTweenTime, TRANS_CUBIC, EASE_OUT)
-        discard self.tween.interpolateProperty(self.colorRect, "rect_position", tPos.toVariant(), self.colorRect.rectPosition.toVariant(), self.selectTweenTime, TRANS_CUBIC, EASE_OUT, self.selectTweenTime + 0.001f)
+        discard self.tween.interpolateProperty(self.colorRect, "rect_position", tPos.toVariant(), self.colorRect.rectPosition.toVariant(), self.selectTweenTime, TRANS_CUBIC, EASE_OUT, self.selectTweenTime)
         discard self.tween.start()

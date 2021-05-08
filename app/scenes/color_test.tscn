@@ -8,10 +8,10 @@
 
 [node name="ColorPicker" type="ColorPicker" parent="."]
 visible = false
-margin_left = 146.939
-margin_top = 36.0
-margin_right = 454.939
-margin_bottom = 497.0
+margin_left = 158.939
+margin_top = 48.0
+margin_right = 466.939
+margin_bottom = 509.0
 edit_alpha = false
 hsv_mode = true
 deferred_mode = true

@@ -5,6 +5,3 @@
 [node name="ColorPalette" type="HBoxContainer"]
 mouse_filter = 2
 script = ExtResource( 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
