@@ -22,11 +22,6 @@ template definePoolArrayBase(T, GodotT, DataT, fieldName, newProcName,
   proc `=destroy`*(arr: var `T Obj`) =
     arr.fieldName.deinit()
 
-  proc newProcName*(): T {.inline.} =
-    #new(result, poolArrayFinalizer)
-    new(result)
-    initProcName(result.fieldName)
-
   proc fieldName*(self: T): ptr GodotT {.inline.} =
     ## WARNING: do not keep the returned value for longer than the lifetime of
     ## the array.
@@ -69,7 +64,6 @@ import arrays
 
 template definePoolArray(T, GodotT, DataT, fieldName, newProcName, initProcName;
                          noData = false) =
-
   proc newProcName*(arr: Array): T {.inline.} =
     #new(result, poolArrayFinalizer)
     new(result)
@@ -97,6 +91,13 @@ template definePoolArray(T, GodotT, DataT, fieldName, newProcName, initProcName;
     newProcName(self.fieldName.subarray(idxFrom.cint, idxTo.cint))
 
   when not noData:
+    proc newProcName*(s: varargs[DataT]): T {.inline.} =
+      new(result)
+      initProcName(result.fieldName)
+      result.fieldName.setLen(s.len.cint)
+      for idx, data in s:
+        result.fieldName[idx.cint] = data
+
     proc add*(self: T; data: DataT) {.inline.} =
       self.fieldName.add(data)
 
@@ -146,6 +147,15 @@ definePoolArray(PoolColorArray, GodotPoolColorArray, Color,
 definePoolArray(PoolStringArray, GodotPoolStringArray, string,
                 godotPoolStringArray, newPoolStringArray,
                 initGodotPoolStringArray, true)
+
+proc newPoolStringArray*(s: varargs[string]): PoolStringArray {.inline.} =
+  new(result)
+  initGodotPoolStringArray(result.godotPoolStringArray)
+  result.godotPoolStringArray.setLen(s.len.cint)
+  for idx, str in s:
+    var gstr = str.toGodotString()
+    result.godotPoolStringArray[idx.cint] = gstr
+    gstr.deinit()
 
 proc add*(self: PoolStringArray; data: string) =
   var s = data.toGodotString()

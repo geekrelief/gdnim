@@ -28,7 +28,7 @@ proc newArray*(arr: GodotArray): Array {.inline.} =
 
 import variants
 
-proc newArray*(s: varargs[Variant]): Array =
+proc newArray*(s: varargs[Variant, `newVariant`]): Array =
   #new(result, arrayFinalizer)
   new(result)
   initGodotArray(result.godotArray)
