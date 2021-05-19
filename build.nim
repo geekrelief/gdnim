@@ -55,7 +55,7 @@ let allCompilerFlagsTable = {
   "refc": "--gc:refc",
   "useMalloc": "--d:useMalloc",                          # use C memory primitives
                                                          # build_kind
-  "danger": "--d:danger",
+  "danger": "--d:danger --panics:on",
   "release": "--d:release",
   "debug": "--debugger:native --stackTrace:on",
   "diagnostic": "--d:danger --debugger:native",          #for dumpincludes

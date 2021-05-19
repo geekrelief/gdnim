@@ -4,7 +4,7 @@ import macros, globals, strformat, strutils, os, sets, sequtils
 import msgpack4nim, options, optionsutils
 export msgpack4nim, options, optionsutils, sequtils
 
-proc `^`(s: string): NimNode {.inline.} =
+proc `^`*(s: string): NimNode {.inline.} =
   ident(s)
 
 type
