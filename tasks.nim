@@ -44,6 +44,15 @@ gdobj($2 of EditorPlugin, tool):
     discard
 """
 
+const lib_nim_template = """
+# import modules for $1
+"""
+
+const lib_cfg_template = """
+# cfg for $1
+--path:"../$2"
+"""
+
 const gdns_template = """
 [gd_resource type="NativeScript" load_steps=2 format=2]
 
@@ -108,6 +117,7 @@ script="$1.gdns"
 
 let appDir = config.getSectionValue("Dir", "app")
 let compsDir = config.getSectionValue("Dir", "comps")
+let compsSrcDir = config.getSectionValue("Dir", "comps_src")
 let depsDir = config.getSectionValue("Dir", "deps")
 let depsGodotDir = config.getSectionValue("Dir", "deps_godot")
 let gdpathFlags = &"--path:gdnim --path:{depsDir} --path:{depsDir}/{depsGodotDir} "
@@ -165,7 +175,6 @@ if config.getSectionValue("Hot", "verbose_nil_check") == "on":
 
 
 proc genGdns(name: string, isTool: bool = false) =
-
   var comp = &"{compsDir}/{name}.nim"
   var gdns = &"{gdnsDir}/{name}.gdns"
   var gdnlib = &"{gdnlibDir}/{name}.gdnlib"
@@ -492,6 +501,103 @@ task gencomp, "generate a component template (nim, gdns, gdnlib, tscn files), pa
   var buildSettings = getBuildSettings()
   echo &"building {compName}"
   echo buildComp(compName, buildSettings)
+
+
+task genlib, "Generates a library, .nim, .nim.cfg and .gdnlib files. Use with genclass so multiple classes share one library":
+  if args.len != 1:
+    echo "Usage: ./build genlib lib_name"
+    quit()
+
+  var compName = args[0]
+
+  let nim = &"{compsDir}/{compName}.nim"
+  var gdnlib = &"{gdnlibDir}/{compName}.gdnlib"
+
+  if not fileExists(nim):
+    var f = open(nim, fmWrite)
+    f.write(lib_nim_template % [compName])
+    f.close()
+    echo &"generated {nim}"
+  else:
+    echo &"{nim} already exists"
+
+  var cfg = &"{compsDir}/{compName}.nim.cfg"
+  if not fileExists(cfg):
+    var f = open(cfg, fmWrite)
+    f.write(lib_cfg_template % [compName, compsSrcDir])
+    f.close()
+    echo &"generated {cfg}"
+  else:
+    echo &"{cfg} already exists"
+
+  if not fileExists(gdnlib):
+    var f = open(gdnlib, fmWrite)
+    f.write(gdnlib_template % [compName, compName.pascal, relativePath(dllDir, appDir), $true])
+    f.close()
+    echo &"generated {gdnlib}"
+  else:
+    echo &"{gdnlib} already exists"
+
+
+task genclass, "generates a nim and gdns that points to a gdnlib, optionally takes a relative dir inside comps_src to save the file":
+  var compName: string
+  var baseClassModuleName: string
+  var gdnlibName: string
+  var path: string
+  case args.len:
+    of 3:
+      compName = args[0]
+      baseClassModuleName = args[1].tolower
+      gdnlibName = args[2].tolower
+    of 4:
+      compName = args[0]
+      baseClassModuleName = args[1].tolower
+      gdnlibName = args[2].tolower
+      path = args[3]
+    else:
+      echo "Usage: ./build genclass comp_name base_node gdnlib [comps_src_path]"
+      echo "Example: ./build genclass player sprite main"
+      echo "Example: ./build genclass player sprite main player/stuff"
+      quit()
+
+  var compClassName = compName.pascal
+  var baseClassName = baseClassModuleName.pascal
+  if baseClassName[^2].isDigit and baseClassName.endsWith("d"):
+    baseClassName[^1] = 'D'
+
+  baseClassModuleName = case baseClassModuleName:
+    of "object": "objects"
+    else: baseClassModuleName
+
+  var classFilename = &"{depsDir}/godotapi/{baseClassModuleName}.nim"
+  if not fileExists(classFilename):
+    echo &"Error generating component. Could not find {classFilename}!"
+    quit()
+
+  let nimDir = &"{compsSrcDir}/" & (if path.len > 0: &"{path}/" else: "")
+  let nim = nimDir & &"{compName}.nim"
+  createDir(nimDir)
+  if not fileExists(nim):
+    var f = open(nim, fmWrite)
+    f.write(script_nim_template % [baseClassModuleName, compClassName, baseClassName])
+    f.close()
+    echo &"generated {nim}"
+  else:
+    echo &"{nim} already exists"
+
+  var gdnsDir = &"{gdnsDir}/" & (if path.len > 0: &"{path}/" else: "")
+  createDir(gdnsDir)
+  var gdns = gdnsDir & &"{compName}.gdns"
+  var gdnlib = &"{gdnlibDir}/{gdnlibName}.gdnlib"
+  if not fileExists(gdns):
+    var f = open(gdns, fmWrite)
+    f.write(gdns_template % [gdnlibName, compName.pascal, relativePath(parentDir(gdnlib), appDir)])
+    f.close()
+    echo &"generated {gdns}"
+
+  var buildSettings = getBuildSettings()
+  echo &"building {compName}"
+  echo buildComp(gdnlibName, buildSettings)
 
 
 task delcomp, "delete a component, removes the nim, gdns, gdnlib, tscn, and dlls associated with the component":
