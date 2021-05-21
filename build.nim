@@ -209,6 +209,7 @@ proc setFlag(flag: string, val: string) =
       else:
         otherFlagsTable[flag] = val
 
+#[
 proc genNimCfg() =
   echo "Generating nim.cfg"
   var depsDir = config.getSectionValue("Dir", "deps")
@@ -249,6 +250,7 @@ elif getLastModificationTime("build.ini") > getLastModificationTime("nim.cfg"):
       else:
         discard
     else: discard
+]#
 
 proc getSharedFlags(): string =
   var sharedFlags = ""
