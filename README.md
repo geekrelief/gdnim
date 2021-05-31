@@ -93,7 +93,10 @@ The `gdnim` macro is a layer over godot-nim's `gdobj` macro that interacts with 
 
  You can choose not to define the `enter_tree` method and put its code inside the `reload:` section.
 
- You can use the proc `isNewInstance()` to check the reloading state of a component instance. This is useful for initialization or adding children dynamically.
+### Hot Reload Checks ###
+ The proc `isNewInstance()` can be used to check the reloading state of a component instance at runtime. This is useful for initialization or adding children dynamically.
+
+ At compile time, you can check wrap reloading code with `when defined(does_reload):`, but this currently, only works inside methods. It would require a modification to `gdobj` to work in general.
 
 ### Hot Reloading Switch ###
 A top level `gdnim` macro is implemented to replace the use of `gdobj`. See below for [implementation details](#implementation-details)
@@ -107,7 +110,7 @@ See `components` for samples on how to set things up for reloading.
 - **Disable hot reloading** This will stop compilation of the Watcher, delete the Watcher files, and disable the reloading parts of the components.
   - Edit `build.ini`, under `[Hot]`, set `reload="off"`.
   - Do a clean build. `./build cleanbuild`
-  - Modify `project.godot` `Autoload` so the Watcher isn't loaded.
+  - Modify `project.godot` `Autoload` so the Watcher isn't loaded. You can go through the Project settings or modify `project.godot` directly.
 
 - **Re-enable hot reloading**
   - Edit `build.ini`, under `[Hot]`, set `reload="on"`.
