@@ -237,7 +237,7 @@ elif getLastModificationTime("build.ini") > getLastModificationTime("nim.cfg"):
   paths.add config.getSectionValue("Dir", "deps")
   paths.add config.getSectionValue("Dir", "deps_godot")
 
-  var nimCfg = open("nim.cfg").readAll().split("\n")[2..3].join(" ")
+  var nimCfg = open("nim.cfg").readAll().split("\n")[2..^1].join(" ")
   var np = initOptParser(nimCfg)
   for kind, key, val in np.getopt():
     case kind

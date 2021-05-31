@@ -213,20 +213,22 @@ task gdengine_update, "update the 3.x custom branch with changes from upstream":
   var projDir = getCurrentDir()
   setCurrentDir(gd_src)
 
-  execOrQuit(&"git checkout {gd_base_branch}")
-  execOrQuit("git pull")
+  if not ("keeplocal" in args):
+    execOrQuit(&"git checkout {gd_base_branch}")
+    execOrQuit("git pull")
 
   for branch in gd_branches:
     execOrQuit(&"git checkout {branch}")
     execOrQuit(&"git rebase {gd_base_branch}")
 
+  execOrQuit(&"git checkout {gd_base_branch}")
   discard execShellCmd(&"git branch -D {gd_build_branch}")
   execOrQuit(&"git checkout -b {gd_build_branch} {gd_base_branch}")
 
   for branch in gd_branches:
     execOrQuit(&"git merge {branch}")
 
-  if not ("keeplocal" in args):
+  if "push" in args:
     execOrQuit(&"git push --force origin {gd_build_branch}")
 
   setCurrentDir(projDir)
@@ -243,7 +245,7 @@ task gdengine, "build the godot engine, default does release build with tools. a
       flags = "tools=no target=debug"
       info &= "debug"
     else:
-      flags = "tools=no target=release"
+      flags = "tools=no target=release production=yes"
       info &= "release"
   else:
     info &= "tools, "
@@ -251,7 +253,7 @@ task gdengine, "build the godot engine, default does release build with tools. a
       flags = "target=debug debug_symbols=yes"
       info &= "debug"
     else:
-      flags = "target=release_debug"
+      flags = "target=release_debug production=yes"
       info &= "release"
 
   flags &= &" {gd_scons_flags}"
