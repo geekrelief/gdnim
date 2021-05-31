@@ -196,6 +196,8 @@ proc `=destroy`*(obj: var NimGodotObj) =
   let linkedGodotObject = cast[NimGodotObject](obj.linkedObjectPtr)
   if (obj.isRef or not linkedGodotObject.isNil and linkedGodotObject.isRef) and
     obj.godotObject.unreference():
+    if not linkedGodotObject.isNil:
+      GC_unref(linkedGodotObject)
     obj.godotObject.deinit()
     obj.godotObject = nil
 
