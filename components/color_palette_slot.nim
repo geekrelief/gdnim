@@ -3,7 +3,7 @@ import std / strformat
 
 gdnim ColorPaletteSlot of VBoxContainer:
   var selectTweenTime: float = 0.25
-  var colorTweenTime: float = 0.5
+  var colorTweenTime: float = 0.8
 
   signal doubleclick(node: Node)
   signal selected(node: Node)
@@ -25,6 +25,7 @@ gdnim ColorPaletteSlot of VBoxContainer:
     self.colorRect = self.getNode("ColorRect") as ColorRect
     self.selectedArrow = self.getNode("CenterContainer/SelectedArrow") as CanvasItem
     self.tween = self.getNode("Tween") as Tween
+
     self.set_color(self.color)
     self.set_selected(self.isSelected)
 
@@ -38,7 +39,6 @@ gdnim ColorPaletteSlot of VBoxContainer:
   proc set_color(c: Color) =
     self.color = c
     ifValid self.colorRect, self.tween:
-      discard self.tween.seek(self.tween.getRunTime())
       discard self.tween.interpolateProperty(self.colorRect, "color", self.colorRect.color.toVariant(), self.color.toVariant(), self.colorTweenTime, TRANS_CUBIC, EASE_OUT)
       discard self.tween.interpolateProperty(self.colorRect, "rect_rotation", self.colorRect.rect_rotation.toVariant(),
         (self.colorRect.rect_rotation + 180.0).toVariant(), self.colorTweenTime, TRANS_CUBIC, EASE_OUT)
@@ -52,8 +52,6 @@ gdnim ColorPaletteSlot of VBoxContainer:
       self.selectedArrow.visible = state
 
     ifValid self.tween:
-      discard self.tween.seek(self.tween.getRunTime())
-
       if self.isSelected:
         var tPos = vec2(self.colorRect.rectPosition.x, self.colorRect.rectPosition.y+5)
         discard self.tween.interpolateProperty(self.colorRect, "rect_position", self.colorRect.rectPosition.toVariant(), tPos.toVariant(), self.selectTweenTime, TRANS_CUBIC, EASE_OUT)

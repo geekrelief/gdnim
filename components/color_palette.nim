@@ -8,13 +8,12 @@ gdnim ColorPalette of HBoxContainer:
       initColor(1.0, 1.0, 0.0),
       initColor(1.0, 0.0, 1.0),
       initColor(0.0, 1.0, 1.0),
-      #initColor(1.0, 0.5, 0.5),
     ]
   var colorPicker: ColorPicker
-  var curSlot: Node
+  var curSlot: Node # this may hold a reference to a color_palette_slot so we need to define it as a dependency
 
   dependencies:
-    color_palette_slot
+    color_palette_slot # if color_palette_slot is reloaded, this ensures self.curSlot is cleared
 
   unload:
     save()
@@ -30,16 +29,6 @@ gdnim ColorPalette of HBoxContainer:
           var slot = colorPaletteSlotRes.instance()
           slot.setImpl("color", c.toVariant())
           self.addChild(slot)
-    #[
-    else:
-      for i in self.getChildCount()..<self.colors.len:
-        var colorPaletteSlotRes = loadScene("color_palette_slot")
-        ifValid colorPaletteSlotRes:
-          var c = self.colors[i]
-          var slot = colorPaletteSlotRes.instance()
-          slot.setImpl("color", c.toVariant())
-          self.addChild(slot)
-    ]#
 
     #print "reconnect to slots" # connect needs to happen on enter_tree, on ready is too late
     for i in 0..<self.getChildCount:

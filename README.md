@@ -88,9 +88,9 @@ New components are generated from template strings defined in `tasks.nim`. Custo
 The `gdnim` macro is a layer over godot-nim's `gdobj` macro that interacts with the `Watcher` to enable hot reloading. There are four sections to consider when setting up for hot reloading.
 
  - `first:` Takes a body of code that is only run during initialization. It executes at the top of `enter_tree`.
- - `dependencies:` Declares other components as dependencies. Used when referencing other component instances. If references to other components are held but not defined in `dependencies` hot reloading will fail if the dependency needs to reload.
+ - `dependencies:` Declares other components as dependencies. If a component instance holds a reference to other component instances, but their relationship is not declared in `dependencies` hot reloading will fail when the dependency needs to reload. By declaring `dependencies`, when the dependency reloads the dependent component will reload with it. See the example components `color_palette` and `color_palette_slot`.
  - `unload:` Used to perform data serialization for data that can't be saved as a `{.gdExport.}`. Call the `save()` macro to store the data with Watcher.
- - `reload:` Declares that the component is hot reloadable. This takes a body of code that is run on a the top of `enter_tree`, but after `first`. Call the `load()` macro to retrieve any data stored with Watcher via `save()`.
+ - `reload:` Declares that the component is hot reloadable. This takes a body of code that is run at the top of `enter_tree`, but after `first`. Call the `load()` macro to retrieve any data stored with Watcher via `save()`.
 
  You can choose not to define the `enter_tree` method and put its code inside the `reload:` section.
 
