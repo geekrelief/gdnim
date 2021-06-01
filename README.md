@@ -13,6 +13,7 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
   - [Prerequisites](#prerequisites)
   - [Component Setup](#component-setup)
   - [Hot Reloading Setup](#hot-reloading-setup)
+    - [Hot Reloading Checks](#hot-reloading-checks)
     - [Hot Reloading Switch](#hot-reloading-switch)
   - [Tips](#tips)
   - [Sample Projects](#sample-projects)
@@ -93,10 +94,10 @@ The `gdnim` macro is a layer over godot-nim's `gdobj` macro that interacts with 
 
  You can choose not to define the `enter_tree` method and put its code inside the `reload:` section.
 
-### Hot Reload Checks ###
+### Hot Reloading Checks ###
  The proc `isNewInstance()` can be used to check the reloading state of a component instance at runtime. This is useful for initialization or adding children dynamically.
 
- At compile time, you can check wrap reloading code with `when defined(does_reload):`, but this currently, only works inside methods. It would require a modification to `gdobj` to work in general.
+ You can do conditional compilation for reloading code with `when defined(does_reload):`, but this currently, only works inside methods. It would require a modification to `gdobj` to work in general.
 
 ### Hot Reloading Switch ###
 A top level `gdnim` macro is implemented to replace the use of `gdobj`. See below for [implementation details](#implementation-details)
