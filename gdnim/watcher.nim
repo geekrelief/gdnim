@@ -52,8 +52,8 @@ gdobj Watcher of CanvasLayer:
   # data for components and instances
   var compMetaTable: Table[string, ComponentMeta]
   var instancesByCompNameTable: Table[string, seq[InstanceData]]
-  var NextInstanceId: InstanceID = InstanceID(0)
-  var instanceByIDTable: Table[InstanceId, InstanceData]
+  var NextInstanceId: InstanceId = InstanceId(0)
+  var instanceByIdTable: Table[InstanceId, InstanceData]
   var dependencies: Table[string, HashSet[string]] # if A instances B, then dependencies["A"].contains "B"
   var rdependencies: Table[string, HashSet[string]] # and rdependencies["B"].contains "A"
 
@@ -75,15 +75,31 @@ gdobj Watcher of CanvasLayer:
   var lineEditPacked: PackedScene
   var vbox: VBoxContainer
 
+  proc dumpInfo() =
+    printWarning "Watcher: DumpInfo"
+    print "===compMetaTable==="
+    for compName in self.compMetaTable.keys:
+      var compMeta = self.compMetaTable[compName]
+      print &"{compName}: {compMeta.resourcePath}"
+      if self.dependencies.hasKey(compName):
+        print "\tdependencies:"
+        for dep in self.dependencies[compName]:
+          print &"\t\t{dep}"
+      if self.rdependencies.hasKey(compName):
+        print "\trdependencies:"
+        for rdep in self.rdependencies[compName]:
+          print &"\t\t{rdep}"
 
+    print "===instancesByCompNameTable==="
+    for compName in self.instancesByCompNameTable.keys:
+      print compName
+      for instData in self.instancesByCompNameTable[compName]:
+        print &"\t{instData.id} {instData.instancePath}"
 
-  proc getSaveOrder(compName: string): seq[string] =
-    if not self.dependencies.hasKey(compName):
-      result.add compName
-      return
-    for c in self.dependencies[compName]:
-      result.add self.getSaveOrder(c)
-    result.add compName
+    print "===instanceByIdTable==="
+    for id in self.instanceByIdTable.keys:
+      var instData = self.instanceByIdTable[id]
+      print &"{id} {instData.id = } {instData.compName = } {instData.instancePath = }"
 
   proc setOwner(owner: Node, n: Node) =
     # if we don't check for filename, we'll get duplicates in the PackedScene
@@ -241,10 +257,11 @@ gdobj Watcher of CanvasLayer:
         tov self.emitSignal(WatcherReloadingFailed, [compName, errorMsg])
 
 
-      self.get_tree().paused = false
       self.unpackScenes()
-      self.notify(&"Watcher: reload complete")
+      self.get_tree().paused = false
       toV self.emitSignal(WatcherReloadingComplete, [self.startReloadingCompName])
+      self.notify(&"Watcher: reload complete")
+      #self.dumpInfo()
 
       self.startReloadingCompName = ""
       self.reloadingComps.setLen(0)
@@ -259,9 +276,10 @@ gdobj Watcher of CanvasLayer:
         if (not (compName in self.reloadingComps)) and fileExists(compName.safeDllPath) and
           getLastModificationTime(compName.safeDllPath) > getLastModificationTime(compName.hotDllPath) and
           getFileSize(compName.safeDllPath) > 0:
-          self.notify(&"Watcher: Reloading for {compName}")
-          toV self.emitSignal(WatcherReloadingStart, [compName])
           self.get_tree().paused = true
+          toV self.emitSignal(WatcherReloadingStart, [compName])
+          self.notify(&"Watcher: Reloading for {compName}")
+          #self.dumpInfo()
           self.startReloadingCompName = compName
           self.saveInstanceData(compName)
           self.packScenes()
@@ -281,28 +299,29 @@ gdobj Watcher of CanvasLayer:
 
     var instNode = self.get_node(instancePath)
     var instData: InstanceData
-    var instID: InstanceId
+    var instId: InstanceId
     if not instNode.has_meta(HotMetaInstanceId):
       # first instance
       instData = new(InstanceData)
       inc self.NextInstanceId
-      instID = self.NextInstanceId
-      instData.id = instID
-      instNode.set_meta(HotMetaInstanceId, int64(instID).toVariant)
+      instId = self.NextInstanceId
+      instData.id = instId
+      instNode.set_meta(HotMetaInstanceId, int64(instId).toVariant)
       instData.compName = compName
       instData.instancePath = instancePath
       instData.parentPath = parentPath
 
-      #printWarning &"new {compName} instance with id {instID}"
-      self.instanceByIDTable[instID] = instData
+      #printWarning &"new {compName} instance with id {instId}"
+      self.instanceByIdTable[instId] = instData
       self.instancesByCompNameTable[compName].add instData
     else:
       # reloaded
-      instID = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
-      #printWarning &"reloaded {instID} @ {instancePath}"
-      instData = self.instanceByIDTable[instID]
+      instId = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
+      #printWarning &"reloaded {instId} @ {instancePath}"
+      instData = self.instanceByIdTable[instId]
       instData.instancePath = instancePath
       discard result.fromVariant(instData.customData)
+      instData.customData = nil
 
     toV self.emit_signal(WatcherInstanceLoaded, [instData.instancePath])
 
@@ -319,11 +338,11 @@ gdobj Watcher of CanvasLayer:
   # unregister comp instances that are not reloading
   proc unregister_instance(instNode: Node) {.gdExport.} =
     if instNode.has_meta(HotMetaInstanceId):
-      var instID = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
-      var instData = self.instanceByIDTable[instID]
+      var instId = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
+      var instData = self.instanceByIdTable[instId]
       if not (instData.compName in self.reloadingComps):
         #printWarning &"unregister {instData.id = } @ {instData.instancePath = }"
-        self.instanceByIDTable.del(instID)
+        self.instanceByIdTable.del(instId)
         let index = self.instancesByCompNameTable[instData.compName].find(instData)
         self.instancesByCompNameTable[instData.compName].del(index)
       #[
