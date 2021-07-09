@@ -19,13 +19,6 @@ func safeDllPath(compName: string): string =
 func hotDllPath(compName: string): string =
   &"{baseDllDir}/{dllPrefix}{compname}.{dllExt}"
 
-gdobj WatcherUnregisterHelper of Reference:
-  # helper to store callback on node tree_exited
-  # to unregister component instances from Watcher
-  var callback*: proc () {.closure, gcsafe.}
-  proc onExit() {.gdExport.} =
-    self.callback()
-
 type
   InstanceId = distinct int64
 
@@ -36,7 +29,6 @@ type
     parentPath: string
     customData: Variant # seq[byte]
     positionInParent: int64
-    helper: WatcherUnRegisterHelper
 
   ComponentMeta = object
     resourcePath: string
@@ -177,6 +169,7 @@ gdobj Watcher of CanvasLayer:
 
   method enter_tree() =
     self.vbox = self.get_node("VBoxContainer") as VBoxContainer
+    discard self.getTree().connect("node_removed", self, "unregister_instance")
 
   method exit_tree() =
     self.lineEditPacked = nil
@@ -280,48 +273,38 @@ gdobj Watcher of CanvasLayer:
       printError &"Watcher failed to register {compName}. No dll with this name."
       raise newException(Defect, &"Watcher failed to register {compName}. No dll with this name.")
 
-    try:
-      if not self.compMetaTable.hasKey(compName):
-        #self.notify(wncRegisterComp, &"Watcher registering {compName}")
-        var scenePath = findScene(compName)
-        self.compMetaTable[compName] = ComponentMeta(resourcePath: scenePath)
-        self.instancesByCompNameTable[compName] = @[]
+    if not self.compMetaTable.hasKey(compName):
+      #self.notify(wncRegisterComp, &"Watcher registering {compName}")
+      var scenePath = findScene(compName)
+      self.compMetaTable[compName] = ComponentMeta(resourcePath: scenePath)
+      self.instancesByCompNameTable[compName] = @[]
 
-      var instNode = self.get_node(instancePath)
-      var instData: InstanceData
-      var instID: InstanceId
-      if not instNode.has_meta(HotMetaInstanceId):
-        # first instance
-        instData = new(InstanceData)
-        inc self.NextInstanceId
-        instID = self.NextInstanceId
-        instData.id = instID
-        instNode.set_meta(HotMetaInstanceId, int64(instID).toVariant)
-        instData.compName = compName
-        instData.instancePath = instancePath
-        instData.parentPath = parentPath
+    var instNode = self.get_node(instancePath)
+    var instData: InstanceData
+    var instID: InstanceId
+    if not instNode.has_meta(HotMetaInstanceId):
+      # first instance
+      instData = new(InstanceData)
+      inc self.NextInstanceId
+      instID = self.NextInstanceId
+      instData.id = instID
+      instNode.set_meta(HotMetaInstanceId, int64(instID).toVariant)
+      instData.compName = compName
+      instData.instancePath = instancePath
+      instData.parentPath = parentPath
 
-        #printWarning &"new {compName} instance with id {instID}"
-        self.instanceByIDTable[instID] = instData
-        self.instancesByCompNameTable[compName].add instData
-      else:
-        # reloaded
-        instID = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
-        #printWarning &"reloaded {instID} @ {instancePath}"
-        instData = self.instanceByIDTable[instID]
-        instData.instancePath = instancePath
-        discard result.fromVariant(instData.customData)
+      #printWarning &"new {compName} instance with id {instID}"
+      self.instanceByIDTable[instID] = instData
+      self.instancesByCompNameTable[compName].add instData
+    else:
+      # reloaded
+      instID = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
+      #printWarning &"reloaded {instID} @ {instancePath}"
+      instData = self.instanceByIDTable[instID]
+      instData.instancePath = instancePath
+      discard result.fromVariant(instData.customData)
 
-      toV self.emit_signal(WatcherInstanceLoaded, [instData.instancePath])
-
-      proc callback() =
-        self.unregisterInstance(instID)
-      instData.helper = gdnew[WatcherUnregisterHelper]()
-      instData.helper.callback = callback
-      discard instNode.connect("tree_exiting", instData.helper, "on_exit")
-
-    except IOError as e:
-      printError e.msg
+    toV self.emit_signal(WatcherInstanceLoaded, [instData.instancePath])
 
   # register direct dependencies of comp
   proc register_dependencies(compName: string, dependencies: seq[string]) {.gdExport.} =
@@ -334,17 +317,19 @@ gdobj Watcher of CanvasLayer:
       self.rdependencies[d].incl(compName)
 
   # unregister comp instances that are not reloading
-  proc unregisterInstance(instID: InstanceId) =
-    var instData = self.instanceByIDTable[instID]
-    if not (instData.compName in self.reloadingComps):
-      #printWarning &"unregister {instData.id = } @ {instData.instancePath = }"
-      self.instanceByIDTable.del(instID)
-      let index = self.instancesByCompNameTable[instData.compName].find(instData)
-      self.instancesByCompNameTable[instData.compName].del(index)
-    #[
-    else:
-      printWarning &"unregisterInstance: reloading {instData.compName} {instData.id = }"
-    ]#
+  proc unregister_instance(instNode: Node) {.gdExport.} =
+    if instNode.has_meta(HotMetaInstanceId):
+      var instID = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
+      var instData = self.instanceByIDTable[instID]
+      if not (instData.compName in self.reloadingComps):
+        #printWarning &"unregister {instData.id = } @ {instData.instancePath = }"
+        self.instanceByIDTable.del(instID)
+        let index = self.instancesByCompNameTable[instData.compName].find(instData)
+        self.instancesByCompNameTable[instData.compName].del(index)
+      #[
+      else:
+        printWarning &"unregisterInstance: reloading {instData.compName} {instData.id = }"
+      ]#
 
   proc notify(msg: string) =
     if not self.enableNotifications: return
