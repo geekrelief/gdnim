@@ -30,12 +30,15 @@ type
     customData: Variant # seq[byte]
     positionInParent: int64
 
+  InstanceTable = Table[InstanceId, InstanceData]
+
   ComponentMeta = object
     resourcePath: string
 
   ReloadNotification = ref object
     elapsedTime: float
     gdLine: LineEdit
+
 
 proc inc(x: var InstanceId, y = 1) {.borrow.}
 proc `==`(x, y: InstanceId): bool {.borrow.}
@@ -51,9 +54,9 @@ gdobj Watcher of CanvasLayer:
 
   # data for components and instances
   var compMetaTable: Table[string, ComponentMeta]
-  var instancesByCompNameTable: Table[string, seq[InstanceData]]
+  var instanceTableByCompNameTable: Table[string, InstanceTable]
   var NextInstanceId: InstanceId = InstanceId(0)
-  var instanceByIdTable: Table[InstanceId, InstanceData]
+  var instanceByIdTable: InstanceTable
   var dependencies: Table[string, HashSet[string]] # if A instances B, then dependencies["A"].contains "B"
   var rdependencies: Table[string, HashSet[string]] # and rdependencies["B"].contains "A"
 
@@ -90,10 +93,10 @@ gdobj Watcher of CanvasLayer:
         for rdep in self.rdependencies[compName]:
           print &"\t\t{rdep}"
 
-    print "===instancesByCompNameTable==="
-    for compName in self.instancesByCompNameTable.keys:
+    print "===instanceTableByCompNameTable==="
+    for compName in self.instanceTableByCompNameTable.keys:
       print compName
-      for instData in self.instancesByCompNameTable[compName]:
+      for instData in self.instanceTableByCompNameTable[compName].values:
         print &"\t{instData.id} {instData.instancePath}"
 
     print "===instanceByIdTable==="
@@ -121,8 +124,7 @@ gdobj Watcher of CanvasLayer:
 
     var pathToInstancesTable: Table[string, seq[Node]]
     for compName in self.reloadingComps:
-      var compInstancesData = self.instancesByCompNameTable[compName]
-      for instData in compInstancesData:
+      for instData in self.instanceTableByCompNameTable[compName].values:
         var n = self.getNode(instData.instancePath)
         var path = $n.getPath()
         if pathToInstancesTable.hasKey(path):
@@ -209,8 +211,7 @@ gdobj Watcher of CanvasLayer:
       return
     self.reloadingComps.add(compName)
 
-    var instancesData = self.instancesByCompNameTable[compName]
-    for instData in instancesData:
+    for instData in self.instanceTableByCompNameTable[compName].values:
       try:
         #printWarning &"saving {instData.instancePath}"
         var node = self.get_node(instData.instancePath)
@@ -295,7 +296,7 @@ gdobj Watcher of CanvasLayer:
       #self.notify(wncRegisterComp, &"Watcher registering {compName}")
       var scenePath = findScene(compName)
       self.compMetaTable[compName] = ComponentMeta(resourcePath: scenePath)
-      self.instancesByCompNameTable[compName] = @[]
+      self.instanceTableByCompNameTable[compName] = InstanceTable()
 
     var instNode = self.get_node(instancePath)
     var instData: InstanceData
@@ -313,7 +314,7 @@ gdobj Watcher of CanvasLayer:
 
       #printWarning &"new {compName} instance with id {instId}"
       self.instanceByIdTable[instId] = instData
-      self.instancesByCompNameTable[compName].add instData
+      self.instanceTableByCompNameTable[compName][instId] = instData
     else:
       # reloaded
       instId = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
@@ -343,8 +344,7 @@ gdobj Watcher of CanvasLayer:
       if not (instData.compName in self.reloadingComps):
         #printWarning &"unregister {instData.id = } @ {instData.instancePath = }"
         self.instanceByIdTable.del(instId)
-        let index = self.instancesByCompNameTable[instData.compName].find(instData)
-        self.instancesByCompNameTable[instData.compName].del(index)
+        self.instanceTableByCompNameTable[instData.compName].del(instId)
       #[
       else:
         printWarning &"unregisterInstance: reloading {instData.compName} {instData.id = }"
