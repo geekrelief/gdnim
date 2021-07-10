@@ -45,7 +45,7 @@ gdobj Watcher of CanvasLayer:
 
   signal reloading_start(compName: string)
   signal reloading_complete(compName: string)
-  signal reloading_error(compName: string, error_msg: string)
+  signal reloading_failed(compName: string, error_msg: string)
   signal instance_unloaded(nodePath: string)
   signal instance_loaded(nodePath: string)
 
