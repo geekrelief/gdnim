@@ -1,8 +1,7 @@
 import gdnim
 import godotapi / [node, resource_loader, resource_saver, directory,
   canvas_layer, v_box_container, line_edit, theme]
-import os, strformat, times
-import tables, sets, hashes, sequtils
+import os, strformat, times, tables, sets, hashes, sequtils, sugar
 
 #[
 Watcher monitors the dll files for component changes.
@@ -78,17 +77,17 @@ gdobj Watcher of CanvasLayer:
   var lineEditPacked: PackedScene
   var vbox: VBoxContainer
 
-  proc dumpInfo() =
+  proc dumpInfo() {.used.} =
     printWarning "Watcher: DumpInfo"
     print "===compMetaTable==="
     for compName in self.compMetaTable.keys:
       var compMeta = self.compMetaTable[compName]
       print &"{compName}: {compMeta.resourcePath}"
-      if self.dependencies.hasKey(compName):
+      if compName in self.dependencies:
         print "\tdependencies:"
         for dep in self.dependencies[compName]:
           print &"\t\t{dep}"
-      if self.rdependencies.hasKey(compName):
+      if compName in self.rdependencies:
         print "\trdependencies:"
         for rdep in self.rdependencies[compName]:
           print &"\t\t{rdep}"
@@ -109,12 +108,10 @@ gdobj Watcher of CanvasLayer:
     if not (n == owner) and n.filename.len > 0:
       n.owner = owner
 
-    #print &"set owner {n.name} {n.filename} "
     for i in 0..<n.getChildCount:
       self.setOwner(owner, n.getChild(i))
 
   proc packScenes() =
-
     # self.reloadingComps points to all components that are affected by reloading, this is set by saveInstanceData()
     # for each instance, get the path as key, store the node
     # merge the paths if they are on the same branch
@@ -127,13 +124,16 @@ gdobj Watcher of CanvasLayer:
       for instData in self.instanceTableByCompNameTable[compName].values:
         var n = self.getNode(instData.instancePath)
         var path = $n.getPath()
-        if pathToInstancesTable.hasKey(path):
+        if path in pathToInstancesTable:
           pathToInstancesTable[path].add n
         else:
           pathToInstancesTable[path] = @[n]
 
     # pare down branches
-    var paths = toSeq(pathToInstancesTable.keys)
+    let paths = collect(newSeqOfCap(pathToInstancesTable.len)):
+      for k in pathToInstancesTable.keys:
+        k
+
     for i in 0..<paths.len:
       var ni_is_child = false
       var ni = self.getNode(paths[i])
@@ -162,7 +162,6 @@ gdobj Watcher of CanvasLayer:
         discard d.remove(ReloadScenePath)
 
       if Error.OK == resource_saver.save(ReloadScenePath, reloadScene):
-        #printWarning &"Watcher: Saved state to {ReloadScenePath}"
         reloadRoot.queue_free()
       else:
         raise newException(Defect, &"Watcher: Failed to save state to {ReloadScenePath}")
@@ -170,7 +169,6 @@ gdobj Watcher of CanvasLayer:
       raise newException(Defect, &"Watcher: Failed to pack state for reload")
 
   proc unpackScenes() =
-    #printWarning &"Watcher: Unpacking hot reload state"
     var reloadInstance = (resource_loader.load(ReloadScenePath) as PackedScene).instance()
     var children = reloadInstance.getChildren()
     for vn in children:
@@ -213,7 +211,6 @@ gdobj Watcher of CanvasLayer:
 
     for instData in self.instanceTableByCompNameTable[compName].values:
       try:
-        #printWarning &"saving {instData.instancePath}"
         var node = self.get_node(instData.instancePath)
         instData.customData = node.call(HotUnload)
         toV self.emit_signal(WatcherInstanceUnloaded, [instData.instancePath])
@@ -221,11 +218,11 @@ gdobj Watcher of CanvasLayer:
         printError &"Watcher reloading: {compName}, Error '{e.err.error}'. From {compName} @ {instData.instancePath}"
         raise
 
-    if self.dependencies.hasKey(compName):
+    if compName in self.dependencies:
       for dep in self.dependencies[compName]:
         self.saveInstanceData(dep)
 
-    if self.rdependencies.hasKey(compName):
+    if compName in self.rdependencies:
       for rdep in self.rdependencies[compName]:
         self.saveInstanceData(rdep)
 
@@ -262,7 +259,6 @@ gdobj Watcher of CanvasLayer:
       self.get_tree().paused = false
       toV self.emitSignal(WatcherReloadingComplete, [self.startReloadingCompName])
       self.notify(&"Watcher: reload complete")
-      #self.dumpInfo()
 
       self.startReloadingCompName = ""
       self.reloadingComps.setLen(0)
@@ -280,7 +276,6 @@ gdobj Watcher of CanvasLayer:
           self.get_tree().paused = true
           toV self.emitSignal(WatcherReloadingStart, [compName])
           self.notify(&"Watcher: Reloading for {compName}")
-          #self.dumpInfo()
           self.startReloadingCompName = compName
           self.saveInstanceData(compName)
           self.packScenes()
@@ -292,8 +287,7 @@ gdobj Watcher of CanvasLayer:
       printError &"Watcher failed to register {compName}. No dll with this name."
       raise newException(Defect, &"Watcher failed to register {compName}. No dll with this name.")
 
-    if not self.compMetaTable.hasKey(compName):
-      #self.notify(wncRegisterComp, &"Watcher registering {compName}")
+    if compName notin self.compMetaTable:
       var scenePath = findScene(compName)
       self.compMetaTable[compName] = ComponentMeta(resourcePath: scenePath)
       self.instanceTableByCompNameTable[compName] = InstanceTable()
@@ -312,13 +306,11 @@ gdobj Watcher of CanvasLayer:
       instData.instancePath = instancePath
       instData.parentPath = parentPath
 
-      #printWarning &"new {compName} instance with id {instId}"
       self.instanceByIdTable[instId] = instData
       self.instanceTableByCompNameTable[compName][instId] = instData
     else:
       # reloaded
       instId = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
-      #printWarning &"reloaded {instId} @ {instancePath}"
       instData = self.instanceByIdTable[instId]
       instData.instancePath = instancePath
       discard result.fromVariant(instData.customData)
@@ -328,27 +320,22 @@ gdobj Watcher of CanvasLayer:
 
   # register direct dependencies of comp
   proc register_dependencies(compName: string, dependencies: seq[string]) {.gdExport.} =
-    if not self.dependencies.hasKey(compName):
+    if compName notin self.dependencies:
       self.dependencies[compName] = initHashSet[string]()
     for d in dependencies:
       self.dependencies[compName].incl(d)
-      if not self.rdependencies.hasKey(d):
+      if d notin self.rdependencies:
         self.rdependencies[d] = initHashSet[string]()
       self.rdependencies[d].incl(compName)
 
-  # unregister comp instances that are not reloading
+  # unregister comp instances that are freed and not reloading
   proc unregister_instance(instNode: Node) {.gdExport.} =
     if instNode.has_meta(HotMetaInstanceId):
       var instId = InstanceId(instNode.get_meta(HotMetaInstanceId).asInt())
       var instData = self.instanceByIdTable[instId]
-      if not (instData.compName in self.reloadingComps):
-        #printWarning &"unregister {instData.id = } @ {instData.instancePath = }"
+      if instData.compName notin self.reloadingComps:
         self.instanceByIdTable.del(instId)
         self.instanceTableByCompNameTable[instData.compName].del(instId)
-      #[
-      else:
-        printWarning &"unregisterInstance: reloading {instData.compName} {instData.id = }"
-      ]#
 
   proc notify(msg: string) =
     if not self.enableNotifications: return

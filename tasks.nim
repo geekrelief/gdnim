@@ -349,7 +349,7 @@ final:
       for dll in gccDlls:
         if not fileExists(&"{dllDir}/{dll}.dll"):
           copyFromDeps = true
-          msg &= &"--- Missing {dllDir}\\{dll}.dll! ---\n\tCopying from {depsDir}\\gcc\\windows\\{dll}.dll\n"
+          msg &= &"\tCopying from {depsDir}\\gcc\\windows\\{dll}.dll to {dllDir}\\{dll}.dll\n"
           copyFile(&"{depsDir}/gcc/windows/{dll}.dll", &"{dllDir}/{dll}.dll")
       if copyFromDeps:
         echo ">>> gcc dlls check <<<"
@@ -767,6 +767,9 @@ task init, "creates a new clean branch from master for a new project, pass in th
 
   execOrQuit(&"git add app/")
   execOrQuit(&"git commit -m \"init {branch_name}\"")
+
+  echo "Running prereqs task"
+  prereqsTask()
 
 
 task cwatch, "Monitors the components folder for changes to recompile.":
