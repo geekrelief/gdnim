@@ -506,9 +506,9 @@ task gencomp, "generate a component template (nim, gdns, gdnlib, tscn files), pa
   echo buildComp(compName, buildSettings)
 
 
-task genlib, "Generates a library, .nim, .nim.cfg and .gdnlib files. Use with genclass so multiple classes share one library":
+task genlib, "Generates a library, .nim, .nim.cfg and .gdnlib files. Use with genclass so multiple classes share one gdnlib. For godot-nim style projects with limited hot reloading.":
   if args.len != 1:
-    echo "Usage: ./build genlib lib_name"
+    echo "Usage: ./build genlib gdnlib_name"
     quit()
 
   var compName = args[0]
@@ -542,7 +542,7 @@ task genlib, "Generates a library, .nim, .nim.cfg and .gdnlib files. Use with ge
     echo &"{gdnlib} already exists"
 
 
-task genclass, "generates a nim and gdns that points to a gdnlib, optionally takes a relative dir inside comps_src to save the file":
+task genclass, "Used with task genlib: Generates a nim and gdns that points to a gdnlib, optionally takes a relative dir inside comps_src to save the file":
   var compName: string
   var baseClassModuleName: string
   var gdnlibName: string
