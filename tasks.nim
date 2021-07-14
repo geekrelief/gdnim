@@ -348,6 +348,7 @@ final:
       var msg = ""
       for dll in gccDlls:
         if not fileExists(&"{dllDir}/{dll}.dll"):
+          createDir dllDir
           copyFromDeps = true
           msg &= &"\tCopying from {depsDir}\\gcc\\windows\\{dll}.dll to {dllDir}\\{dll}.dll\n"
           copyFile(&"{depsDir}/gcc/windows/{dll}.dll", &"{dllDir}/{dll}.dll")
