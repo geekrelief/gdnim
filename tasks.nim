@@ -805,3 +805,4 @@ task help, "display list of tasks":
 
   echo "\nAdditional flags"
   echo "  --ini:build.ini : sets the config file"
+  echo "  --nimcheck : runs nim check: checks for syntax and semantics (no compilation)"

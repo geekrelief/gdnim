@@ -6,6 +6,7 @@ import os, osproc, times, tables, parseopt, strutils, strformat, parsecfg, termi
 #requires "msgpack4nim"
 
 var buildini: string = "build.ini"
+var isNimChecking = false
 
 type
   Task = tuple[task_name: string, description: string, task_proc: proc(): void {.nimcall.}]
@@ -101,6 +102,8 @@ for kind, key, val in p.getopt():
       setFlag("move")
     of "ini":
       buildini = val
+    of "nimcheck":
+      isNimChecking = true
     else:
       setFlag(key, val)
   of cmdArgument:
@@ -270,7 +273,10 @@ proc customizeFormatFlags(projNim: string, sharedFlags: string): string =
 proc execnim(otherFlags: string, sharedFlags: string, outputPath: string, projNim: string): string =
   var flags = customizeFormatFlags(projNim, sharedFlags)
   var projName = splitFile(projNim)[1]
-  execProcess &"nim c {otherFlags} --nimcache:.nimcache/{projName} {flags} --o:{outputPath} {projNim}"
+  if not isNimChecking:
+    execProcess &"nim c {otherFlags} --nimcache:.nimcache/{projName} {flags} --o:{outputPath} {projNim}"
+  else:
+    execProcess &"nim check {otherFlags} --nimcache:.nimcache/{projName} {flags} --o:{outputPath} {projNim}"
 
 include "tasks.nim"
 
