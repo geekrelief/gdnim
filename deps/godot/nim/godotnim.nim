@@ -780,7 +780,7 @@ proc fromVariant*[T](s: var seq[T], val: Variant): ConversionResult =
       let convResult = fromVariant(newS[idx], item)
       if convResult != ConversionResult.OK:
         return convResult
-    shallowCopy(s, newS)
+    s = newS
   else:
     result = ConversionResult.TypeError
 

@@ -1,7 +1,7 @@
-import gdnim, godotapi / [h_box_container, packed_scene, tween, color_picker]
+import gdnim, godotapi / [v_box_container, packed_scene, tween, color_picker]
 import std / strformat
 
-gdnim ColorPalette of HBoxContainer:
+gdnim ColorPalette of VBoxContainer:
 
   var
     colors: seq[Color] = @[

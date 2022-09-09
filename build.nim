@@ -41,7 +41,7 @@ let allCompilerFlagsTable = {
   # cc
   "cc": "--cc:tcc",                                      # doesn't work with threads:on
                                                          # compiles fastest, clean compile output, does not work with threads:on
-  "tcc": "--cc:tcc",
+  "tcc": "--cc:tcc --threads:off",
   # clean compile output, needs gcc dlls, produces large dlls by default, use strip
   "gcc": "--cc:gcc --threads:on --tlsEmulation:off",
   "gcc_strip": "--d:strip",                              # same as "--passL:\"-s\"", # removes debug symbols
@@ -50,10 +50,10 @@ let allCompilerFlagsTable = {
   # smallest dlls, godot uses same compiler, disable warnings, slow, lots of compile artifacts
   "vcc": "--cc:vcc --passC=\"/wd4133\" --threads:on --tlsEmulation:off",
   "clang": "--cc:clang --threads:on --tlsEmulation:off", # default toolchain for android
-                                                         # gc
-  "arc": "--gc:arc",                                     # using arc with async will cause memory leaks, async generates cycles arc cannot collect
-  "orc": "--gc:orc",                                     #crashes with --d:useMalloc, will collect async cycles
-  "refc": "--gc:refc",
+                                                         # mm
+  "arc": "--mm:arc",                                     # using arc with async will cause memory leaks, async generates cycles arc cannot collect
+  "orc": "--mm:orc",                                     #crashes with --d:useMalloc, will collect async cycles
+  "refc": "--mm:refc",
   "useMalloc": "--d:useMalloc",                          # use C memory primitives
                                                          # build_kind
   "danger": "--d:danger --panics:on",
@@ -73,7 +73,7 @@ var taskCompilerFlagsTable = {
   "mute": "--warning[LockLevel]:off --hint[Processing]:off --hint[ConvFromXtoItselfNotNeeded]:off",
   "parallel": "--parallelBuild:0",
   "cc": "--cc:gcc",
-  "gc": "--gc:orc",
+  "mm": "--mm:orc",
   "build_kind": "--d:danger"
 }.toTable
 
@@ -128,8 +128,8 @@ if config.getSectionValue("Compiler", "cc") in ["gcc", "clang"]:
 
   setFlag("gcc_flto", config.getSectionValue("GCC", "flto"))
 
-setFlag("gc", config.getSectionValue("Compiler", "gc"))
-case config.getSectionValue("Compiler", "gc"):
+setFlag("mm", config.getSectionValue("Compiler", "mm"))
+case config.getSectionValue("Compiler", "mm"):
   of "arc", "orc":
     setFlag("useMalloc", config.getSectionValue("Compiler", "useMalloc"))
   else: discard
@@ -181,12 +181,12 @@ proc setFlag(flag: string, val: string) =
         taskCompilerFlagsTable["cc"] = allCompilerFlagsTable[val]
       else:
         configError(&"cc = \"{val}\"", "gcc, vcc, or tcc")
-    of "gc":
+    of "mm":
       if val in ["arc", "orc", "refc"]:
-        taskCompilerFlagsTable.del("gc")
-        taskCompilerFlagsTable["gc"] = allCompilerFlagsTable[val]
+        taskCompilerFlagsTable.del("mm")
+        taskCompilerFlagsTable["mm"] = allCompilerFlagsTable[val]
       else:
-        configError(&"gc = \"{val}\"", "orc, arc, or refc")
+        configError(&"mm = \"{val}\"", "orc, arc, or refc")
     of "nocheck", "nc":
       otherFlagsTable["nocheck"] = "on"
     of "os":

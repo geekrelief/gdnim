@@ -10,5 +10,6 @@
   "nim.project": [],
   "files.exclude": {
     "**/.nimcache/**": true
-  }
+  },
+  "workspace.isHidden": false
 }

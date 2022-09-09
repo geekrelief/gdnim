@@ -2,6 +2,6 @@
 
 [ext_resource path="res://_gdns/color_palette.gdns" type="Script" id=1]
 
-[node name="ColorPalette" type="HBoxContainer"]
+[node name="ColorPalette" type="VBoxContainer"]
 mouse_filter = 2
 script = ExtResource( 1 )

@@ -315,13 +315,13 @@ task genapi, "generate the godot api bindings":
 task prereqs, "Install prerequisites, and calls genapi task":
   let packages = @[
     ("compiler", "compiler"),
-    ("msgpack4nim", "msgpack4nim"),
+    ("msgpack4nim", "https://github.com/jangko/msgpack4nim@#master"),
     ("optionsutils", "https://github.com/PMunch/nim-optionsutils")
   ]
   for (packageName, sourceName) in packages:
     checkPrereq(packageName, sourceName)
 
-  genapiTask()
+  #genapiTask()
 
 proc buildWatcher(): string =
   {.cast(gcsafe).}:
