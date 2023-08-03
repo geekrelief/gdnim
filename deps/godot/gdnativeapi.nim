@@ -53,33 +53,33 @@ type
                                      createFunc: GodotInstanceCreateFunc,
                                      destroyFunc: GodotInstanceDestroyFunc)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     nativeScriptRegisterToolClass: proc (gdnativeHandle: pointer,
                                          name, base: cstring,
                                          createFunc: GodotInstanceCreateFunc,
                                          destroyFunc: GodotInstanceDestroyFunc)
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     nativeScriptRegisterMethod: proc (gdnativeHandle: pointer,
                                       name, functionName: cstring,
                                       attr: GodotMethodAttributes,
                                       meth: GodotInstanceMethod)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     nativeScriptRegisterProperty: proc (gdnativeHandle: pointer,
                                         name, path: cstring,
                                         attr: ptr GodotPropertyAttributes,
                                         setFunc: GodotPropertySetFunc,
                                         getFunc: GodotPropertyGetFunc)
                                        {.noconv, raises: [], gcsafe, tags: [],
-                                         locks: 0.}
+                                         .}
     nativeScriptRegisterSignal: proc (gdnativeHandle: pointer, name: cstring,
                                       signal: GodotSignal)
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     nativeScriptGetUserdata: proc (obj: ptr GodotObject): pointer
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
 
   GDNativeCoreAPI1 = object
     typ: cuint
@@ -90,131 +90,131 @@ type
 
     # Color API
     colorNewRGBA: proc (dest: var Color, r, g, b, a: float32)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     colorNewRGB: proc (dest: var Color, r, g, b: float32)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetR: proc (self: Color): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorSetR: proc (self: var Color, r: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetG: proc (self: Color): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorSetG: proc (self: var Color, g: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetB: proc (self: Color): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorSetB: proc (self: var Color, b: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetA: proc (self: Color): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorSetA: proc (self: var Color, a: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetH: proc (self: Color): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetS: proc (self: Color): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetV: proc (self: Color): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorAsString: proc (self: Color): GodotString
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     colorToRGBA32: proc (self: Color): cint
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     colorAsARGB32: proc (self: Color): cint
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     colorGray: proc (self: Color): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     colorInverted: proc (self: Color): ColorData
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     colorContrasted: proc (self: Color): ColorData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     colorLinearInterpolate: proc (self, other: Color, t: float32): ColorData
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     colorBlend: proc (self, other: Color): ColorData
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     colorToHtml: proc (self: Color, withAlpha: bool): GodotString
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     colorOperatorEqual: proc (self, other: Color): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     colorOperatorLess: proc (self, other: Color): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Vector2 API
     vector2New: proc (dest: var Vector2, x, y: float32)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     vector2AsString: proc (self: Vector2): GodotString
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Normalized: proc (self: Vector2): Vector2Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Length: proc (self: Vector2): float32
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Angle: proc (self: Vector2): float32
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2LengthSquared: proc (self: Vector2): float32
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     vector2IsNormalized: proc (self: Vector2): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     vector2DistanceTo: proc (self, to: Vector2): float32
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     vector2DistanceSquaredTo: proc (self, to: Vector2): float32
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     vector2AngleTo: proc (self, to: Vector2): float32
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2AngleToPoint: proc (self, to: Vector2): float32
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     vector2LinearInterpolate: proc (self, b: Vector2, t: float32): Vector2Data
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     vector2CubicInterpolate: proc (self, b, preA, postB: Vector2,
                                     t: float32): Vector2Data
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     vector2Rotated: proc (self: Vector2, phi: float32): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Tangent: proc (self: Vector2): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Floor: proc (self: Vector2): Vector2Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Snapped: proc (self, by: Vector2): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Aspect: proc (self: Vector2): float32
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Dot: proc (self, other: Vector2): float32
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Slide: proc (self, n: Vector2): Vector2Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Bounce: proc (self, n: Vector2): Vector2Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Reflect: proc (self, n: Vector2): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Abs: proc (self: Vector2): Vector2Data
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Clamped: proc (self: Vector2, length: float32): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2OperatorAdd: proc (self, other: Vector2): Vector2Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     vector2OperatorSubtract: proc (self, other: Vector2): Vector2Data
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     vector2OperatorMultiplyVector: proc (self, other: Vector2): Vector2Data
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     vector2OperatorMultiplyScalar: proc (self: Vector2, scalar: float32): Vector2Data
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     vector2OperatorDivideVector: proc (self, other: Vector2): Vector2Data
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     vector2OperatorDivideScalar: proc (self: Vector2, scalar: float32): Vector2Data
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     vector2OperatorEqual: proc (self, other: Vector2): bool
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     vector2OperatorLess: proc (self, other: Vector2): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     vector2OperatorNeg: proc (self: Vector2): Vector2Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     vector2SetX: pointer
     vector2SetY: pointer
     vector2GetX: pointer
@@ -222,60 +222,60 @@ type
 
     # Quat API
     quatNew: proc (dest: var Quat, x, y, z, w: float32)
-                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                  {.noconv, raises: [], gcsafe, tags: [], .}
     quatNewWithAxisAngle: proc (dest: Quat, axis: Vector3,
                                 angle: float32)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     quatGetX: proc (self: Quat): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSetX: proc (self: var Quat, val: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatGetY: proc (self: Quat): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSetY: proc (self: var Quat, val: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatGetZ: proc (self: Quat): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSetZ: proc (self: var Quat, val: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatGetW: proc (self: Quat): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSetW: proc (self: var Quat, val: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatAsString: proc (self: Quat): GodotString
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     quatLength: proc (self: Quat): float32
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     quatLengthSquared: proc (self: Quat): float32
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     quatNormalized: proc (self: Quat): QuatData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     quatIsNormalized: proc (self: Quat): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     quatInverse: proc (self: Quat): QuatData
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     quatDot: proc (self, other: Quat): float32
-                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                  {.noconv, raises: [], gcsafe, tags: [], .}
     quatXform: proc (self: Quat, v: Vector3): Vector3Data
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSlerp: proc (self, other: Quat, t: float32): QuatData
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSlerpni: proc (self, other: Quat, t: float32): QuatData
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     quatCubicSlerp: proc (self, other, preA, postB: Quat, t: float32): QuatData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorMultiply: proc (self: Quat, b: float32): QuatData
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorAdd: proc (self, other: Quat): QuatData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorSubtract: proc (self, other: Quat): QuatData
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorDivide: proc (self: Quat, divider: float32): QuatData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorEqual: proc (self, other: Quat): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorNeg: proc (self: Quat): QuatData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Basis API
     basisNewWithRows: pointer
@@ -350,1070 +350,1070 @@ type
 
     # PoolByteArray API
     poolByteArrayNew: proc (dest: var GodotPoolByteArray)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayNewCopy: proc (dest: var GodotPoolByteArray,
                                 src: GodotPoolByteArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayNewWithArray: proc (dest: var GodotPoolByteArray,
                                       src: GodotArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolByteArrayAppend: proc (self: var GodotPoolByteArray,
                                 val: byte)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayAppendArray: proc (self: var GodotPoolByteArray,
                                     arr: GodotPoolByteArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolByteArrayInsert: proc (self: var GodotPoolByteArray,
                                 idx: cint, val: byte): Error
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayInvert: proc (self: var GodotPoolByteArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayPushBack: proc (self: var GodotPoolByteArray, val: byte)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     poolByteArrayRemove: proc (self: var GodotPoolByteArray, idx: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayResize: proc (self: var GodotPoolByteArray, size: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayRead: proc (self: GodotPoolByteArray): ptr GodotPoolByteArrayReadAccess
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayWrite: proc (self: var GodotPoolByteArray): ptr GodotPoolByteArrayWriteAccess
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArraySet: proc (self: var GodotPoolByteArray, idx: cint, data: byte)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayGet: proc (self: GodotPoolByteArray, idx: cint): byte
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArraySize: proc (self: GodotPoolByteArray): cint
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayDestroy: proc (self: GodotPoolByteArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
 
     # PoolIntArray API
     poolIntArrayNew: proc (dest: var GodotPoolIntArray)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayNewCopy: proc (dest: var GodotPoolIntArray,
                                 src: GodotPoolIntArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayNewWithArray: proc (dest: var GodotPoolIntArray, src: GodotArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolIntArrayAppend: proc (self: var GodotPoolIntArray, val: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayAppendArray: proc (self: var GodotPoolIntArray,
                                     arr: GodotPoolIntArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolIntArrayInsert: proc (self: var GodotPoolIntArray, idx: cint,
                               val: cint): Error
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayInvert: proc (self: var GodotPoolIntArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayPushBack: proc (self: var GodotPoolIntArray, val: cint)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayRemove: proc (self: var GodotPoolIntArray, idx: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayResize: proc (self: var GodotPoolIntArray, size: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayRead: proc (self: GodotPoolIntArray): ptr GodotPoolIntArrayReadAccess
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayWrite: proc (self: var GodotPoolIntArray): ptr GodotPoolIntArrayWriteAccess
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArraySet: proc (self: var GodotPoolIntArray, idx: cint, data: cint)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayGet: proc (self: GodotPoolIntArray, idx: cint): cint
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArraySize: proc (self: GodotPoolIntArray): cint
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayDestroy: proc (self: GodotPoolIntArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
 
     # PoolRealArray API
     poolRealArrayNew: proc (dest: var GodotPoolRealArray)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayNewCopy: proc (dest: var GodotPoolRealArray,
                                 src: GodotPoolRealArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayNewWithArray: proc (dest: var GodotPoolRealArray,
                                       src: GodotArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolRealArrayAppend: proc (self: var GodotPoolRealArray, val: float32)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayAppendArray: proc (self: var GodotPoolRealArray,
                                     arr: GodotPoolRealArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolRealArrayInsert: proc (self: var GodotPoolRealArray,
                                 idx: cint, val: float32): Error
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayInvert: proc (self: var GodotPoolRealArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayPushBack: proc (self: var GodotPoolRealArray, val: float32)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     poolRealArrayRemove: proc (self: var GodotPoolRealArray, idx: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayResize: proc (self: var GodotPoolRealArray, size: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayRead: proc (self: GodotPoolRealArray): ptr GodotPoolRealArrayReadAccess
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayWrite: proc (self: var GodotPoolRealArray): ptr GodotPoolRealArrayWriteAccess
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArraySet: proc (self: var GodotPoolRealArray, idx: cint,
                             data: float32)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayGet: proc (self: GodotPoolRealArray, idx: cint): float32
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArraySize: proc (self: GodotPoolRealArray): cint
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayDestroy: proc (self: GodotPoolRealArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
 
     # PoolStringArray API
     poolStringArrayNew: proc (dest: var GodotPoolStringArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayNewCopy: proc (dest: var GodotPoolStringArray,
                                   src: GodotPoolStringArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolStringArrayNewWithArray: proc (dest: var GodotPoolStringArray,
                                         src: GodotArray)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     poolStringArrayAppend: proc (self: var GodotPoolStringArray,
                                   val: GodotString)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     poolStringArrayAppendArray: proc (self: var GodotPoolStringArray,
                                       arr: GodotPoolStringArray)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     poolStringArrayInsert: proc (self: var GodotPoolStringArray,
                                   idx: cint, val: GodotString): Error
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     poolStringArrayInvert: proc (self: var GodotPoolStringArray)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     poolStringArrayPushBack: proc (self: var GodotPoolStringArray,
                                     val: GodotString)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolStringArrayRemove: proc (self: var GodotPoolStringArray, idx: cint)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     poolStringArrayResize: proc (self: var GodotPoolStringArray, size: cint)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     poolStringArrayRead: proc (self: GodotPoolStringArray): ptr GodotPoolStringArrayReadAccess
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayWrite: proc (self: var GodotPoolStringArray): ptr GodotPoolStringArrayWriteAccess
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArraySet: proc (self: var GodotPoolStringArray, idx: cint,
                               data: GodotString)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayGet: proc (self: GodotPoolStringArray, idx: cint): GodotString
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArraySize: proc (self: GodotPoolStringArray): cint
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayDestroy: proc (self: GodotPoolStringArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
 
     # PoolVector2 API
     poolVector2ArrayNew: proc (dest: var GodotPoolVector2Array)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayNewCopy: proc (dest: var GodotPoolVector2Array,
                                     src: GodotPoolVector2Array)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayNewWithArray: proc (dest: var GodotPoolVector2Array,
                                         src: GodotArray)
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     poolVector2ArrayAppend: proc (self: var GodotPoolVector2Array, val: Vector2)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayAppendArray: proc (self: var GodotPoolVector2Array,
                                         arr: GodotPoolVector2Array)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     poolVector2ArrayInsert: proc (self: var GodotPoolVector2Array, idx: cint,
                                   val: Vector2): Error
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayInvert: proc (self: var GodotPoolVector2Array)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayPushBack: proc (self: var GodotPoolVector2Array,
                                     val: Vector2)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolVector2ArrayRemove: proc (self: var GodotPoolVector2Array, idx: cint)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayResize: proc (self: var GodotPoolVector2Array, size: cint)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayRead: proc (self: GodotPoolVector2Array): ptr GodotPoolVector2ArrayReadAccess
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayWrite: proc (self: var GodotPoolVector2Array): ptr GodotPoolVector2ArrayWriteAccess
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArraySet: proc (self: var GodotPoolVector2Array, idx: cint,
                                 data: Vector2)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayGet: proc (self: GodotPoolVector2Array, idx: cint): Vector2Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArraySize: proc (self: GodotPoolVector2Array): cint
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayDestroy: proc (self: GodotPoolVector2Array)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
 
     # PoolVector3 API
     poolVector3ArrayNew: proc (dest: var GodotPoolVector3Array)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayNewCopy: proc (dest: var GodotPoolVector3Array,
                                     src: GodotPoolVector3Array)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector3ArrayNewWithArray: proc (dest: var GodotPoolVector3Array,
                                         src: GodotArray)
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     poolVector3ArrayAppend: proc (self: var GodotPoolVector3Array, val: Vector3)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector3ArrayAppendArray: proc (self: var GodotPoolVector3Array,
                                         arr: GodotPoolVector3Array)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     poolVector3ArrayInsert: proc (self: var GodotPoolVector3Array, idx: cint,
                                   val: Vector3): Error
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector3ArrayInvert: proc (self: var GodotPoolVector3Array)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector3ArrayPushBack: proc (self: var GodotPoolVector3Array,
                                     val: Vector3) {.noconv, raises: [], gcsafe,
-                                                    tags: [], locks: 0.}
+                                                    tags: [], .}
     poolVector3ArrayRemove: proc (self: var GodotPoolVector3Array,
                                   idx: cint) {.noconv, raises: [], gcsafe,
-                                                tags: [], locks: 0.}
+                                                tags: [], .}
     poolVector3ArrayResize: proc (self: var GodotPoolVector3Array,
                                   size: cint) {.noconv, raises: [], gcsafe,
-                                                tags: [], locks: 0.}
+                                                tags: [], .}
     poolVector3ArrayRead: proc (self: GodotPoolVector3Array): ptr GodotPoolVector3ArrayReadAccess
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayWrite: proc (self: var GodotPoolVector3Array): ptr GodotPoolVector3ArrayWriteAccess
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArraySet: proc (self: var GodotPoolVector3Array, idx: cint,
                                 data: Vector3) {.noconv, raises: [], gcsafe,
-                                                tags: [], locks: 0.}
+                                                tags: [], .}
     poolVector3ArrayGet: proc (self: GodotPoolVector3Array, idx: cint): Vector3Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArraySize: proc (self: GodotPoolVector3Array): cint
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayDestroy: proc (self: GodotPoolVector3Array)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
 
     # PoolColorArray API
     poolColorArrayNew: proc (dest: var GodotPoolColorArray)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayNewCopy: proc (dest: var GodotPoolColorArray,
                                   src: GodotPoolColorArray)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     poolColorArrayNewWithArray: proc (dest: var GodotPoolColorArray,
                                       src: GodotArray)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     poolColorArrayAppend: proc (self: var GodotPoolColorArray,
                                 val: Color)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayAppendArray: proc (self: var GodotPoolColorArray,
                                       arr: GodotPoolColorArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolColorArrayInsert: proc (self: var GodotPoolColorArray,
                                 idx: cint, val: Color): Error
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayInvert: proc (self: var GodotPoolColorArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayPushBack: proc (self: var GodotPoolColorArray, val: Color)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolColorArrayRemove: proc (self: var GodotPoolColorArray, idx: cint)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayResize: proc (self: var GodotPoolColorArray, size: cint)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayRead: proc (self: GodotPoolColorArray): ptr GodotPoolColorArrayReadAccess
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayWrite: proc (self: var GodotPoolColorArray): ptr GodotPoolColorArrayWriteAccess
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArraySet: proc (self: var GodotPoolColorArray, idx: cint,
                               data: Color)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayGet: proc (self: GodotPoolColorArray, idx: cint): ColorData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArraySize: proc (self: GodotPoolColorArray): cint
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayDestroy: proc (self: GodotPoolColorArray)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
 
     # Pool Array Read/Write Access API
 
     poolByteArrayReadAccessCopy: proc (self: ptr GodotPoolByteArrayReadAccess): ptr GodotPoolByteArrayReadAccess
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayReadAccessPtr: proc (self: ptr GodotPoolByteArrayReadAccess): ptr byte
-                                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                     {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayReadAccessOperatorAssign: proc (self, other: ptr GodotPoolByteArrayReadAccess)
-                                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayReadAccessDestroy: proc (self: ptr GodotPoolByteArrayReadAccess)
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolIntArrayReadAccessCopy: proc (self: ptr GodotPoolIntArrayReadAccess): ptr GodotPoolIntArrayReadAccess
-                                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                     {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayReadAccessPtr: proc (self: ptr GodotPoolIntArrayReadAccess): ptr cint
-                                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                    {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayReadAccessOperatorAssign: proc (self, other: ptr GodotPoolIntArrayReadAccess)
-                                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayReadAccessDestroy: proc (self: ptr GodotPoolIntArrayReadAccess)
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolRealArrayReadAccessCopy: proc (self: ptr GodotPoolRealArrayReadAccess): ptr GodotPoolRealArrayReadAccess
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayReadAccessPtr: proc (self: ptr GodotPoolRealArrayReadAccess): ptr float32
-                                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                     {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayReadAccessOperatorAssign: proc (self, other: ptr GodotPoolRealArrayReadAccess)
-                                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayReadAccessDestroy: proc (self: ptr GodotPoolRealArrayReadAccess)
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolStringArrayReadAccessCopy: proc (self: ptr GodotPoolStringArrayReadAccess): ptr GodotPoolStringArrayReadAccess
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayReadAccessPtr: proc (self: ptr GodotPoolStringArrayReadAccess): ptr GodotString
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayReadAccessOperatorAssign: proc (self, other: ptr GodotPoolStringArrayReadAccess)
-                                                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                  {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayReadAccessDestroy: proc (self: ptr GodotPoolStringArrayReadAccess)
-                                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                           {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolVector2ArrayReadAccessCopy: proc (self: ptr GodotPoolVector2ArrayReadAccess): ptr GodotPoolVector2ArrayReadAccess
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayReadAccessPtr: proc (self: ptr GodotPoolVector2ArrayReadAccess): ptr Vector2
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayReadAccessOperatorAssign: proc (self, other: ptr GodotPoolVector2ArrayReadAccess)
-                                                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                   {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayReadAccessDestroy: proc (self: ptr GodotPoolVector2ArrayReadAccess)
-                                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                            {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolVector3ArrayReadAccessCopy: proc (self: ptr GodotPoolVector3ArrayReadAccess): ptr GodotPoolVector3ArrayReadAccess
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayReadAccessPtr: proc (self: ptr GodotPoolVector3ArrayReadAccess): ptr Vector3
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayReadAccessOperatorAssign: proc (self, other: ptr GodotPoolVector3ArrayReadAccess)
-                                                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                   {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayReadAccessDestroy: proc (self: ptr GodotPoolVector3ArrayReadAccess)
-                                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                            {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolColorArrayReadAccessCopy: proc (self: ptr GodotPoolColorArrayReadAccess): ptr GodotPoolColorArrayReadAccess
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayReadAccessPtr: proc (self: ptr GodotPoolColorArrayReadAccess): ptr Color
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayReadAccessOperatorAssign: proc (self, other: ptr GodotPoolColorArrayReadAccess)
-                                                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                 {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayReadAccessDestroy: proc (self: ptr GodotPoolColorArrayReadAccess)
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolByteArrayWriteAccessCopy: proc (self: ptr GodotPoolByteArrayWriteAccess): ptr GodotPoolByteArrayWriteAccess
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayWriteAccessPtr: proc (self: ptr GodotPoolByteArrayWriteAccess): ptr byte
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayWriteAccessOperatorAssign: proc (self, other: ptr GodotPoolByteArrayWriteAccess)
-                                                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                 {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayWriteAccessDestroy: proc (self: ptr GodotPoolByteArrayWriteAccess)
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolIntArrayWriteAccessCopy: proc (self: ptr GodotPoolIntArrayWriteAccess): ptr GodotPoolIntArrayWriteAccess
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayWriteAccessPtr: proc (self: ptr GodotPoolIntArrayWriteAccess): ptr cint
-                                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                     {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayWriteAccessOperatorAssign: proc (self, other: ptr GodotPoolIntArrayWriteAccess)
-                                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayWriteAccessDestroy: proc (self: ptr GodotPoolIntArrayWriteAccess)
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolRealArrayWriteAccessCopy: proc (self: ptr GodotPoolRealArrayWriteAccess): ptr GodotPoolRealArrayWriteAccess
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayWriteAccessPtr: proc (self: ptr GodotPoolRealArrayWriteAccess): ptr float32
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayWriteAccessOperatorAssign: proc (self, other: ptr GodotPoolRealArrayWriteAccess)
-                                                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                 {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayWriteAccessDestroy: proc (self: ptr GodotPoolRealArrayWriteAccess)
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolStringArrayWriteAccessCopy: proc (self: ptr GodotPoolStringArrayWriteAccess): ptr GodotPoolStringArrayWriteAccess
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayWriteAccessPtr: proc (self: ptr GodotPoolStringArrayWriteAccess): ptr GodotString
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayWriteAccessOperatorAssign: proc (self, other: ptr GodotPoolStringArrayWriteAccess)
-                                                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                   {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayWriteAccessDestroy: proc (self: ptr GodotPoolStringArrayWriteAccess)
-                                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                            {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolVector2ArrayWriteAccessCopy: proc (self: ptr GodotPoolVector2ArrayWriteAccess): ptr GodotPoolVector2ArrayWriteAccess
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayWriteAccessPtr: proc (self: ptr GodotPoolVector2ArrayWriteAccess): ptr Vector2
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayWriteAccessOperatorAssign: proc (self, other: ptr GodotPoolVector2ArrayWriteAccess)
-                                                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                    {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayWriteAccessDestroy: proc (self: ptr GodotPoolVector2ArrayWriteAccess)
-                                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                             {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolVector3ArrayWriteAccessCopy: proc (self: ptr GodotPoolVector3ArrayWriteAccess): ptr GodotPoolVector3ArrayWriteAccess
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayWriteAccessPtr: proc (self: ptr GodotPoolVector3ArrayWriteAccess): ptr Vector3
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayWriteAccessOperatorAssign: proc (self, other: ptr GodotPoolVector3ArrayWriteAccess)
-                                                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                    {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayWriteAccessDestroy: proc (self: ptr GodotPoolVector3ArrayWriteAccess)
-                                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                             {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolColorArrayWriteAccessCopy: proc (self: ptr GodotPoolColorArrayWriteAccess): ptr GodotPoolColorArrayWriteAccess
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayWriteAccessPtr: proc (self: ptr GodotPoolColorArrayWriteAccess): ptr Color
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayWriteAccessOperatorAssign: proc (self, other: ptr GodotPoolColorArrayWriteAccess)
-                                                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                  {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayWriteAccessDestroy: proc (self: ptr GodotPoolColorArrayWriteAccess)
-                                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                           {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Array API
     arrayNew: proc (dest: var GodotArray)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayNewCopy: proc (dest: var GodotArray, src: GodotArray)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     arrayNewPoolColorArray: proc (dest: var GodotArray, src: GodotPoolColorArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     arrayNewPoolVector3Array: proc (dest: var GodotArray,
                                     src: GodotPoolVector3Array)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     arrayNewPoolVector2Array: proc (dest: var GodotArray,
                                     src: GodotPoolVector2Array)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     arrayNewPoolStringArray: proc (dest: var GodotArray,
                                     src: GodotPoolStringArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     arrayNewPoolRealArray: proc (dest: var GodotArray, src: GodotPoolRealArray)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     arrayNewPoolIntArray: proc (dest: var GodotArray, src: GodotPoolIntArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     arrayNewPoolByteArray: proc (dest: var GodotArray, src: GodotPoolByteArray)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     arraySet: proc (self: var GodotArray, idx: cint, val: GodotVariant)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayGet: proc (self: GodotArray, idx: cint): GodotVariant
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayOperatorIndex: proc (self: var GodotArray, idx: cint): ptr GodotVariant
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     arrayOperatorIndexConst: pointer
     arrayAppend: proc (self: var GodotArray, val: GodotVariant)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayClear: proc (self: var GodotArray)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayCount: proc (self: GodotArray, val: GodotVariant): cint
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayEmpty: proc (self: GodotArray): bool
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayErase: proc (self: var GodotArray, val: GodotVariant)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayFront: proc (self: GodotArray): GodotVariant
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayBack: proc (self: GodotArray): GodotVariant
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayFind: proc (self: GodotArray, what: GodotVariant, fromIdx: cint): cint
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayFindLast: proc (self: GodotArray, what: GodotVariant): cint
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     arrayHas: proc (self: GodotArray, val: GodotVariant): bool
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayHash: proc (self: GodotArray): cint
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayInsert: proc (self: var GodotArray, pos: cint, val: GodotVariant): Error
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayInvert: proc (self: var GodotArray)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayPopBack: proc (self: GodotArray): GodotVariant
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     arrayPopFront: proc (self: GodotArray): GodotVariant
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     arrayPushBack: proc (self: var GodotArray, val: GodotVariant)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     arrayPushFront: proc (self: var GodotArray, val: GodotVariant)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     arrayRemove: proc (self: var GodotArray, idx: cint)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayResize: proc (self: var GodotArray, size: cint)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayRFind: proc (self: GodotArray, what: GodotVariant, fromIdx: cint): cint
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arraySize: proc (self: GodotArray): cint
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arraySort: proc (self: var GodotArray)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arraySortCustom: proc (self: var GodotArray, obj: ptr GodotObject,
                             f: GodotString)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     arrayBSearch: proc (self: var GodotArray, val: ptr GodotVariant,
                         before: bool)
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     arrayBSearchCustom: proc (self: var GodotArray, val: ptr GodotVariant,
                               obj: ptr GodotObject, f: GodotString,
                               before: bool)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     arrayDestroy: proc (self: var GodotArray)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Dictionary API
     dictionaryNew: proc (dest: var GodotDictionary)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryNewCopy: proc (dest: var GodotDictionary, src: GodotDictionary)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryDestroy: proc (self: var GodotDictionary)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     dictionarySize: proc (self: GodotDictionary): cint
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryEmpty: proc (self: GodotDictionary): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryClear: proc (self: var GodotDictionary)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryHas: proc (self: GodotDictionary, key: GodotVariant): bool
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryHasAll: proc (self: GodotDictionary, keys: GodotArray): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryErase: proc (self: var GodotDictionary, key: GodotVariant)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryHash: proc (self: GodotDictionary): cint
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryKeys: proc (self: GodotDictionary): GodotArray
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryValues: proc (self: GodotDictionary): GodotArray
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryGet: proc (self: GodotDictionary, key: GodotVariant): GodotVariant
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     dictionarySet: proc (self: var GodotDictionary, key, value: GodotVariant)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryOperatorIndex: proc (self: var GodotDictionary,
                                    key: GodotVariant): ptr GodotVariant
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     dictionaryOperatorIndexConst: pointer
     dictionaryNext: proc (self: GodotDictionary,
                           key: GodotVariant): ptr GodotVariant
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryOperatorEqual: proc (self, other: GodotDictionary): bool
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     dictionaryToJson: proc (self: GodotDictionary): GodotString
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
 
     # NodePath API
     nodePathNew: proc (dest: var GodotNodePath, src: GodotString)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathNewCopy: proc (dest: var GodotNodePath, src: GodotNodePath)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathDestroy: proc (self: var GodotNodePath)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathAsString: proc (self: GodotNodePath): GodotString
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathIsAbsolute: proc (self: GodotNodePath): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathGetNameCount: proc (self: GodotNodePath): cint
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathGetName: proc (self: GodotNodePath, idx: cint): GodotString
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathGetSubnameCount: proc (self: GodotNodePath): cint
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     nodePathGetSubname: proc (self: GodotNodePath, idx: cint): GodotString
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathGetConcatenatedSubnames: proc (self: GodotNodePath): GodotString
                                           {.noconv, raises: [], gcsafe,
-                                            tags: [], locks: 0.}
+                                            tags: [], .}
     nodePathIsEmpty: proc (self: GodotNodePath): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathOperatorEqual: proc (self, other: GodotNodePath): bool
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
 
     # Plane API
     planeNewWithReals: proc (dest: var Plane, a, b, c, d: float32)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     planeNewWithVectors: proc (dest: var Plane, v1, v2, v3: Vector3)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     planeNewWithNormal: proc (dest: var Plane, normal: Vector3, d: float32)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     planeAsString: proc (self: Plane): GodotString
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     planeNormalized: proc (self: Plane): PlaneData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     planeCenter: proc (self: Plane): Vector3Data
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     planeGetAnyPoint: proc (self: Plane): Vector3Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     planeIsPointOver: proc (self: Plane, point: Vector3): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     planeDistanceTo: proc (self: Plane, point: Vector3): float32
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     planeHasPoint: proc (self: Plane, point: Vector3, epsilon: float32): bool
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     planeProject: proc (self: Plane, point: Vector3): Vector3Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     planeIntersect3: proc (self: Plane, dest: var Vector3, b, c: Plane): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     planeIntersectsRay: proc (self: Plane, dest: var Vector3,
                               point, dir: Vector3): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     planeIntersectsSegment: proc (self: Plane, dest: var Vector3,
                                   segmentBegin, segmentEnd: Vector3): bool
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     planeOperatorNeg: proc (self: Plane): PlaneData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     planeOperatorEqual: proc (self, other: Plane): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     planeSetNormal: proc (self: var Plane, normal: Vector3)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     planeGetNormal: proc (self: Plane): Vector3Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     planeGetD: proc (self: Plane): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     planeSetD: proc (self: var Plane, d: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Rect2 API
     rect2NewWithPositionAndSize: proc (dest: var Rect2, pos, size: Vector2)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     rect2New: proc (dest: var Rect2, x, y, width, height: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     rect2AsString: proc (self: Rect2): GodotString
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     rect2GetArea: proc (self: Rect2): float32
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Intersects: proc (self, other: Rect2): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Encloses: proc (self, other: Rect2): bool
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     rect2HasNoArea: proc (self: Rect2): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Clip: proc (self, other: Rect2): Rect2Data
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Merge: proc (self, other: Rect2): Rect2Data
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     rect2HasPoint: proc (self: Rect2, point: Vector2): bool
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Grow: proc (self: Rect2, by: float32): Rect2Data
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Expand: proc (self: Rect2, to: Vector2): Rect2Data
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     rect2OperatorEqual: proc (self, other: Rect2): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     rect2GetPosition: proc (self: Rect2): Vector2Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     rect2GetSize: proc (self: Rect2): Vector2Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     rect2SetPosition: proc (self: var Rect2, pos: Vector2)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     rect2SetSize: proc (self: var Rect2, size: Vector2)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
 
     # AABB API
     aabbNew: proc (dest: var AABB, pos, size: Vector3)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetPosition: proc (self: AABB): Vector3Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     aabbSetPosition: proc (self: var AABB, pos: Vector3)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetSize: proc (self: AABB): Vector3Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbSetSize: proc (self: var AABB, pos: Vector3)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbAsString: proc (self: AABB): GodotString
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetArea: proc (self: AABB): float32
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbHasNoArea: proc (self: AABB): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     aabbHasNoSurface: proc (self: AABB): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     aabbIntersects: proc (self, other: AABB): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     aabbEncloses: proc (self, other: AABB): bool
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbMerge: proc (self, other: AABB): AABBData
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     aabbIntersection: proc (self, other: AABB): AABBData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     aabbIntersectsPlane: proc (self: AABB, plane: Plane): bool
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     aabbIntersectsSegment: proc (self: AABB, vFrom, vTo: Vector3): bool
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     aabbHasPoint: proc (self: AABB, point: Vector3): bool
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetSupport: proc (self: AABB, dir: Vector3): Vector3Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetLongestAxis: proc (self: AABB): Vector3Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetLongestAxisIndex: proc (self: AABB): cint
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     aabbGetLongestAxisSize: proc (self: AABB): float32
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     aabbGetShortestAxis: proc (self: AABB): Vector3Data
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetShortestAxisIndex: proc (self: AABB): cint
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     aabbGetShortestAxisSize: proc (self: AABB): float32
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     aabbExpand: proc (self: AABB, toPoint: Vector3): AABBData
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGrow: proc (self: AABB, by: float32): AABBData
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetEndpoint: proc (self: AABB, idx: cint): Vector3Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     aabbOperatorEqual: proc (self, other: AABB): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
 
     # RID API
     ridNew: proc (dest: var RID)
-                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                  {.noconv, raises: [], gcsafe, tags: [], .}
     ridGetID: proc (self: RID): cint
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     ridNewWithResource: proc (dest: var RID, obj: ptr GodotObject)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     ridOperatorEqual: proc (self, other: RID): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     ridOperatorLess: proc (self, other: RID): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Transform API
     transformNewWithAxisOrigin: proc (dest: var Transform,
                                       xAxis, yAxis, zAxis, origin: Vector3)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transformNew: proc (dest: var Transform, basis: Basis, origin: Vector3)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     transformGetBasis: proc (self: Transform): BasisData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformSetBasis: proc (self: var Transform, basis: Basis)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformGetOrigin: proc (self: Transform): Vector3Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformSetOrigin: proc (self: var Transform, v: Vector3)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformAsString: proc (self: Transform): GodotString
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformInverse: proc (self: Transform): TransformData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformAffineInverse: proc (self: Transform): TransformData
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transformOrthonormalized: proc (self: Transform): TransformData
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transformRotated: proc (self: Transform, axis: Vector3,
                             phi: float32): TransformData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformScaled: proc (self: Transform, scale: Vector3): TransformData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     transformTranslated: proc (self: Transform, offset: Vector3): TransformData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformLookingAt: proc (self: Transform, target, up: Vector3): TransformData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformXformPlane: proc (self: Transform, plane: Plane): PlaneData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformXformInvPlane: proc (self: Transform, plane: Plane): PlaneData
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transformNewIdentity: proc (dest: var Transform)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     transformOperatorEqual: proc (self, other: Transform): bool
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transformOperatorMultiply: proc (self, other: Transform): TransformData
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transformXformVector3: proc (self: Transform, v: Vector3): Vector3Data
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     transformXformInvVector3: proc (self: Transform, v: Vector3): Vector3Data
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transformXformAABB: proc (self: Transform, v: AABB): AABBData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformXformInvAABB: proc (self: Transform, v: AABB): AABBData
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
 
     # Transform2D API
     transform2DNew: proc (dest: var Transform2D, rot: float32, pos: Vector2)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DNewAxisOrigin: proc (dest: var Transform2D,
                                     xAxis, yAxis, origin: Vector2)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transform2DAsString: proc (self: Transform2D): GodotString
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DInverse: proc (self: Transform2D): Transform2DData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DAffineInverse: proc (self: Transform2D): Transform2DData
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transform2DGetRotation: proc (self: Transform2D): float32
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transform2DGetOrigin: proc (self: Transform2D): Vector2Data
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DGetScale: proc (self: Transform2D): Vector2Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DOrthonormalized: proc (self: Transform2D): Transform2DData
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transform2DRotated: proc (self: Transform2D, phi: float32): Transform2DData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DScaled: proc (self: Transform2D, scale: Vector2): Transform2DData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DTranslated: proc (self: Transform2D, offset: Vector2): Transform2DData
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     transform2DXformVector2: proc (self: Transform2D, v: Vector2): Vector2Data
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transform2DXformInvVector2: proc (self: Transform2D, v: Vector2): Vector2Data
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transform2DBasisXformVector2: proc (self: Transform2D, v: Vector2): Vector2Data
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     transform2DBasisXformInvVector2: proc (self: Transform2D,
                                             v: Vector2): Vector2Data
                                           {.noconv, raises: [], gcsafe, tags: [],
-                                            locks: 0.}
+                                            .}
     transform2DInterpolateWith: proc (self, other: Transform2D,
                                       t: float32): Transform2DData
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transform2DOperatorEqual: proc (self, other: Transform2D): bool
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transform2DOperatorMultiply: proc (self, other: Transform2D): Transform2DData
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transform2DNewIdentity: proc (dest: var Transform2D)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transform2DXformRect2: proc (self: Transform2D, v: Rect2): Rect2Data
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     transform2DXformInvRect2: proc (self: Transform2D, v: Rect2): Rect2Data
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
 
     # Variant API
     variantGetType: proc (v: GodotVariant): VariantType
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewCopy: proc (dest: var GodotVariant, src: GodotVariant)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewNil: proc (dest: var GodotVariant)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewBool: proc (dest: var GodotVariant, val: bool)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewUInt: proc (dest: var GodotVariant, val: uint64)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewInt: proc (dest: var GodotVariant, val: int64)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewReal: proc (dest: var GodotVariant, val: float64)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewString: proc (dest: var GodotVariant, val: GodotString)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewVector2: proc (dest: var GodotVariant, val: Vector2)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewRect2: proc (dest: var GodotVariant, val: Rect2)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewVector3: proc (dest: var GodotVariant, val: Vector3)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewTransform2D: proc (dest: var GodotVariant, val: Transform2D)
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     variantNewPlane: proc (dest: var GodotVariant, val: Plane)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewQuat: proc (dest: var GodotVariant, val: Quat)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewAABB: proc (dest: var GodotVariant, val: AABB)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewBasis: proc (dest: var GodotVariant, val: Basis)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewTransform: proc (dest: var GodotVariant, val: Transform)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewColor: proc (dest: var GodotVariant, val: Color)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewNodePath: proc (dest: var GodotVariant, val: GodotNodePath)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewRID: proc (dest: var GodotVariant, val: RID)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewObject: proc (dest: var GodotVariant, val: ptr GodotObject)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewDictionary: proc (dest: var GodotVariant, val: GodotDictionary)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewArray: proc (dest: var GodotVariant, val: GodotArray)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewPoolByteArray: proc (dest: var GodotVariant,
                                     val: GodotPoolByteArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantNewPoolIntArray: proc (dest: var GodotVariant, val: GodotPoolIntArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantNewPoolRealArray: proc (dest: var GodotVariant,
                                     val: GodotPoolRealArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantNewPoolStringArray: proc (dest: var GodotVariant,
                                       val: GodotPoolStringArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     variantNewPoolVector2Array: proc (dest: var GodotVariant,
                                       val: GodotPoolVector2Array)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     variantNewPoolVector3Array: proc (dest: var GodotVariant,
                                       val: GodotPoolVector3Array)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     variantNewPoolColorArray: proc (dest: var GodotVariant,
                                     val: GodotPoolColorArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     variantAsBool: proc (self: GodotVariant): bool
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsUInt: proc (self: GodotVariant): uint64
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsInt: proc (self: GodotVariant): int64
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsReal: proc (self: GodotVariant): float64
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsString: proc (self: GodotVariant): GodotString
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsVector2: proc (self: GodotVariant): Vector2Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsRect2: proc (self: GodotVariant): Rect2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsVector3: proc (self: GodotVariant): Vector3Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsTransform2D: proc (self: GodotVariant): Transform2DData
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsPlane: proc (self: GodotVariant): PlaneData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsQuat: proc (self: GodotVariant): QuatData
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsAABB: proc (self: GodotVariant): AABBData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsBasis: proc (self: GodotVariant): BasisData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsTransform: proc (self: GodotVariant): TransformData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsColor: proc (self: GodotVariant): ColorData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsNodePath: proc (self: GodotVariant): GodotNodePath
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsRID: proc (self: GodotVariant): RID
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsObject: proc (self: GodotVariant): ptr GodotObject
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsDictionary: proc (self: GodotVariant): GodotDictionary
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsArray: proc (self: GodotVariant): GodotArray
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsPoolByteArray: proc (self: GodotVariant): GodotPoolByteArray
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantAsPoolIntArray: proc (self: GodotVariant): GodotPoolIntArray
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     variantAsPoolRealArray: proc (self: GodotVariant): GodotPoolRealArray
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantAsPoolStringArray: proc (self: GodotVariant): GodotPoolStringArray
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     variantAsPoolVector2Array: proc (self: GodotVariant): GodotPoolVector2Array
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     variantAsPoolVector3Array: proc (self: GodotVariant): GodotPoolVector3Array
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     variantAsPoolColorArray: proc (self: GodotVariant): GodotPoolColorArray
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantCall: proc (self: var GodotVariant, meth: GodotString,
                         args: ptr array[MAX_ARG_COUNT, ptr GodotVariant],
                         argcount: cint,
                         callError: var VariantCallError): GodotVariant
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     variantHasMethod: proc (self: GodotVariant, meth: GodotString): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantOperatorEqual: proc (self, other: GodotVariant): bool
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     variantOperatorLess: proc (self, other: GodotVariant): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantHashCompare: proc (self, other: GodotVariant): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantBooleanize: proc (self: GodotVariant): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantDestroy: proc (self: var GodotVariant)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     # String API
     charStringLength: proc (self: GodotCharString): cint
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     charStringGetData: proc (self: GodotCharString): cstring
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     charStringDestroy: proc (self: var GodotCharString)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     stringNew: proc (dest: var GodotString)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     stringNewCopy: proc (dest: var GodotString, src: GodotString)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     stringNewWithWideString: pointer
     stringOperatorIndex: pointer
     stringOperatorIndexConst: pointer
     stringWideStr: proc (self: GodotString): ptr cwchar_t
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     stringOperatorEqual: proc (self, other: GodotString): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     stringOperatorLess: proc (self, other: GodotString): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     stringOperatorPlus: proc (self, other: GodotString): GodotString
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     stringLength: proc (self: GodotString): cint
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     stringCasecmpTo: pointer
     stringNocasecmpTo: pointer
     stringNaturalnocasecmpTo: pointer
@@ -1509,13 +1509,13 @@ type
     stringAscii: pointer
     stringAsciiExtended: pointer
     stringUtf8: proc (self: GodotString): GodotCharString
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     stringParseUtf8: pointer
     stringParseUtf8WithLen: pointer
     stringCharsToUtf8: proc (str: cstring): GodotString
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     stringCharsToUtf8WithLen: proc (str: cstring, len: cint): GodotString
-                                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                   {.noconv, raises: [], gcsafe, tags: [], .}
     stringHash: pointer
     stringHash64: pointer
     stringHashChars: pointer
@@ -1555,7 +1555,7 @@ type
     stringIsValidInteger: pointer
     stringIsValidIpAddress: pointer
     stringDestroy: proc (self: var GodotString)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
 
     # StringName API
     stringNameNew: pointer
@@ -1569,1364 +1569,1364 @@ type
 
     # Misc API
     objectDestroy: proc (self: ptr GodotObject)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     globalGetSingleton: proc (name: cstring): ptr GodotObject
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     methodBindGetMethod: proc (className,
                                 methodName: cstring): ptr GodotMethodBind
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     methodBindPtrCall: proc (methodBind: ptr GodotMethodBind,
                               obj: ptr GodotObject,
                               args: ptr array[MAX_ARG_COUNT, pointer],
                               ret: pointer)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     methodBindCall: proc (methodBind: ptr GodotMethodBind, obj: ptr GodotObject,
                           args: ptr array[MAX_ARG_COUNT, ptr GodotVariant],
                           argCount: cint,
                           callError: var VariantCallError): GodotVariant
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     getClassConstructor: proc (className: cstring): GodotClassConstructor
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     getGlobalConstants: pointer
     registerNativeCallType: proc (callType: cstring,
                                   cb: proc (procHandle: pointer,
                                             args: ptr GodotArray): GodotVariant
                                            {.noconv.}) {.noconv.}
     alloc: proc (bytes: cint): pointer
-                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                {.noconv, raises: [], gcsafe, tags: [], .}
     realloc: proc (p: pointer, bytes: cint): pointer
-                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
-    free: proc (p: pointer) {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                  {.noconv, raises: [], gcsafe, tags: [], .}
+    free: proc (p: pointer) {.noconv, raises: [], gcsafe, tags: [], .}
 
     printError: proc (description, function, file: cstring, line: cint)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     printWarning: proc (description, function, file: cstring, line: cint)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     print: proc (message: GodotString)
-                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                {.noconv, raises: [], gcsafe, tags: [], .}
 
   GDNativeAPI* = object
     # Color API
     colorNewRGBA*: proc (dest: var Color, r, g, b, a: float32)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     colorNewRGB*: proc (dest: var Color, r, g, b: float32)
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetR*: proc (self: Color): float32
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorSetR*: proc (self: var Color, r: float32)
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetG*: proc (self: Color): float32
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorSetG*: proc (self: var Color, g: float32)
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetB*: proc (self: Color): float32
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorSetB*: proc (self: var Color, b: float32)
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetA*: proc (self: Color): float32
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorSetA*: proc (self: var Color, a: float32)
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetH*: proc (self: Color): float32
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetS*: proc (self: Color): float32
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorGetV*: proc (self: Color): float32
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorAsString*: proc (self: Color): GodotString
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     colorToRGBA32*: proc (self: Color): cint
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     colorAsARGB32*: proc (self: Color): cint
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     colorGray*: proc (self: Color): float32
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     colorInverted*: proc (self: Color): ColorData
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     colorContrasted*: proc (self: Color): ColorData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     colorLinearInterpolate*: proc (self, other: Color, t: float32): ColorData
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     colorBlend*: proc (self, other: Color): ColorData
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     colorToHtml*: proc (self: Color, withAlpha: bool): GodotString
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     colorOperatorEqual*: proc (self, other: Color): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     colorOperatorLess*: proc (self, other: Color): bool
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Vector2 API
     vector2New*: proc (dest: var Vector2, x, y: float32)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     vector2AsString*: proc (self: Vector2): GodotString
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Normalized*: proc (self: Vector2): Vector2Data
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Length*: proc (self: Vector2): float32
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Angle*: proc (self: Vector2): float32
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2LengthSquared*: proc (self: Vector2): float32
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     vector2IsNormalized*: proc (self: Vector2): bool
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     vector2DistanceTo*: proc (self, to: Vector2): float32
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     vector2DistanceSquaredTo*: proc (self, to: Vector2): float32
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     vector2AngleTo*: proc (self, to: Vector2): float32
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2AngleToPoint*: proc (self, to: Vector2): float32
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     vector2LinearInterpolate*: proc (self, b: Vector2, t: float32): Vector2Data
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     vector2CubicInterpolate*: proc (self, b, preA, postB: Vector2,
                                     t: float32): Vector2Data
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     vector2Rotated*: proc (self: Vector2, phi: float32): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Tangent*: proc (self: Vector2): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Floor*: proc (self: Vector2): Vector2Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Snapped*: proc (self, by: Vector2): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Aspect*: proc (self: Vector2): float32
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Dot*: proc (self, other: Vector2): float32
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Slide*: proc (self, n: Vector2): Vector2Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Bounce*: proc (self, n: Vector2): Vector2Data
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Reflect*: proc (self, n: Vector2): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Abs*: proc (self: Vector2): Vector2Data
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     vector2Clamped*: proc (self: Vector2, length: float32): Vector2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     vector2OperatorAdd*: proc (self, other: Vector2): Vector2Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     vector2OperatorSubtract*: proc (self, other: Vector2): Vector2Data
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     vector2OperatorMultiplyVector*: proc (self, other: Vector2): Vector2Data
                                          {.noconv, raises: [], gcsafe, tags: [],
-                                           locks: 0.}
+                                           .}
     vector2OperatorMultiplyScalar*: proc (self: Vector2, scalar: float32): Vector2Data
                                          {.noconv, raises: [], gcsafe, tags: [],
-                                           locks: 0.}
+                                           .}
     vector2OperatorDivideVector*: proc (self, other: Vector2): Vector2Data
                                        {.noconv, raises: [], gcsafe, tags: [],
-                                         locks: 0.}
+                                         .}
     vector2OperatorDivideScalar*: proc (self: Vector2, scalar: float32): Vector2Data
                                        {.noconv, raises: [], gcsafe, tags: [],
-                                         locks: 0.}
+                                         .}
     vector2OperatorEqual*: proc (self, other: Vector2): bool
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     vector2OperatorLess*: proc (self, other: Vector2): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     vector2OperatorNeg*: proc (self: Vector2): Vector2Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Quat API
     quatNew*: proc (dest: var Quat, x, y, z, w: float32)
-                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                   {.noconv, raises: [], gcsafe, tags: [], .}
     quatNewWithAxisAngle*: proc (dest: Quat, axis: Vector3,
                                  angle: float32)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     quatGetX*: proc (self: Quat): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSetX*: proc (self: var Quat, val: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatGetY*: proc (self: Quat): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSetY*: proc (self: var Quat, val: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatGetZ*: proc (self: Quat): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSetZ*: proc (self: var Quat, val: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatGetW*: proc (self: Quat): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatSetW*: proc (self: var Quat, val: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     quatAsString*: proc (self: Quat): GodotString
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     quatLength*: proc (self: Quat): float32
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     quatLengthSquared*: proc (self: Quat): float32
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     quatNormalized*: proc (self: Quat): QuatData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     quatIsNormalized*: proc (self: Quat): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     quatInverse*: proc (self: Quat): QuatData
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     quatDot*: proc (self, other: Quat): float32
-                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                   {.noconv, raises: [], gcsafe, tags: [], .}
     quatXform*: proc (self: Quat, v: Vector3): Vector3Data
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     quatSlerp*: proc (self, other: Quat, t: float32): QuatData
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     quatSlerpni*: proc (self, other: Quat, t: float32): QuatData
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     quatCubicSlerp*: proc (self, other, preA, postB: Quat, t: float32): QuatData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorMultiply*: proc (self: Quat, b: float32): QuatData
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorAdd*: proc (self, other: Quat): QuatData
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorSubtract*: proc (self, other: Quat): QuatData
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorDivide*: proc (self: Quat, divider: float32): QuatData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorEqual*: proc (self, other: Quat): bool
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     quatOperatorNeg*: proc (self: Quat): QuatData
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
 
     # PoolByteArray API
     poolByteArrayNew*: proc (dest: var GodotPoolByteArray)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayNewCopy*: proc (dest: var GodotPoolByteArray,
                                  src: GodotPoolByteArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayNewWithArray*: proc (dest: var GodotPoolByteArray,
                                       src: GodotArray)
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     poolByteArrayAppend*: proc (self: var GodotPoolByteArray,
                                 val: byte)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayAppendArray*: proc (self: var GodotPoolByteArray,
                                      arr: GodotPoolByteArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolByteArrayInsert*: proc (self: var GodotPoolByteArray,
                                 idx: cint, val: byte): Error
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayInvert*: proc (self: var GodotPoolByteArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayPushBack*: proc (self: var GodotPoolByteArray, val: byte)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     poolByteArrayRemove*: proc (self: var GodotPoolByteArray, idx: cint)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayResize*: proc (self: var GodotPoolByteArray, size: cint)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayRead*: proc (self: GodotPoolByteArray): ptr GodotPoolByteArrayReadAccess
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayWrite*: proc (self: var GodotPoolByteArray): ptr GodotPoolByteArrayWriteAccess
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArraySet*: proc (self: var GodotPoolByteArray, idx: cint, data: byte)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayGet*: proc (self: GodotPoolByteArray, idx: cint): byte
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArraySize*: proc (self: GodotPoolByteArray): cint
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayDestroy*: proc (self: GodotPoolByteArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
 
     # PoolIntArray API
     poolIntArrayNew*: proc (dest: var GodotPoolIntArray)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayNewCopy*: proc (dest: var GodotPoolIntArray,
                                 src: GodotPoolIntArray)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayNewWithArray*: proc (dest: var GodotPoolIntArray, src: GodotArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolIntArrayAppend*: proc (self: var GodotPoolIntArray, val: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayAppendArray*: proc (self: var GodotPoolIntArray,
                                     arr: GodotPoolIntArray)
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     poolIntArrayInsert*: proc (self: var GodotPoolIntArray, idx: cint,
                                val: cint): Error
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayInvert*: proc (self: var GodotPoolIntArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayPushBack*: proc (self: var GodotPoolIntArray, val: cint)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayRemove*: proc (self: var GodotPoolIntArray, idx: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayResize*: proc (self: var GodotPoolIntArray, size: cint)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayRead*: proc (self: GodotPoolIntArray): ptr GodotPoolIntArrayReadAccess
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayWrite*: proc (self: var GodotPoolIntArray): ptr GodotPoolIntArrayWriteAccess
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArraySet*: proc (self: var GodotPoolIntArray, idx: cint, data: cint)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayGet*: proc (self: GodotPoolIntArray, idx: cint): cint
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArraySize*: proc (self: GodotPoolIntArray): cint
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayDestroy*: proc (self: GodotPoolIntArray)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
 
     # PoolRealArray API
     poolRealArrayNew*: proc (dest: var GodotPoolRealArray)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayNewCopy*: proc (dest: var GodotPoolRealArray,
                                  src: GodotPoolRealArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayNewWithArray*: proc (dest: var GodotPoolRealArray,
                                       src: GodotArray)
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     poolRealArrayAppend*: proc (self: var GodotPoolRealArray, val: float32)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayAppendArray*: proc (self: var GodotPoolRealArray,
                                      arr: GodotPoolRealArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolRealArrayInsert*: proc (self: var GodotPoolRealArray,
                                 idx: cint, val: float32): Error
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayInvert*: proc (self: var GodotPoolRealArray)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayPushBack*: proc (self: var GodotPoolRealArray, val: float32)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     poolRealArrayRemove*: proc (self: var GodotPoolRealArray, idx: cint)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayResize*: proc (self: var GodotPoolRealArray, size: cint)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayRead*: proc (self: GodotPoolRealArray): ptr GodotPoolRealArrayReadAccess
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayWrite*: proc (self: var GodotPoolRealArray): ptr GodotPoolRealArrayWriteAccess
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArraySet*: proc (self: var GodotPoolRealArray, idx: cint,
                              data: float32)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayGet*: proc (self: GodotPoolRealArray, idx: cint): float32
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArraySize*: proc (self: GodotPoolRealArray): cint
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayDestroy*: proc (self: GodotPoolRealArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
 
     # PoolStringArray API
     poolStringArrayNew*: proc (dest: var GodotPoolStringArray)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayNewCopy*: proc (dest: var GodotPoolStringArray,
                                    src: GodotPoolStringArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolStringArrayNewWithArray*: proc (dest: var GodotPoolStringArray,
                                         src: GodotArray)
                                        {.noconv, raises: [], gcsafe, tags: [],
-                                         locks: 0.}
+                                         .}
     poolStringArrayAppend*: proc (self: var GodotPoolStringArray,
                                   val: GodotString)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     poolStringArrayAppendArray*: proc (self: var GodotPoolStringArray,
                                        arr: GodotPoolStringArray)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     poolStringArrayInsert*: proc (self: var GodotPoolStringArray,
                                   idx: cint, val: GodotString): Error
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     poolStringArrayInvert*: proc (self: var GodotPoolStringArray)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     poolStringArrayPushBack*: proc (self: var GodotPoolStringArray,
                                     val: GodotString)
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     poolStringArrayRemove*: proc (self: var GodotPoolStringArray, idx: cint)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     poolStringArrayResize*: proc (self: var GodotPoolStringArray, size: cint)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     poolStringArrayRead*: proc (self: GodotPoolStringArray): ptr GodotPoolStringArrayReadAccess
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayWrite*: proc (self: var GodotPoolStringArray): ptr GodotPoolStringArrayWriteAccess
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArraySet*: proc (self: var GodotPoolStringArray, idx: cint,
                                data: GodotString)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayGet*: proc (self: GodotPoolStringArray, idx: cint): GodotString
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArraySize*: proc (self: GodotPoolStringArray): cint
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayDestroy*: proc (self: GodotPoolStringArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
 
     # PoolVector2 API
     poolVector2ArrayNew*: proc (dest: var GodotPoolVector2Array)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayNewCopy*: proc (dest: var GodotPoolVector2Array,
                                     src: GodotPoolVector2Array)
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     poolVector2ArrayNewWithArray*: proc (dest: var GodotPoolVector2Array,
                                          src: GodotArray)
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     poolVector2ArrayAppend*: proc (self: var GodotPoolVector2Array, val: Vector2)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayAppendArray*: proc (self: var GodotPoolVector2Array,
                                         arr: GodotPoolVector2Array)
                                        {.noconv, raises: [], gcsafe, tags: [],
-                                         locks: 0.}
+                                         .}
     poolVector2ArrayInsert*: proc (self: var GodotPoolVector2Array, idx: cint,
                                    val: Vector2): Error
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayInvert*: proc (self: var GodotPoolVector2Array)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayPushBack*: proc (self: var GodotPoolVector2Array,
                                      val: Vector2)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     poolVector2ArrayRemove*: proc (self: var GodotPoolVector2Array, idx: cint)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayResize*: proc (self: var GodotPoolVector2Array, size: cint)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector2ArrayRead*: proc (self: GodotPoolVector2Array): ptr GodotPoolVector2ArrayReadAccess
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayWrite*: proc (self: var GodotPoolVector2Array): ptr GodotPoolVector2ArrayWriteAccess
-                                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                 {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArraySet*: proc (self: var GodotPoolVector2Array, idx: cint,
                                 data: Vector2)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayGet*: proc (self: GodotPoolVector2Array, idx: cint): Vector2Data
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArraySize*: proc (self: GodotPoolVector2Array): cint
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayDestroy*: proc (self: GodotPoolVector2Array)
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
 
     # PoolVector3 API
     poolVector3ArrayNew*: proc (dest: var GodotPoolVector3Array)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayNewCopy*: proc (dest: var GodotPoolVector3Array,
                                     src: GodotPoolVector3Array)
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     poolVector3ArrayNewWithArray*: proc (dest: var GodotPoolVector3Array,
                                          src: GodotArray)
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     poolVector3ArrayAppend*: proc (self: var GodotPoolVector3Array, val: Vector3)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector3ArrayAppendArray*: proc (self: var GodotPoolVector3Array,
                                         arr: GodotPoolVector3Array)
                                        {.noconv, raises: [], gcsafe, tags: [],
-                                         locks: 0.}
+                                         .}
     poolVector3ArrayInsert*: proc (self: var GodotPoolVector3Array, idx: cint,
                                    val: Vector3): Error
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector3ArrayInvert*: proc (self: var GodotPoolVector3Array)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolVector3ArrayPushBack*: proc (self: var GodotPoolVector3Array,
                                      val: Vector3) {.noconv, raises: [], gcsafe,
-                                                    tags: [], locks: 0.}
+                                                    tags: [], .}
     poolVector3ArrayRemove*: proc (self: var GodotPoolVector3Array,
                                   idx: cint) {.noconv, raises: [], gcsafe,
-                                                tags: [], locks: 0.}
+                                                tags: [], .}
     poolVector3ArrayResize*: proc (self: var GodotPoolVector3Array,
                                    size: cint) {.noconv, raises: [], gcsafe,
-                                                tags: [], locks: 0.}
+                                                tags: [], .}
     poolVector3ArrayRead*: proc (self: GodotPoolVector3Array): ptr GodotPoolVector3ArrayReadAccess
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayWrite*: proc (self: var GodotPoolVector3Array): ptr GodotPoolVector3ArrayWriteAccess
-                                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                 {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArraySet*: proc (self: var GodotPoolVector3Array, idx: cint,
                                 data: Vector3) {.noconv, raises: [], gcsafe,
-                                                tags: [], locks: 0.}
+                                                tags: [], .}
     poolVector3ArrayGet*: proc (self: GodotPoolVector3Array, idx: cint): Vector3Data
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArraySize*: proc (self: GodotPoolVector3Array): cint
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayDestroy*: proc (self: GodotPoolVector3Array)
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
 
     # PoolColorArray API
     poolColorArrayNew*: proc (dest: var GodotPoolColorArray)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayNewCopy*: proc (dest: var GodotPoolColorArray,
                                   src: GodotPoolColorArray)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     poolColorArrayNewWithArray*: proc (dest: var GodotPoolColorArray,
                                        src: GodotArray)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     poolColorArrayAppend*: proc (self: var GodotPoolColorArray,
                                  val: Color)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayAppendArray*: proc (self: var GodotPoolColorArray,
                                       arr: GodotPoolColorArray)
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     poolColorArrayInsert*: proc (self: var GodotPoolColorArray,
                                  idx: cint, val: Color): Error
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayInvert*: proc (self: var GodotPoolColorArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayPushBack*: proc (self: var GodotPoolColorArray, val: Color)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     poolColorArrayRemove*: proc (self: var GodotPoolColorArray, idx: cint)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayResize*: proc (self: var GodotPoolColorArray, size: cint)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayRead*: proc (self: GodotPoolColorArray): ptr GodotPoolColorArrayReadAccess
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayWrite*: proc (self: var GodotPoolColorArray): ptr GodotPoolColorArrayWriteAccess
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArraySet*: proc (self: var GodotPoolColorArray, idx: cint,
                               data: Color)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayGet*: proc (self: GodotPoolColorArray, idx: cint): ColorData
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArraySize*: proc (self: GodotPoolColorArray): cint
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayDestroy*: proc (self: GodotPoolColorArray)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
 
     # Pool Array Read/Write Access API
 
     poolByteArrayReadAccessCopy*: proc (self: ptr GodotPoolByteArrayReadAccess): ptr GodotPoolByteArrayReadAccess
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayReadAccessPtr*: proc (self: ptr GodotPoolByteArrayReadAccess): ptr byte
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayReadAccessOperatorAssign*: proc (self, other: ptr GodotPoolByteArrayReadAccess)
-                                                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                 {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayReadAccessDestroy*: proc (self: ptr GodotPoolByteArrayReadAccess)
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolIntArrayReadAccessCopy*: proc (self: ptr GodotPoolIntArrayReadAccess): ptr GodotPoolIntArrayReadAccess
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayReadAccessPtr*: proc (self: ptr GodotPoolIntArrayReadAccess): ptr cint
-                                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                     {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayReadAccessOperatorAssign*: proc (self, other: ptr GodotPoolIntArrayReadAccess)
-                                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayReadAccessDestroy*: proc (self: ptr GodotPoolIntArrayReadAccess)
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolRealArrayReadAccessCopy*: proc (self: ptr GodotPoolRealArrayReadAccess): ptr GodotPoolRealArrayReadAccess
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayReadAccessPtr*: proc (self: ptr GodotPoolRealArrayReadAccess): ptr float32
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayReadAccessOperatorAssign*: proc (self, other: ptr GodotPoolRealArrayReadAccess)
-                                                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                 {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayReadAccessDestroy*: proc (self: ptr GodotPoolRealArrayReadAccess)
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolStringArrayReadAccessCopy*: proc (self: ptr GodotPoolStringArrayReadAccess): ptr GodotPoolStringArrayReadAccess
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayReadAccessPtr*: proc (self: ptr GodotPoolStringArrayReadAccess): ptr GodotString
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayReadAccessOperatorAssign*: proc (self, other: ptr GodotPoolStringArrayReadAccess)
-                                                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                   {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayReadAccessDestroy*: proc (self: ptr GodotPoolStringArrayReadAccess)
-                                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                            {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolVector2ArrayReadAccessCopy*: proc (self: ptr GodotPoolVector2ArrayReadAccess): ptr GodotPoolVector2ArrayReadAccess
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayReadAccessPtr*: proc (self: ptr GodotPoolVector2ArrayReadAccess): ptr Vector2
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayReadAccessOperatorAssign*: proc (self, other: ptr GodotPoolVector2ArrayReadAccess)
-                                                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                    {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayReadAccessDestroy*: proc (self: ptr GodotPoolVector2ArrayReadAccess)
-                                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                             {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolVector3ArrayReadAccessCopy*: proc (self: ptr GodotPoolVector3ArrayReadAccess): ptr GodotPoolVector3ArrayReadAccess
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayReadAccessPtr*: proc (self: ptr GodotPoolVector3ArrayReadAccess): ptr Vector3
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayReadAccessOperatorAssign*: proc (self, other: ptr GodotPoolVector3ArrayReadAccess)
-                                                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                    {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayReadAccessDestroy*: proc (self: ptr GodotPoolVector3ArrayReadAccess)
-                                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                             {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolColorArrayReadAccessCopy*: proc (self: ptr GodotPoolColorArrayReadAccess): ptr GodotPoolColorArrayReadAccess
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayReadAccessPtr*: proc (self: ptr GodotPoolColorArrayReadAccess): ptr Color
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayReadAccessOperatorAssign*: proc (self, other: ptr GodotPoolColorArrayReadAccess)
-                                                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                  {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayReadAccessDestroy*: proc (self: ptr GodotPoolColorArrayReadAccess)
-                                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                           {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolByteArrayWriteAccessCopy*: proc (self: ptr GodotPoolByteArrayWriteAccess): ptr GodotPoolByteArrayWriteAccess
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayWriteAccessPtr*: proc (self: ptr GodotPoolByteArrayWriteAccess): ptr byte
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayWriteAccessOperatorAssign*: proc (self, other: ptr GodotPoolByteArrayWriteAccess)
-                                                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                  {.noconv, raises: [], gcsafe, tags: [], .}
     poolByteArrayWriteAccessDestroy*: proc (self: ptr GodotPoolByteArrayWriteAccess)
-                                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                           {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolIntArrayWriteAccessCopy*: proc (self: ptr GodotPoolIntArrayWriteAccess): ptr GodotPoolIntArrayWriteAccess
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayWriteAccessPtr*: proc (self: ptr GodotPoolIntArrayWriteAccess): ptr cint
-                                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                      {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayWriteAccessOperatorAssign*: proc (self, other: ptr GodotPoolIntArrayWriteAccess)
-                                                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                 {.noconv, raises: [], gcsafe, tags: [], .}
     poolIntArrayWriteAccessDestroy*: proc (self: ptr GodotPoolIntArrayWriteAccess)
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolRealArrayWriteAccessCopy*: proc (self: ptr GodotPoolRealArrayWriteAccess): ptr GodotPoolRealArrayWriteAccess
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayWriteAccessPtr*: proc (self: ptr GodotPoolRealArrayWriteAccess): ptr float32
-                                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                       {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayWriteAccessOperatorAssign*: proc (self, other: ptr GodotPoolRealArrayWriteAccess)
-                                                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                  {.noconv, raises: [], gcsafe, tags: [], .}
     poolRealArrayWriteAccessDestroy*: proc (self: ptr GodotPoolRealArrayWriteAccess)
-                                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                           {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolStringArrayWriteAccessCopy*: proc (self: ptr GodotPoolStringArrayWriteAccess): ptr GodotPoolStringArrayWriteAccess
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayWriteAccessPtr*: proc (self: ptr GodotPoolStringArrayWriteAccess): ptr GodotString
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayWriteAccessOperatorAssign*: proc (self, other: ptr GodotPoolStringArrayWriteAccess)
-                                                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                    {.noconv, raises: [], gcsafe, tags: [], .}
     poolStringArrayWriteAccessDestroy*: proc (self: ptr GodotPoolStringArrayWriteAccess)
-                                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                             {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolVector2ArrayWriteAccessCopy*: proc (self: ptr GodotPoolVector2ArrayWriteAccess): ptr GodotPoolVector2ArrayWriteAccess
-                                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                           {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayWriteAccessPtr*: proc (self: ptr GodotPoolVector2ArrayWriteAccess): ptr Vector2
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayWriteAccessOperatorAssign*: proc (self, other: ptr GodotPoolVector2ArrayWriteAccess)
-                                                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                     {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector2ArrayWriteAccessDestroy*: proc (self: ptr GodotPoolVector2ArrayWriteAccess)
-                                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                              {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolVector3ArrayWriteAccessCopy*: proc (self: ptr GodotPoolVector3ArrayWriteAccess): ptr GodotPoolVector3ArrayWriteAccess
-                                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                           {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayWriteAccessPtr*: proc (self: ptr GodotPoolVector3ArrayWriteAccess): ptr Vector3
-                                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                          {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayWriteAccessOperatorAssign*: proc (self, other: ptr GodotPoolVector3ArrayWriteAccess)
-                                                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                     {.noconv, raises: [], gcsafe, tags: [], .}
     poolVector3ArrayWriteAccessDestroy*: proc (self: ptr GodotPoolVector3ArrayWriteAccess)
-                                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                              {.noconv, raises: [], gcsafe, tags: [], .}
 
     poolColorArrayWriteAccessCopy*: proc (self: ptr GodotPoolColorArrayWriteAccess): ptr GodotPoolColorArrayWriteAccess
-                                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                         {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayWriteAccessPtr*: proc (self: ptr GodotPoolColorArrayWriteAccess): ptr Color
-                                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                        {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayWriteAccessOperatorAssign*: proc (self, other: ptr GodotPoolColorArrayWriteAccess)
-                                                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                                   {.noconv, raises: [], gcsafe, tags: [], .}
     poolColorArrayWriteAccessDestroy*: proc (self: ptr GodotPoolColorArrayWriteAccess)
-                                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                            {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Array API
     arrayNew*: proc (dest: var GodotArray)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayNewCopy*: proc (dest: var GodotArray, src: GodotArray)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     arrayNewPoolColorArray*: proc (dest: var GodotArray, src: GodotPoolColorArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     arrayNewPoolVector3Array*: proc (dest: var GodotArray,
                                      src: GodotPoolVector3Array)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     arrayNewPoolVector2Array*: proc (dest: var GodotArray,
                                      src: GodotPoolVector2Array)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     arrayNewPoolStringArray*: proc (dest: var GodotArray,
                                     src: GodotPoolStringArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     arrayNewPoolRealArray*: proc (dest: var GodotArray, src: GodotPoolRealArray)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     arrayNewPoolIntArray*: proc (dest: var GodotArray, src: GodotPoolIntArray)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     arrayNewPoolByteArray*: proc (dest: var GodotArray, src: GodotPoolByteArray)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     arraySet*: proc (self: var GodotArray, idx: cint, val: GodotVariant)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayGet*: proc (self: GodotArray, idx: cint): GodotVariant
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayOperatorIndex*: proc (self: var GodotArray, idx: cint): ptr GodotVariant
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     arrayAppend*: proc (self: var GodotArray, val: GodotVariant)
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     arrayClear*: proc (self: var GodotArray)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayCount*: proc (self: GodotArray, val: GodotVariant): cint
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayEmpty*: proc (self: GodotArray): bool
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayErase*: proc (self: var GodotArray, val: GodotVariant)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayFront*: proc (self: GodotArray): GodotVariant
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arrayBack*: proc (self: GodotArray): GodotVariant
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     arrayFind*: proc (self: GodotArray, what: GodotVariant, fromIdx: cint): cint
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     arrayFindLast*: proc (self: GodotArray, what: GodotVariant): cint
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     arrayHas*: proc (self: GodotArray, val: GodotVariant): bool
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     arrayHash*: proc (self: GodotArray): cint
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     arrayInsert*: proc (self: var GodotArray, pos: cint, val: GodotVariant): Error
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     arrayInvert*: proc (self: var GodotArray)
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     arrayPopFront*: proc (self: GodotArray): GodotVariant
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     arrayPopBack*: proc (self: GodotArray): GodotVariant
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     arrayPushBack*: proc (self: var GodotArray, val: GodotVariant)
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     arrayPushFront*: proc (self: var GodotArray, val: GodotVariant)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     arrayRemove*: proc (self: var GodotArray, idx: cint)
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     arrayResize*: proc (self: var GodotArray, size: cint)
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     arrayRFind*: proc (self: GodotArray, what: GodotVariant, fromIdx: cint): cint
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     arraySize*: proc (self: GodotArray): cint
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     arraySort*: proc (self: var GodotArray)
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     arraySortCustom*: proc (self: var GodotArray, obj: ptr GodotObject,
                             f: GodotString)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     arrayBSearch*: proc (self: var GodotArray, val: ptr GodotVariant,
                          before: bool)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     arrayBSearchCustom*: proc (self: var GodotArray, val: ptr GodotVariant,
                                obj: ptr GodotObject, f: GodotString,
                                before: bool)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     arrayDestroy*: proc (self: var GodotArray)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Dictionary API
     dictionaryNew*: proc (dest: var GodotDictionary)
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryNewCopy*: proc (dest: var GodotDictionary, src: GodotDictionary)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryDestroy*: proc (self: var GodotDictionary)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     dictionarySize*: proc (self: GodotDictionary): cint
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryEmpty*: proc (self: GodotDictionary): bool
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryClear*: proc (self: var GodotDictionary)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryHas*: proc (self: GodotDictionary, key: GodotVariant): bool
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryHasAll*: proc (self: GodotDictionary, keys: GodotArray): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryErase*: proc (self: var GodotDictionary, key: GodotVariant)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryHash*: proc (self: GodotDictionary): cint
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryKeys*: proc (self: GodotDictionary): GodotArray
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryValues*: proc (self: GodotDictionary): GodotArray
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryGet*: proc (self: GodotDictionary, key: GodotVariant): GodotVariant
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     dictionarySet*: proc (self: var GodotDictionary, key, value: GodotVariant)
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryOperatorIndex*: proc (self: var GodotDictionary,
                                     key: GodotVariant): ptr GodotVariant
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     dictionaryNext*: proc (self: GodotDictionary,
                            key: GodotVariant): ptr GodotVariant
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     dictionaryOperatorEqual*: proc (self, other: GodotDictionary): bool
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     dictionaryToJson*: proc (self: GodotDictionary): GodotString
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
 
     # NodePath API
     nodePathNew*: proc (dest: var GodotNodePath, src: GodotString)
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathNewCopy*: proc (dest: var GodotNodePath, src: GodotNodePath)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathDestroy*: proc (self: var GodotNodePath)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathAsString*: proc (self: GodotNodePath): GodotString
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathIsAbsolute*: proc (self: GodotNodePath): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathGetNameCount*: proc (self: GodotNodePath): cint
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathGetName*: proc (self: GodotNodePath, idx: cint): GodotString
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathGetSubnameCount*: proc (self: GodotNodePath): cint
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     nodePathGetSubname*: proc (self: GodotNodePath, idx: cint): GodotString
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathGetConcatenatedSubnames*: proc (self: GodotNodePath): GodotString
                                            {.noconv, raises: [], gcsafe,
-                                             tags: [], locks: 0.}
+                                             tags: [], .}
     nodePathIsEmpty*: proc (self: GodotNodePath): bool
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     nodePathOperatorEqual*: proc (self, other: GodotNodePath): bool
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
 
     # Plane API
     planeNewWithReals*: proc (dest: var Plane, a, b, c, d: float32)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     planeNewWithVectors*: proc (dest: var Plane, v1, v2, v3: Vector3)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     planeNewWithNormal*: proc (dest: var Plane, normal: Vector3, d: float32)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     planeAsString*: proc (self: Plane): GodotString
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     planeNormalized*: proc (self: Plane): PlaneData
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     planeCenter*: proc (self: Plane): Vector3Data
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     planeGetAnyPoint*: proc (self: Plane): Vector3Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     planeIsPointOver*: proc (self: Plane, point: Vector3): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     planeDistanceTo*: proc (self: Plane, point: Vector3): float32
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     planeHasPoint*: proc (self: Plane, point: Vector3, epsilon: float32): bool
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     planeProject*: proc (self: Plane, point: Vector3): Vector3Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     planeIntersect3*: proc (self: Plane, dest: var Vector3, b, c: Plane): bool
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     planeIntersectsRay*: proc (self: Plane, dest: var Vector3,
                                point, dir: Vector3): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     planeIntersectsSegment*: proc (self: Plane, dest: var Vector3,
                                    segmentBegin, segmentEnd: Vector3): bool
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     planeOperatorNeg*: proc (self: Plane): PlaneData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     planeOperatorEqual*: proc (self, other: Plane): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     planeSetNormal*: proc (self: var Plane, normal: Vector3)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     planeGetNormal*: proc (self: Plane): Vector3Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     planeGetD*: proc (self: Plane): float32
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     planeSetD*: proc (self: var Plane, d: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Rect2 API
     rect2NewWithPositionAndSize*: proc (dest: var Rect2, pos, size: Vector2)
                                        {.noconv, raises: [], gcsafe, tags: [],
-                                         locks: 0.}
+                                         .}
     rect2New*: proc (dest: var Rect2, x, y, width, height: float32)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     rect2AsString*: proc (self: Rect2): GodotString
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     rect2GetArea*: proc (self: Rect2): float32
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Intersects*: proc (self, other: Rect2): bool
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Encloses*: proc (self, other: Rect2): bool
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     rect2HasNoArea*: proc (self: Rect2): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Clip*: proc (self, other: Rect2): Rect2Data
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Merge*: proc (self, other: Rect2): Rect2Data
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     rect2HasPoint*: proc (self: Rect2, point: Vector2): bool
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Grow*: proc (self: Rect2, by: float32): Rect2Data
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     rect2Expand*: proc (self: Rect2, to: Vector2): Rect2Data
-                       {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                       {.noconv, raises: [], gcsafe, tags: [], .}
     rect2OperatorEqual*: proc (self, other: Rect2): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     rect2GetPosition*: proc (self: Rect2): Vector2Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     rect2GetSize*: proc (self: Rect2): Vector2Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     rect2SetPosition*: proc (self: var Rect2, pos: Vector2)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     rect2SetSize*: proc (self: var Rect2, size: Vector2)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
 
     # AABB API
     aabbNew*: proc (dest: var AABB, pos, size: Vector3)
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetPosition*: proc (self: AABB): Vector3Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     aabbSetPosition*: proc (self: var AABB, pos: Vector3)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetSize*: proc (self: AABB): Vector3Data
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbSetSize*: proc (self: var AABB, pos: Vector3)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbAsString*: proc (self: AABB): GodotString
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetArea*: proc (self: AABB): float32
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     aabbHasNoArea*: proc (self: AABB): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     aabbHasNoSurface*: proc (self: AABB): bool
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     aabbIntersects*: proc (self, other: AABB): bool
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     aabbEncloses*: proc (self, other: AABB): bool
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     aabbMerge*: proc (self, other: AABB): AABBData
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     aabbIntersection*: proc (self, other: AABB): AABBData
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     aabbIntersectsPlane*: proc (self: AABB, plane: Plane): bool
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     aabbIntersectsSegment*: proc (self: AABB, vFrom, vTo: Vector3): bool
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     aabbHasPoint*: proc (self: AABB, point: Vector3): bool
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetSupport*: proc (self: AABB, dir: Vector3): Vector3Data
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetLongestAxis*: proc (self: AABB): Vector3Data
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetLongestAxisIndex*: proc (self: AABB): cint
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     aabbGetLongestAxisSize*: proc (self: AABB): float32
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     aabbGetShortestAxis*: proc (self: AABB): Vector3Data
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetShortestAxisIndex*: proc (self: AABB): cint
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     aabbGetShortestAxisSize*: proc (self: AABB): float32
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     aabbExpand*: proc (self: AABB, toPoint: Vector3): AABBData
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGrow*: proc (self: AABB, by: float32): AABBData
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     aabbGetEndpoint*: proc (self: AABB, idx: cint): Vector3Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     aabbOperatorEqual*: proc (self, other: AABB): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
 
     # RID API
     ridNew*: proc (dest: var RID)
-                  {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                  {.noconv, raises: [], gcsafe, tags: [], .}
     ridGetID*: proc (self: RID): cint
-                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                    {.noconv, raises: [], gcsafe, tags: [], .}
     ridNewWithResource*: proc (dest: var RID, obj: ptr GodotObject)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     ridOperatorEqual*: proc (self, other: RID): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     ridOperatorLess*: proc (self, other: RID): bool
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Transform API
     transformNewWithAxisOrigin*: proc (dest: var Transform,
                                        xAxis, yAxis, zAxis, origin: Vector3)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transformNew*: proc (dest: var Transform, basis: Basis, origin: Vector3)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     transformGetBasis*: proc (self: Transform): BasisData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformSetBasis*: proc (self: var Transform, basis: Basis)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformGetOrigin*: proc (self: Transform): Vector3Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformSetOrigin*: proc (self: var Transform, v: Vector3)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformAsString*: proc (self: Transform): GodotString
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformInverse*: proc (self: Transform): TransformData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformAffineInverse*: proc (self: Transform): TransformData
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transformOrthonormalized*: proc (self: Transform): TransformData
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transformRotated*: proc (self: Transform, axis: Vector3,
                              phi: float32): TransformData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transformScaled*: proc (self: Transform, scale: Vector3): TransformData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     transformTranslated*: proc (self: Transform, offset: Vector3): TransformData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformLookingAt*: proc (self: Transform, target, up: Vector3): TransformData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformXformPlane*: proc (self: Transform, plane: Plane): PlaneData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformXformInvPlane*: proc (self: Transform, plane: Plane): PlaneData
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transformNewIdentity*: proc (dest: var Transform)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     transformOperatorEqual*: proc (self, other: Transform): bool
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transformOperatorMultiply*: proc (self, other: Transform): TransformData
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transformXformVector3*: proc (self: Transform, v: Vector3): Vector3Data
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     transformXformInvVector3*: proc (self: Transform, v: Vector3): Vector3Data
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transformXformAABB*: proc (self: Transform, v: AABB): AABBData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transformXformInvAABB*: proc (self: Transform, v: AABB): AABBData
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
 
     # Transform2D API
     transform2DNew*: proc (dest: var Transform2D, rot: float32, pos: Vector2)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DNewAxisOrigin*: proc (dest: var Transform2D,
                                      xAxis, yAxis, origin: Vector2)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transform2DAsString*: proc (self: Transform2D): GodotString
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DInverse*: proc (self: Transform2D): Transform2DData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DAffineInverse*: proc (self: Transform2D): Transform2DData
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transform2DGetRotation*: proc (self: Transform2D): float32
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transform2DGetOrigin*: proc (self: Transform2D): Vector2Data
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DGetScale*: proc (self: Transform2D): Vector2Data
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DOrthonormalized*: proc (self: Transform2D): Transform2DData
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transform2DRotated*: proc (self: Transform2D, phi: float32): Transform2DData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DScaled*: proc (self: Transform2D, scale: Vector2): Transform2DData
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     transform2DTranslated*: proc (self: Transform2D, offset: Vector2): Transform2DData
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     transform2DXformVector2*: proc (self: Transform2D, v: Vector2): Vector2Data
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transform2DXformInvVector2*: proc (self: Transform2D, v: Vector2): Vector2Data
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transform2DBasisXformVector2*: proc (self: Transform2D, v: Vector2): Vector2Data
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     transform2DBasisXformInvVector2*: proc (self: Transform2D,
                                             v: Vector2): Vector2Data
                                           {.noconv, raises: [], gcsafe, tags: [],
-                                            locks: 0.}
+                                            .}
     transform2DInterpolateWith*: proc (self, other: Transform2D,
                                       t: float32): Transform2DData
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transform2DOperatorEqual*: proc (self, other: Transform2D): bool
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     transform2DOperatorMultiply*: proc (self, other: Transform2D): Transform2DData
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     transform2DNewIdentity*: proc (dest: var Transform2D)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     transform2DXformRect2*: proc (self: Transform2D, v: Rect2): Rect2Data
                                 {.noconv, raises: [], gcsafe, tags: [],
-                                  locks: 0.}
+                                  .}
     transform2DXformInvRect2*: proc (self: Transform2D, v: Rect2): Rect2Data
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
 
     # Variant API
     variantGetType*: proc (v: GodotVariant): VariantType
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewCopy*: proc (dest: var GodotVariant, src: GodotVariant)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewNil*: proc (dest: var GodotVariant)
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewBool*: proc (dest: var GodotVariant, val: bool)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewUInt*: proc (dest: var GodotVariant, val: uint64)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewInt*: proc (dest: var GodotVariant, val: int64)
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewReal*: proc (dest: var GodotVariant, val: float64)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewString*: proc (dest: var GodotVariant, val: GodotString)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewVector2*: proc (dest: var GodotVariant, val: Vector2)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewRect2*: proc (dest: var GodotVariant, val: Rect2)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewVector3*: proc (dest: var GodotVariant, val: Vector3)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewTransform2D*: proc (dest: var GodotVariant, val: Transform2D)
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     variantNewPlane*: proc (dest: var GodotVariant, val: Plane)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewQuat*: proc (dest: var GodotVariant, val: Quat)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewAABB*: proc (dest: var GodotVariant, val: AABB)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewBasis*: proc (dest: var GodotVariant, val: Basis)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewTransform*: proc (dest: var GodotVariant, val: Transform)
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewColor*: proc (dest: var GodotVariant, val: Color)
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewNodePath*: proc (dest: var GodotVariant, val: GodotNodePath)
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewRID*: proc (dest: var GodotVariant, val: RID)
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewObject*: proc (dest: var GodotVariant, val: ptr GodotObject)
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewDictionary*: proc (dest: var GodotVariant, val: GodotDictionary)
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewArray*: proc (dest: var GodotVariant, val: GodotArray)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantNewPoolByteArray*: proc (dest: var GodotVariant,
                                     val: GodotPoolByteArray)
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     variantNewPoolIntArray*: proc (dest: var GodotVariant, val: GodotPoolIntArray)
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantNewPoolRealArray*: proc (dest: var GodotVariant,
                                     val: GodotPoolRealArray)
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     variantNewPoolStringArray*: proc (dest: var GodotVariant,
                                       val: GodotPoolStringArray)
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     variantNewPoolVector2Array*: proc (dest: var GodotVariant,
                                        val: GodotPoolVector2Array)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     variantNewPoolVector3Array*: proc (dest: var GodotVariant,
                                        val: GodotPoolVector3Array)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     variantNewPoolColorArray*: proc (dest: var GodotVariant,
                                      val: GodotPoolColorArray)
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     variantAsBool*: proc (self: GodotVariant): bool
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsUInt*: proc (self: GodotVariant): uint64
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsInt*: proc (self: GodotVariant): int64
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsReal*: proc (self: GodotVariant): float64
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsString*: proc (self: GodotVariant): GodotString
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsVector2*: proc (self: GodotVariant): Vector2Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsRect2*: proc (self: GodotVariant): Rect2Data
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsVector3*: proc (self: GodotVariant): Vector3Data
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsTransform2D*: proc (self: GodotVariant): Transform2DData
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsPlane*: proc (self: GodotVariant): PlaneData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsQuat*: proc (self: GodotVariant): QuatData
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsAABB*: proc (self: GodotVariant): AABBData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsBasis*: proc (self: GodotVariant): BasisData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsTransform*: proc (self: GodotVariant): TransformData
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsColor*: proc (self: GodotVariant): ColorData
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsNodePath*: proc (self: GodotVariant): GodotNodePath
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsRID*: proc (self: GodotVariant): RID
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsObject*: proc (self: GodotVariant): ptr GodotObject
-                           {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                           {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsDictionary*: proc (self: GodotVariant): GodotDictionary
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsArray*: proc (self: GodotVariant): GodotArray
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     variantAsPoolByteArray*: proc (self: GodotVariant): GodotPoolByteArray
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantAsPoolIntArray*: proc (self: GodotVariant): GodotPoolIntArray
                                  {.noconv, raises: [], gcsafe, tags: [],
-                                   locks: 0.}
+                                   .}
     variantAsPoolRealArray*: proc (self: GodotVariant): GodotPoolRealArray
                                   {.noconv, raises: [], gcsafe, tags: [],
-                                    locks: 0.}
+                                    .}
     variantAsPoolStringArray*: proc (self: GodotVariant): GodotPoolStringArray
                                     {.noconv, raises: [], gcsafe, tags: [],
-                                      locks: 0.}
+                                      .}
     variantAsPoolVector2Array*: proc (self: GodotVariant): GodotPoolVector2Array
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     variantAsPoolVector3Array*: proc (self: GodotVariant): GodotPoolVector3Array
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     variantAsPoolColorArray*: proc (self: GodotVariant): GodotPoolColorArray
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
     variantCall*: proc (self: var GodotVariant, meth: GodotString,
                         args: ptr array[MAX_ARG_COUNT, ptr GodotVariant],
                         argcount: cint,
                         callError: var VariantCallError): GodotVariant
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     variantHasMethod*: proc (self: GodotVariant, meth: GodotString): bool
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     variantOperatorEqual*: proc (self, other: GodotVariant): bool
-                                {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                {.noconv, raises: [], gcsafe, tags: [], .}
     variantOperatorLess*: proc (self, other: GodotVariant): bool
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     variantHashCompare*: proc (self, other: GodotVariant): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     variantBooleanize*: proc (self: GodotVariant): bool
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     variantDestroy*: proc (self: var GodotVariant)
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
 
     # String API
     charStringLength*: proc (self: GodotCharString): cint
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     charStringGetData*: proc (self: GodotCharString): cstring
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     charStringDestroy*: proc (self: var GodotCharString)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     stringNew*: proc (dest: var GodotString)
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     stringNewCopy*: proc (dest: var GodotString, src: GodotString)
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     stringWideStr*: proc (self: GodotString): ptr cwchar_t
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     stringOperatorEqual*: proc (self, other: GodotString): bool
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     stringOperatorLess*: proc (self, other: GodotString): bool
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     stringOperatorPlus*: proc (self, other: GodotString): GodotString
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     stringLength*: proc (self: GodotString): cint
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     stringDestroy*: proc (self: var GodotString)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     stringUtf8*: proc (self: GodotString): GodotCharString
-                     {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                     {.noconv, raises: [], gcsafe, tags: [], .}
     stringCharsToUtf8*: proc (str: cstring): GodotString
-                            {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                            {.noconv, raises: [], gcsafe, tags: [], .}
     stringCharsToUtf8WithLen*: proc (str: cstring, len: cint): GodotString
-                                    {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                                    {.noconv, raises: [], gcsafe, tags: [], .}
 
     # Misc API
     objectDestroy*: proc (self: ptr GodotObject)
-                         {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                         {.noconv, raises: [], gcsafe, tags: [], .}
     globalGetSingleton*: proc (name: cstring): ptr GodotObject
-                              {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                              {.noconv, raises: [], gcsafe, tags: [], .}
     methodBindGetMethod*: proc (className,
                                 methodName: cstring): ptr GodotMethodBind
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
     methodBindPtrCall*: proc (methodBind: ptr GodotMethodBind,
                               obj: ptr GodotObject,
                               args: ptr array[MAX_ARG_COUNT, pointer],
                               ret: pointer)
-                             {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                             {.noconv, raises: [], gcsafe, tags: [], .}
     methodBindCall*: proc (methodBind: ptr GodotMethodBind, obj: ptr GodotObject,
                            args: ptr array[MAX_ARG_COUNT, ptr GodotVariant],
                            argCount: cint,
                            callError: var VariantCallError): GodotVariant
-                          {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                          {.noconv, raises: [], gcsafe, tags: [], .}
     getClassConstructor*: proc (className: cstring): GodotClassConstructor
-                               {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                               {.noconv, raises: [], gcsafe, tags: [], .}
 
     alloc*: proc (bytes: cint): pointer
-                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                 {.noconv, raises: [], gcsafe, tags: [], .}
     realloc*: proc (p: pointer, bytes: cint): pointer
-                   {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
-    free*: proc (p: pointer) {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                   {.noconv, raises: [], gcsafe, tags: [], .}
+    free*: proc (p: pointer) {.noconv, raises: [], gcsafe, tags: [], .}
 
     printError*: proc (description, function, file: cstring, line: cint)
-                      {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                      {.noconv, raises: [], gcsafe, tags: [], .}
     printWarning*: proc (description, function, file: cstring, line: cint)
-                        {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                        {.noconv, raises: [], gcsafe, tags: [], .}
     print*: proc (message: GodotString)
-                 {.noconv, raises: [], gcsafe, tags: [], locks: 0.}
+                 {.noconv, raises: [], gcsafe, tags: [], .}
 
     nativeScriptRegisterClass*: proc (gdnativeHandle: pointer,
                                       name, base: cstring,
                                       createFunc: GodotInstanceCreateFunc,
                                       destroyFunc: GodotInstanceDestroyFunc)
                                      {.noconv, raises: [], gcsafe, tags: [],
-                                       locks: 0.}
+                                       .}
     nativeScriptRegisterToolClass*: proc (gdnativeHandle: pointer,
                                           name, base: cstring,
                                           createFunc: GodotInstanceCreateFunc,
                                           destroyFunc: GodotInstanceDestroyFunc)
                                          {.noconv, raises: [], gcsafe, tags: [],
-                                           locks: 0.}
+                                           .}
     nativeScriptRegisterMethod*: proc (gdnativeHandle: pointer,
                                        name, functionName: cstring,
                                        attr: GodotMethodAttributes,
                                        meth: GodotInstanceMethod)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     nativeScriptRegisterProperty*: proc (gdnativeHandle: pointer,
                                          name, path: cstring,
                                          attr: ptr GodotPropertyAttributes,
                                          setFunc: GodotPropertySetFunc,
                                          getFunc: GodotPropertyGetFunc)
                                         {.noconv, raises: [], gcsafe, tags: [],
-                                          locks: 0.}
+                                          .}
     nativeScriptRegisterSignal*: proc (gdnativeHandle: pointer, name: cstring,
                                        signal: GodotSignal)
                                       {.noconv, raises: [], gcsafe, tags: [],
-                                        locks: 0.}
+                                        .}
     nativeScriptGetUserdata*: proc (obj: ptr GodotObject): pointer
                                    {.noconv, raises: [], gcsafe, tags: [],
-                                     locks: 0.}
+                                     .}
 
 {.push stackTrace: off.}
 proc toColor*(val: ColorData): Color {.inline, noinit.} =

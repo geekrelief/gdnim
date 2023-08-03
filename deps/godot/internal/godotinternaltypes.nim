@@ -307,7 +307,7 @@ type
     defaultArgs*: ptr GodotVariant
 
   GodotClassConstructor* = proc (): ptr GodotObject {.
-    noconv, gcsafe, locks: 0, raises: [], tags: [].}
+    noconv, gcsafe, raises: [], tags: [].}
 
 template offset*[T](p: ptr T, offset: int): ptr T =
   cast[ptr T](cast[ByteAddress](p) +% (offset * sizeof(T)))

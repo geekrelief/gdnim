@@ -762,8 +762,6 @@ proc doGenerateMethod(tree: PNode, methodBindRegistry: var HashSet[string],
   if not withImplementation:
     let pragma = newPNode(nkPragma)
     pragma.add(ident("gcsafe"))
-    pragma.add(newPNode(nkExprColonExpr).addChain(ident("locks"),
-                                                newIntLit(0)))
     if meth.isVirtual and meth.isBase and meth.typ.name != "PhysicsBody":
       # Nim doesn't like `base` on PhysicsBody methods - wtf
       pragma.add(ident("base"))

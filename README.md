@@ -2,8 +2,6 @@
 
 gdnim is a testbed for experimental features for [godot-nim] projects that implements hot reloading of dlls as well as features for ease of development.
 
-**WARNING** gdnim is not battle tested / production ready. Use [godot-nim] if you need something stable.
-
 *NOTE* A new macro `gdnim` was added to replace `gdobj` for defining classes. See the `gdobj` branch for the old samples.
 
 - [Gdnim](#gdnim)
@@ -29,9 +27,9 @@ gdnim is a testbed for experimental features for [godot-nim] projects that imple
 ## Why? ##
 
 The goal is to streamline and speed up the process of development for [godot-nim] by adding experimental features like:
+  - support for Nim 2.0 ARC/ORC
   - hot reloading
   - match gdscript features, e.g.: signal declarations, async signal handling, field accessors
-  - support for modern Nim e.g.: gc:ORC support, IC
   - reducing boilerplate, error proneness:
     - file watcher recompiles on save
     - generation of files for scripts and editor plugins (.nim, .gdns, .tscn, etc)
@@ -67,7 +65,7 @@ For a new project (sample code removed), branching from `master`: `./build init 
   - [nim](https://github.com/nim-lang/Nim) use stable or devel 3b963a81,
     - the commit after breaks `{.pure.}`. [bug report](https://github.com/nim-lang/Nim/issues/16462)
   - Nim Libraries (downloaded with `./build prereqs`)
-    - [compiler](https://nimble.directory/pkg/compiler)
+    - [nim](https://nimble.directory/pkg/nim) This used to be the 'compiler' package pre Nim 2.0. You will need to remove the 'compiler' package for gdnim to generate the godotapi.
     - [msgpack4nim](https://nimble.directory/pkg/msgpack4nim)
     - [PMunch optionsutils](https://github.com/PMunch/nim-optionsutils)
   - gcc is the default
