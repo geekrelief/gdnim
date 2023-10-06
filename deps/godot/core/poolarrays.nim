@@ -64,7 +64,7 @@ import arrays
 
 template definePoolArray(T, GodotT, DataT, fieldName, newProcName, initProcName;
                          noData = false) =
-  proc newProcName*(arr: Array): T {.inline.} =
+  proc newProcName*(arr: arrays.Array): T {.inline.} =
     #new(result, poolArrayFinalizer)
     new(result)
     initProcName(result.fieldName, arr.godotArray[])

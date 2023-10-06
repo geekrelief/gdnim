@@ -9,7 +9,7 @@ import godotcoretypes, gdnativeapi
 {.push stackTrace: off.}
 
 proc initRect2*(): Rect2 {.inline, noinit.} =
-  Rect2()
+  godotcoretypes.Rect2()
 
 proc initRect2*(pos, size: Vector2): Rect2 {.inline, noinit.} =
   Rect2(position: pos, size: size)

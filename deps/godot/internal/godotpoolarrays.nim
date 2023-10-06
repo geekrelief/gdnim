@@ -46,11 +46,11 @@ template genPoolArrayAPI(ArrayT, initIdent, DataT,
 
   proc `[]`*(self: ArrayT; idx: cint): DataT {.inline.} =
     let data = getGDNativeAPI().getProc(self, idx)
-    when DataT is Color:
+    when DataT is godotcoretypes.Color:
       data.toColor()
-    elif DataT is Vector2:
+    elif DataT is godotcoretypes.Vector2:
       data.toVector2()
-    elif DataT is Vector3:
+    elif DataT is godotcoretypes.Vector3:
       data.toVector3()
     else:
       data
@@ -202,7 +202,7 @@ genPoolArrayAPI(GodotPoolStringArray, initGodotPoolStringArray, GodotString,
                 poolStringArrayReadAccessDestroy,
                 poolStringArrayWriteAccessDestroy)
 
-genPoolArrayAPI(GodotPoolVector2Array, initGodotPoolVector2Array, Vector2,
+genPoolArrayAPI(GodotPoolVector2Array, initGodotPoolVector2Array, godotcoretypes.Vector2,
                 poolVector2ArrayNew,
                 poolVector2ArrayNewCopy,
                 poolVector2ArrayNewWithArray,
@@ -224,7 +224,7 @@ genPoolArrayAPI(GodotPoolVector2Array, initGodotPoolVector2Array, Vector2,
                 poolVector2ArrayReadAccessDestroy,
                 poolVector2ArrayWriteAccessDestroy)
 
-genPoolArrayAPI(GodotPoolVector3Array, initGodotPoolVector3Array, Vector3,
+genPoolArrayAPI(GodotPoolVector3Array, initGodotPoolVector3Array, godotcoretypes.Vector3,
                 poolVector3ArrayNew,
                 poolVector3ArrayNewCopy,
                 poolVector3ArrayNewWithArray,
@@ -246,7 +246,7 @@ genPoolArrayAPI(GodotPoolVector3Array, initGodotPoolVector3Array, Vector3,
                 poolVector3ArrayReadAccessDestroy,
                 poolVector3ArrayWriteAccessDestroy)
 
-genPoolArrayAPI(GodotPoolColorArray, initGodotPoolColorArray, Color,
+genPoolArrayAPI(GodotPoolColorArray, initGodotPoolColorArray, godotcoretypes.Color,
                 poolColorArrayNew,
                 poolColorArrayNewCopy,
                 poolColorArrayNewWithArray,

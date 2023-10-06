@@ -71,38 +71,38 @@ type
   GodotCharString* {.byref.} = object
     data: array[sizeof(int), byte]
 
-  VariantType* {.size: sizeof(cint), pure.} = enum
-    Nil,   ##  atomic types
-    Bool,
-    Int,
-    Real,
-    String,
+  VariantType* {.size: sizeof(cint).} = enum
+    VTNil,   ##  atomic types
+    VTBool,
+    VTInt,
+    VTReal,
+    VTString,
     # math types
-    Vector2, ##  5
-    Rect2,
-    Vector3,
-    Transform2D,
-    Plane,
-    Quat, ##  10
-    AABB,
-    Basis,
-    Transform, ##  misc types
-    Color,
-    NodePath, ##  15
-    RID,
-    Object,
-    Dictionary,
-    Array,
+    VTVector2, ##  5
+    VTRect2,
+    VTVector3,
+    VTTransform2D,
+    VTPlane,
+    VTQuat, ##  10
+    VTAABB,
+    VTBasis,
+    VTTransform, ##  misc types
+    VTColor,
+    VTNodePath, ##  15
+    VTRID,
+    VTObject,
+    VTDictionary,
+    VTArray,
     # arrays
-    PoolByteArray, ## 20
-    PoolIntArray,
-    PoolRealArray,
-    PoolStringArray,
-    PoolVector2Array,
-    PoolVector3Array, ## 25
-    PoolColorArray
+    VTPoolByteArray, ## 20
+    VTPoolIntArray,
+    VTPoolRealArray,
+    VTPoolStringArray,
+    VTPoolVector2Array,
+    VTPoolVector3Array, ## 25
+    VTPoolColorArray
 
-  VariantCallErrorType* {.size: sizeof(cint), pure.} = enum
+  VariantCallErrorType* {.size: sizeof(cint).} = enum
     OK,
     InvalidMethod,
     InvalidArgument,
@@ -141,7 +141,7 @@ type
   GDNativeTerminateOptions* = object
     inEditor*: bool
 
-  GodotMethodRPCMode* {.size: sizeof(cint), pure.} = enum
+  GodotMethodRPCMode* {.size: sizeof(cint).} = enum
     Disabled,
     Remote,
     Sync,
@@ -151,7 +151,7 @@ type
   GodotMethodAttributes* = object
     rpcMode*: GodotMethodRPCMode
 
-  GodotPropertyHint* {.size: sizeof(cint), pure.} = enum
+  GodotPropertyHint* {.size: sizeof(cint).} = enum
     None, ## no hint provided.
     Range, ## hint_text = "min,max,step,slider; // slider is optional"
     ExpRange, ## hint_text = "min,max,step", exponential edit
@@ -220,7 +220,7 @@ const
       GODOT_PROPERTY_USAGE_STORAGE_VALUE or GODOT_PROPERTY_USAGE_NETWORK_VALUE
 
 type
-  GodotPropertyUsage* {.size: sizeof(cint), pure.} = enum
+  GodotPropertyUsage* {.size: sizeof(cint).} = enum
     Storage = GODOT_PROPERTY_USAGE_STORAGE_VALUE
     Editor = GODOT_PROPERTY_USAGE_EDITOR_VALUE
     Network = GODOT_PROPERTY_USAGE_NETWORK_VALUE

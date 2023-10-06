@@ -426,7 +426,7 @@ macro invokeVarArgs(procIdent, objIdent;
   ##     meth(self)
   ##   of 1:
   ##     let (arg0, err) = godotToNim[ArgT](argSeq[0])
-  ##     if err != ConversionResult.OK:
+  ##     if err != CROK:
   ##       error(...)
   ##       return
   ##     meth(self, arg0)
@@ -437,8 +437,8 @@ macro invokeVarArgs(procIdent, objIdent;
     let v = newVariant(argSeq[idx][])
     v.markNoDeinit() # args will be destroyed externally
     let (argIdent, errIdent) = godotToNim[argT](v)
-    if errIdent != ConversionResult.OK:
-      let errorKind = if errIdent == ConversionResult.TypeError: "a type error"
+    if errIdent != CROK:
+      let errorKind = if errIdent == CRTypeError: "a type error"
                       else: "a range error"
       printError(
         "Failed to invoke Nim procedure " & $procLit &
@@ -598,13 +598,13 @@ template registerGodotField(classNameLit, classNameIdent, propNameLit,
     variant.markNoDeinit()
     let (nimVal, err) = godotToNim[propTypeIdent](variant)
     case err:
-    of ConversionResult.OK:
+    of CROK:
       setterAssign(classNameIdent, nimPtr, propNameIdent, setterName, nimVal)
-    of ConversionResult.TypeError:
+    of CRTypeError:
       let errStr = typeError(propTypeLit, $val, val.getType(),
                              classNameLit, astToStr(propNameIdent))
       printError(errStr)
-    of ConversionResult.RangeError:
+    of CRRangeError:
       let errStr = rangeError(propTypeLit, $val,
                               classNameLit, astToStr(propNameIdent))
       printError(errStr)

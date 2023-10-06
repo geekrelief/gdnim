@@ -47,7 +47,7 @@ type
   RID* {.byref.} = object
     data: array[sizeof(int), byte]
 
-  Error* {.size: sizeof(cint), pure.} = enum
+  Error* {.size: sizeof(cint).} = enum
     OK,
     Failed,    ## Generic fail error
     Unavailable,    ## What is requested is unsupported/unavailable

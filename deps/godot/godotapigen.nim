@@ -707,8 +707,7 @@ proc doGenerateMethod(tree: PNode, methodBindRegistry: var HashSet[string],
               newCall("fromVariant", ident("result"),
                       newCall("newVariant", retValIdent))))
       let convCheck = newIfStmt(
-        infix(ident("convErr"), ident("!="),
-                 newDotExpr(ident("ConversionResult"), ident("OK"))),
+        infix(ident("convErr"), ident("!="), ident("CROK")),
         newPNode(nkRaiseStmt).addChain(
           newCall("newConversionError", ident("convErr")))
       )

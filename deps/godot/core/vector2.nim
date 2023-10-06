@@ -10,7 +10,7 @@ const EPSILON = 0.00001'f32
 {.push stackTrace: off.}
 
 proc vec2*(): Vector2 {.inline, noinit.} =
-  Vector2()
+  godotcoretypes.Vector2()
 
 proc vec2*(x, y: float32): Vector2 {.inline, noinit.} =
   Vector2(x: x, y: y)

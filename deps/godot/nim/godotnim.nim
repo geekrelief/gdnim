@@ -46,12 +46,12 @@ type
     isFinalized: bool
     isNative: bool
 
-  ConversionResult* {.pure.} = enum
+  ConversionResult* = enum
     ## Conversion result to return from ``fromVariant`` procedure.
-    OK,
-    TypeError,
+    CROK,
+    CRTypeError,
       ## Type mismatch
-    RangeError
+    CRRangeError
       ## Types match, but the value is out of range.
       ## Mainly used for numeric (ordinal) types.
 
@@ -410,7 +410,7 @@ proc newOwnObj[T: NimGodotObject](name: cstring): T =
   var ret = newMethod.call(newNativeScript, nil, 0, err)
   if err.error != VariantCallErrorType.OK:
     printError("Failed to invoke 'new' on NativeScript for " & $name)
-  elif ret.getType() != VariantType.Object:
+  elif ret.getType() != VTObject:
     printError("Expected that NativeScript::new returns Object, " &
                "but it returned: " & $ret.getType())
   else:
@@ -456,11 +456,11 @@ proc newConversionError*(err: ConversionResult): ref ValueError =
   ## Instantiates error raised by `godotapigen <godotapigen.html>`_
   ## generated code in case of a conversion error.
   let msg = case err:
-    of ConversionResult.TypeError:
+    of CRTypeError:
       "Failed to convert the return value into Nim type"
-    of ConversionResult.RangeError:
+    of CRRangeError:
       "The returned value was out of bounds"
-    of ConversionResult.OK:
+    of CROK:
       "OK"
 
   result = newException(ValueError, msg)
@@ -499,7 +499,7 @@ proc godotObject*(nimObj: NimGodotObject): ptr GodotObject {.inline.} =
 
 proc godotTypeInfo*(T: typedesc[NimGodotObject]): GodotTypeInfo {.inline.} =
   GodotTypeInfo(
-    variantType: VariantType.Object,
+    variantType: VTObject,
     hint: when isResource(T): GodotPropertyHint.ResourceType
           else: GodotPropertyHint.None,
     hintStr: toGodotName(T)
@@ -513,15 +513,15 @@ proc toVariant*(self: NimGodotObject): Variant {.inline.} =
 
 proc fromVariant*[T: NimGodotObject](self: var T,
                                      val: Variant): ConversionResult =
-  if val.getType() == VariantType.Object:
+  if val.getType() == VTObject:
     let objPtr = val.asGodotObject()
     self = asNimGodotObject[T](objPtr)
     if self.isNil:
-      result = ConversionResult.TypeError
-  elif val.getType() == VariantType.Nil:
+      result = CRTypeError
+  elif val.getType() == VTNil:
     self = nil
   else:
-    result = ConversionResult.TypeError
+    result = CRTypeError
 
 proc toVariant*(self: Variant): Variant {.inline.} =
   if self.isNil:
@@ -536,63 +536,63 @@ proc fromVariant*(self: var Variant,
 proc godotTypeInfo*(T: typedesc[SomeGodotOrNum]): GodotTypeInfo {.inline.} =
   result.variantType =
     when T is SomeSignedInt or T is SomeUnsignedInt:
-      VariantType.Int
+      VTInt
     elif T is bool:
-      VariantType.Bool
+      VTBool
     elif T is SomeFloat:
-      VariantType.Real
+      VTReal
     elif T is string or T is GodotString:
-      VariantType.String
+      VTString
     elif T is Vector2:
-      VariantType.Vector2
+      VTVector2
     elif T is Rect2:
-      VariantType.Rect2
+      VTRect2
     elif T is Vector3:
-      VariantType.Vector3
+      VTVector3
     elif T is Transform2D:
-      VariantType.Transform2D
+      VTTransform2D
     elif T is Plane:
-      VariantType.Plane
+      VTPlane
     elif T is Quat:
-      VariantType.Quat
+      VTQuat
     elif T is AABB:
-      VariantType.AABB
+      VTAABB
     elif T is Basis:
-      VariantType.Basis
+      VTBasis
     elif T is Transform:
-      VariantType.Transform
+      VTTransform
     elif T is Color:
-      VariantType.Color
+      VTColor
     elif T is RID:
-      VariantType.RID
+      VTRID
     elif T is ptr GodotObject:
-      VariantType.Object
+      VTObject
     elif T is NodePath:
-      VariantType.NodePath
+      VTNodePath
     elif T is Dictionary:
-      VariantType.Dictionary
+      VTDictionary
     elif T is Array:
-      VariantType.Array
+      VTArray
     elif T is PoolByteArray:
-      VariantType.PoolByteArray
+      VTPoolByteArray
     elif T is PoolIntArray:
-      VariantType.PoolIntArray
+      VTPoolIntArray
     elif T is PoolRealArray:
-      VariantType.PoolRealArray
+      VTPoolRealArray
     elif T is PoolStringArray:
-      VariantType.PoolStringArray
+      VTPoolStringArray
     elif T is PoolVector2Array:
-      VariantType.PoolVector2Array
+      VTPoolVector2Array
     elif T is PoolVector3Array:
-      VariantType.PoolVector3Array
+      VTPoolVector3Array
     elif T is PoolColorArray:
-      VariantType.PoolColorArray
+      VTPoolColorArray
     else:
-      VariantType.Nil
+      VTNil
 
 proc godotTypeInfo*(T: typedesc[range]): VariantType {.inline.} =
   GodotTypeInfo(
-    variantType: VariantType.Int,
+    variantType: VTInt,
     hint: GodotPropertyHint.Range,
     hintStr: $low(T) & "," & $high(T) & ",1"
   )
@@ -608,9 +608,9 @@ proc toVariant*[T: SomeGodotOrNum](val: T): Variant {.inline.} =
 
 proc fromVariant*[T: SomeSignedInt or SomeUnsignedInt](
     self: var T, val: Variant): ConversionResult =
-  if val.getType() == VariantType.Nil:
+  if val.getType() == VTNil:
     self = 0
-  elif val.getType() == VariantType.Int or val.getType() == VariantType.Real:
+  elif val.getType() == VTInt or val.getType() == VTReal:
     # Real is allowed, because that's what the editor sets for Int values
     var intVal: (when T is SomeSignedInt: int64
                  else: uint64)
@@ -621,15 +621,15 @@ proc fromVariant*[T: SomeSignedInt or SomeUnsignedInt](
     const lowT = when T is SomeSignedInt: low(T).int64
                  else: low(T).uint64
     if intVal > highT or intVal < lowT:
-      result = ConversionResult.RangeError
+      result = CRRangeError
     else:
       self = T(intVal)
   else:
-    result = ConversionResult.TypeError
+    result = CRTypeError
 
 proc godotTypeInfo*(T: typedesc[enum]): GodotTypeInfo =
   result = GodotTypeInfo(
-    variantType: VariantType.Int,
+    variantType: VTInt,
     hint: GodotPropertyHint.Enum,
     hintStr: ""
   )
@@ -645,23 +645,23 @@ proc fromVariant*[T: enum](self: var T,
                            val: Variant): ConversionResult {.inline.} =
   var intConv: int64
   result = fromVariant(intConv, val)
-  if result == ConversionResult.OK:
+  if result == CROK:
     self = T(intConv)
 
 proc fromVariant*[T: SomeFloat](self: var T, val: Variant): ConversionResult =
-  if val.getType() == VariantType.Nil:
+  if val.getType() == VTNil:
     self = 0
-  elif val.getType() == VariantType.Real or val.getType() == VariantType.Int:
+  elif val.getType() == VTReal or val.getType() == VTInt:
     self = T(val.asReal())
   else:
-    result = ConversionResult.TypeError
+    result = CRTypeError
 
 proc fromVariant*[T: SomeGodot](self: var T, val: Variant): ConversionResult =
-  if val.getType() == VariantType.Nil:
+  if val.getType() == VTNil:
     return
   const typeInfo = godotTypeInfo(T)
   if typeInfo.variantType != val.getType():
-    return ConversionResult.TypeError
+    return CRTypeError
   when self is bool:
     self = val.asBool()
   elif self is Vector2:
@@ -715,24 +715,24 @@ proc fromVariant*[T: SomeGodot](self: var T, val: Variant): ConversionResult =
     result = ConversionError.TypeError
 
 proc godotTypeInfo*(T: typedesc[string]): GodotTypeInfo  {.inline.} =
-  result.variantType = VariantType.String
+  result.variantType = VTString
 
 proc toVariant*(s: string): Variant {.inline.} =
   newVariant(s)
 
 proc fromVariant*(s: var string, val: Variant): ConversionResult =
-  if val.getType() == VariantType.String:
+  if val.getType() == VTString:
     s = val.asString()
-  elif val.getType() == VariantType.Nil:
+  elif val.getType() == VTNil:
     when (NimMajor, NimMinor, NimPatch) < (0, 19, 0):
       s = nil
     else:
       s = ""
   else:
-    result = ConversionResult.TypeError
+    result = CRTypeError
 
 template arrTypeInfo(T) =
-  result.variantType = VariantType.Array
+  result.variantType = VTArray
   mixin godotTypeInfo
   type ItemT = type((
     block:
@@ -767,46 +767,46 @@ proc toVariant*[I, T](s: array[I, T]): Variant =
   result = arrayToVariant(s)
 
 proc fromVariant*[T](s: var seq[T], val: Variant): ConversionResult =
-  if val.getType() == VariantType.Nil:
+  if val.getType() == VTNil:
     when (NimMajor, NimMinor, NimPatch) < (0, 19, 0):
       s = nil
     else:
       s = @[] # seq can't be nil in modern nim
-  elif val.getType() == VariantType.Array:
+  elif val.getType() == VTArray:
     let arr = val.asArray()
     var newS = newSeq[T](arr.len)
     for idx, item in arr:
       mixin fromVariant
       let convResult = fromVariant(newS[idx], item)
-      if convResult != ConversionResult.OK:
+      if convResult != CROK:
         return convResult
     s = newS
   else:
-    result = ConversionResult.TypeError
+    result = CRTypeError
 
 proc fromVariant*[T: array](s: var T, val: Variant): ConversionResult =
-  if val.getType() == VariantType.Nil:
+  if val.getType() == VTNil:
     discard
-  elif val.getType() == VariantType.Array:
+  elif val.getType() == VTArray:
     let arr = val.asArray()
     if s.len != arr.len:
-      return ConversionResult.TypeError
+      return CRTypeError
     var nimIdx = low(s) # may not start from 0 and may even be an enum
     for item in arr:
       mixin fromVariant
       let convResult = fromVariant(s[nimIdx], item)
-      if convResult != ConversionResult.OK:
+      if convResult != CROK:
         return convResult
       if nimIdx != high(s):
         inc nimIdx
   else:
-    result = ConversionResult.TypeError
+    result = CRTypeError
 
 proc godotTypeInfo*[T](OptT: typedesc[Option[T]]): GodotTypeInfo =
   when compiles(godotTypeInfo(T)):
     result.variantType = godotTypeInfo(T)
   else:
-    result.variantType = VariantType.Nil
+    result.variantType = VTNil
 
 proc toVariant*[T](option: Option[T]): Variant =
   if option.isSome():
@@ -815,16 +815,16 @@ proc toVariant*[T](option: Option[T]): Variant =
     result = newVariant()
 
 proc fromVariant*[T](option: var Option[T], val: Variant): ConversionResult =
-  if val.getType() == VariantType.Nil:
+  if val.getType() == VTNil:
     option = none(T)
   else:
     var v: T
     result = fromVariant(v, val)
-    if result == ConversionResult.OK:
+    if result == CROK:
       option = some(result)
 
 proc godotTypeInfo*(T: typedesc[Table|TableRef|OrderedTable|OrderedTableRef]): GodotTypeInfo {.inline.} =
-  result.variantType = VariantType.Dictionary
+  result.variantType = VTDictionary
 
 proc toVariant*[T: Table or TableRef or OrderedTable or OrderedTableRef](t: T): Variant =
   when t is ref:
@@ -838,10 +838,10 @@ proc toVariant*[T: Table or TableRef or OrderedTable or OrderedTableRef](t: T): 
 
 proc fromVariant*[T: Table or TableRef or OrderedTable or OrderedTableRef](t: var T,
                                         val: Variant): ConversionResult =
-  if val.getType() == VariantType.Nil:
+  if val.getType() == VTNil:
     when t is ref:
       t = nil
-  elif val.getType() == VariantType.Dictionary:
+  elif val.getType() == VTDictionary:
     let dict = val.asDictionary()
     mixin fromVariant
     when t is Table:
@@ -856,18 +856,18 @@ proc fromVariant*[T: Table or TableRef or OrderedTable or OrderedTableRef](t: va
       var nimKey: type(t.keys())
       var nimVal: type(t.values())
       let keyResult = fromVariant(nimKey, k)
-      if keyResult != ConversionResult.OK:
+      if keyResult != CROK:
         when t is ref:
           t = nil
         return keyResult
       let valResult = fromVariant(nimVal, v)
-      if valResult != ConversionResult.OK:
+      if valResult != CROK:
         when t is ref:
           t = nil
         return valResult
       t[nimKey] = nimVal
   else:
-    result = ConversionResult.TypeError
+    result = CRTypeError
 
 var nativeLibHandle: pointer
 proc getNativeLibHandle*(): pointer =
